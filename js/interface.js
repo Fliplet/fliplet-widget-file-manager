@@ -82,9 +82,11 @@ $('#app')
       folderId: currentFolderId,
       name: file.name,
       data: formData
-    }).then(function (file) {
+    }).then(function (files) {
       $input.val('');
-      addFile(file);
+      files.forEach(function (file) {
+        addFile(file);
+      });
     });
   });
 
