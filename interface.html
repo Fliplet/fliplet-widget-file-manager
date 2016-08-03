@@ -1,14 +1,26 @@
 <div id="app">
-  <h1>Folders</h1>
-  <h2>/</h2>
   <div id="folder-contents"></div>
   <hr />
-  <button id="create-folder">Create new folder</button>
+  <button data-create-folder class="btn btn-primary">Create new folder</button>
+  <hr />
+  <form data-upload-file>
+    <input type="file" placeholder="File" />
+    <button class="btn btn-primary">Upload file</button>
+  </form>
 </div>
 
 <template id="template-folder">
   <li class="folder" data-id="\{{id}}">
+    <h3>
+      <a href="#" data-browse-folder>\{{name}}</a>
+    </h3>
+    <a href="#" class="btn btn-danger" data-delete-folder>Delete folder</a>
+  </li>
+</template>
+
+<template id="template-file">
+  <li class="file" data-id="\{{id}}" data-folder="\{{folder}}">
     <h3>\{{name}}</h3>
-    <a href="#" data-delete-folder>Delete folder</a>
+    <a href="#" class="btn btn-danger" data-delete-file>Delete file</a>
   </li>
 </template>
