@@ -11,8 +11,9 @@ function getFolderContents(folderId) {
 
   Fliplet.Media.Folders.get({
     folderId: currentFolderId
-  }).then(function (folders) {
-    folders.forEach(addFolder);
+  }).then(function (response) {
+    response.folders.forEach(addFolder);
+    response.files.forEach(addFile);
   });
 }
 
