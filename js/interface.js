@@ -1,20 +1,55 @@
-$('form').submit(function (event) {
-  event.preventDefault();
+// $('form').submit(function (event) {
+//   event.preventDefault();
 
-  Fliplet.Widget.save({
-    // TODO
-  }).then(function () {
-    Fliplet.Widget.complete();
+//   Fliplet.Widget.save({
+//     // TODO
+//   }).then(function () {
+//     Fliplet.Widget.complete();
+//   });
+// });
+
+// // Fired from Fliplet Studio when the external save button is clicked
+// Fliplet.Widget.onSaveRequest(function () {
+//   // TODO
+// });
+
+/////
+
+var $folderContents = $('#folder-contents');
+var templates = {
+  folder: template('folder')
+};
+
+function getFolderContents() {
+  Fliplet.Media.Folders.get().then(function (folders) {
+    folders.forEach(addFolder);
   });
-});
+}
 
-// Fired from Fliplet Studio when the external save button is clicked
-Fliplet.Widget.onSaveRequest(function () {
-  // TODO
-});
+function addFolder(folder) {
+  $folderContents.append(templates.folder(folder));
+}
 
-Fliplet.Media.Folders.get().then(function (folders) {
-  folders.forEach(function (folder) {
-    $('#folders').append('<p>' + folder.name + '</p>');
+function template(name) {
+  return Handlebars.compile($('#template-' + name).html());
+}
+
+// events
+$('#app')
+  .on('click', '[data-delete-folder]', function (event) {
+    event.preventDefault();
+    var $item = $(this).closest('li');
+
+    Fliplet.Media.Folders.delete().then(function () {
+      $item.remove();
+    });
+  })
+  .on('click', '#create-folder', function (event) {
+    event.preventDefault();
+    Fliplet.Media.Folders.create({
+      name: prompt('Type folder name')
+    }).then(addFolder);
   });
-});
+
+// init
+getFolderContents();

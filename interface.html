@@ -1,6 +1,14 @@
-<div>
-  This is the interface of your file-manager widget.
-  <form>
-    <div id="folders"></div>
-  </form>
+<div id="app">
+  <h1>Folders</h1>
+  <h2>/</h2>
+  <div id="folder-contents"></div>
+  <hr />
+  <button id="create-folder">Create new folder</button>
 </div>
+
+<template id="template-folder">
+  <li class="folder" data-id="\{{id}}">
+    <h3>\{{name}}</h3>
+    <a href="#" data-delete-folder>Delete folder</a>
+  </li>
+</template>

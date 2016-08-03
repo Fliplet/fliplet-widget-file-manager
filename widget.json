@@ -11,6 +11,7 @@
       "fliplet-studio-ui"
     ],
     "assets": [
+      "vendor/handlebars.js",
       "js/interface.js"
     ]
   },
