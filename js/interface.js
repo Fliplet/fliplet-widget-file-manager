@@ -55,8 +55,14 @@ $('#app')
   })
   .on('click', '[data-create-folder]', function (event) {
     event.preventDefault();
+    var folderName = prompt('Type folder name');
+
+    if (!folderName) {
+      return;
+    }
+
     Fliplet.Media.Folders.create({
-      name: prompt('Type folder name'),
+      name: folderName,
       parentId: currentFolderId || undefined
     }).then(addFolder);
   })
