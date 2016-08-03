@@ -9,6 +9,8 @@ function getFolderContents(folderId) {
   currentFolderId = folderId;
   $folderContents.html('');
 
+  $('[data-upload-file]').toggle(!!folderId);
+
   Fliplet.Media.Folders.get({
     folderId: currentFolderId
   }).then(function (response) {
