@@ -1,0 +1,21 @@
+{
+  "name": "File Manager",
+  "package": "file-manager",
+  "version": "1.0.0",
+  "icon": "img/icon.png",
+  "tags": ["type:component", "category:general"],
+  "provider_only": true,
+  "interface": {
+    "dependencies": [
+      "fliplet-media",
+      "fliplet-studio-ui"
+    ],
+    "assets": [
+      "js/interface.js"
+    ]
+  },
+  "build": {
+    "dependencies": [],
+    "assets": []
+  }
+}
