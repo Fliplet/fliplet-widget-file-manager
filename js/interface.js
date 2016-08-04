@@ -4,9 +4,13 @@ var templates = {
   folder: template('folder')
 };
 var currentFolderId;
+var currentFolders;
+var currentFiles;
 
 function getFolderContents(folderId) {
   currentFolderId = folderId;
+  currentFolders = [];
+  currentFiles = [];
   $folderContents.html('');
 
   $('[data-upload-file]').toggle(!!folderId);
@@ -20,10 +24,12 @@ function getFolderContents(folderId) {
 }
 
 function addFolder(folder) {
+  currentFolders.push(folder);
   $folderContents.append(templates.folder(folder));
 }
 
 function addFile(file) {
+  currentFiles.push(file);
   $folderContents.append(templates.file(file));
 }
 
@@ -44,6 +50,15 @@ $('#app')
     Fliplet.Media.Folders.delete($item.data('id')).then(function () {
       $item.remove();
     });
+  })
+  .on('click', '[data-select-file]', function (event) {
+    event.preventDefault();
+    var id = $(this).closest('li').data('id');
+    currentFiles.forEach(function (file) {
+      if (file.id === id) {
+        Fliplet.Widget.save(file).then(Fliplet.Widget.complete);
+      }
+    })
   })
   .on('click', '[data-delete-file]', function (event) {
     event.preventDefault();
