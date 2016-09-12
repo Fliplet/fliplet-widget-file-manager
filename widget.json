@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "icon": "img/icon.png",
   "tags": ["type:component", "category:general"],
-  "provider_only": true,
+  "provider_only": false,
   "interface": {
     "dependencies": [
       "fliplet-media",
@@ -12,6 +12,7 @@
     ],
     "assets": [
       "vendor/handlebars.js",
+      "vendor/tether.min.js",
       "js/interface.js",
       "css/interface.css"
     ]

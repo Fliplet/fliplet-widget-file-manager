@@ -1,28 +1,222 @@
-<div id="app">
-  <div id="folder-contents"></div>
-  <hr />
-  <button data-create-folder class="btn btn-primary">Create new folder</button>
-  <hr />
-  <form data-upload-file>
-    <input type="file" placeholder="File" />
-    <button class="btn btn-primary">Upload file</button>
-  </form>
+<div class="file-manager-wrapper">
+
+  <div class="file-manager-header">
+    <h1><i class="fa fa-folder" aria-hidden="true"></i> File Manager</h1>
+    <div class="sort-search-holder">
+      <div class="form-group">
+        <label for="sort-files" class="select-proxy-display">
+          <span class="icon fa fa-chevron-down"></span>
+          <span class="select-value-proxy">Show all file types</span>
+          <select name="sort_files" id="sort-files" data-label="select" class="hidden-select form-control">
+            <option selected value="all">Show all file types</option>
+            <option value="documents">Show only document files</option>
+            <option value="images">Show only images</option>
+            <option value="videos">Show only video files</option>
+            <option value="audio">Show only audio files</option>
+            <option value="fonts">Show only fonts</option>
+          </select>
+        </label>
+      </div>
+      <div class="form-group">
+        <input type="search" class="form-control file-manager-search" id="file_search" name="file-search" placeholder="Search all files">
+        <button class="btn btn-primary search-files-btn"><i class="fa fa-search" aria-hidden="true"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="file-manager-body">
+    <div class="file-manager-leftside">
+      <div class="btn btn-primary new-btn">New</div>
+      <div class="new-menu">
+        <ul>
+          <li data-create-folder><i class="fa fa-plus-circle" aria-hidden="true"></i> Create new folder</li>
+          <hr>
+          <li>
+            <form data-upload-file>
+              <input type="file" name="files[]" id="file_upload" multiple />
+              <label id="choose-file" for="file_upload">
+                <i class="fa fa-cloud-upload" aria-hidden="true"></i> Upload new file
+              </label>
+            </form>
+          </li>
+        </ul>
+      </div>
+      <div class="dropdown-menu-holder">
+        <ul>
+          <li class="active" data-type="organisation">
+            <div class="list-holder clearfix">
+              <i class="fa fa-chevron-right" aria-hidden="true"></i>
+              <div class="list-text-holder">
+                <span>Riverbed</span>
+                <p>Organisation</p>
+              </div>
+            </div>
+            <ul class="folder-list">
+              <!-- FOLDER LIST WILL BE HERE -->
+
+            </ul>
+          </li>
+          <li class="no-subfolder" data-type="app">
+            <div class="list-holder clearfix">
+              <i class="fa fa-chevron-right" aria-hidden="true"></i>
+              <div class="list-text-holder">
+                <span>August Event</span>
+                <p>App</p>
+              </div>
+            </div>
+          </li>
+          <li class="no-subfolder" data-type="app">
+            <div class="list-holder clearfix">
+              <i class="fa fa-chevron-right" aria-hidden="true"></i>
+              <div class="list-text-holder">
+                <span>Monthly Report</span>
+                <p>App</p>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="file-manager-middleholder">
+      <div class="file-manager-subheader">
+        <div class="header-breadcrumbs">
+          Riverbed <i class="fa fa-angle-right" aria-hidden="true"></i> <strong>Old stuff</strong>
+        </div>
+      </div>
+      <div class="file-manager-filelist">
+        <div class="f-a">
+          <div class="f-b">
+            <div class="f-c">
+              <div class="file-table">
+
+                <div class="file-table-placeholder">
+                  <div class="file-col"></div>
+                  <div class="file-col file-owner"></div>
+                  <div class="file-col file-date"></div>
+                  <div class="file-col file-size"></div>
+                  <div class="file-col file-options"></div>
+                </div>
+
+                <div class="file-table-header">
+                  <div>
+                    <div class="file-cell">
+                      <div class="file-name">
+                        Name
+                      </div>
+                    </div>
+                    <div class="file-cell">
+                      <div class="file-owner">
+                        Owner
+                      </div>
+                    </div>
+                    <div class="file-cell">
+                      <div class="file-date">
+                        Last modified
+                      </div>
+                    </div>
+                    <div class="file-cell">
+                      <div class="file-size">
+                        File size
+                      </div>
+                    </div>
+                    <div class="file-cell">
+                      <div class="file-options"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="file-table-body">
+                  <!-- FOLDER CONTENT WILL BE HERE -->
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="file-manager-rightside"></div>
+    </div>
+  </div>
+
+  <div class="file-options-menu" id="file-options-menu" data-file-id>
+    <ul>
+      <li id="view-file">View</li>
+      <li id="rename-file">Rename</li>
+      <li id="move-file">Move to...</li>
+      <li id="delete-file">Delete</li>
+    </ul>
+  </div>
+
 </div>
 
 <template id="template-folder">
-  <li class="folder" data-id="\{{id}}">
-    <h3>
-      <a href="#" data-browse-folder>\{{name}}</a>
-    </h3>
-    <a href="#" class="btn btn-danger" data-delete-folder>Delete folder</a>
-  </li>
+  <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}">
+    <div class="file-cell">
+      <div class="file-name" data-file-type="folder" data-browse-folder>
+        \{{name}}
+      </div>
+    </div>
+    <div class="file-cell">
+      <div class="file-owner">
+        \{{owner}}
+      </div>
+    </div>
+    <div class="file-cell">
+      <div class="file-date">
+        \{{date}}
+      </div>
+    </div>
+    <div class="file-cell">
+      <div class="file-size">
+        \{{#if size}} \{{size}} \{{else}} - \{{/if}}
+      </div>
+    </div>
+    <div class="file-cell">
+      <div class="file-options">
+        <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+      </div>
+    </div>
+  </div>
 </template>
 
 <template id="template-file">
-  <li class="file" data-id="\{{id}}" data-folder="\{{mediaFolderId}}">
-    <h3>\{{name}}</h3>
-    <img src="\{{thumbnail}}" width=50 height=50/>
-    <a href="#" class="btn btn-primary" data-select-file>Select file</a>
-    <a href="#" class="btn btn-danger" data-delete-file>Delete file</a>
+  <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}">
+    <div class="file-cell">
+      <div class="file-name" data-file-type="image">
+        \{{#if thumbnail}}<img src="\{{thumbnail}}"/>\{{/if}} \{{name}}
+      </div>
+    </div>
+    <div class="file-cell">
+      <div class="file-owner">
+        \{{owner}}
+      </div>
+    </div>
+    <div class="file-cell">
+      <div class="file-date">
+        \{{date}}
+      </div>
+    </div>
+    <div class="file-cell">
+      <div class="file-size">
+        \{{size}}
+      </div>
+    </div>
+    <div class="file-cell">
+      <div class="file-options">
+        <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="template-folder-item">
+  <li data-type="folder" data-folder="\{{mediaFolderId}}" data-id="\{{id}}">
+    <div class="list-holder clearfix">
+      <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      <div class="list-text-holder">
+        <span>\{{name}}</span>
+      </div>
+    </div>
+    <ul></ul>
   </li>
 </template>
