@@ -164,16 +164,22 @@ $('.file-manager-wrapper')
     var $item = $('.file-row[data-id="' + itemID + '"]');
 
     if ( $item.data('file-type') == 'folder' ) {
-      Fliplet.Media.Folders.delete( $item.data('id') ).then(function () {
-        $item.remove();
-      });
+      var alertConfirmation = confirm("Are you sure you want to delete this folder?\nAll the content inside the folder will be deleted too.");
+      if (alertConfirmation == true) {
+        Fliplet.Media.Folders.delete( $item.data('id') ).then(function () {
+          $item.remove();
+        });
+      }
     } else {
-      Fliplet.Media.Files.delete({
-        fileId: $item.data('id'),
-        folderId: $item.data('folder')
-      }).then(function () {
-        $item.remove();
-      });
+      var alertConfirmation = confirm("Are you sure you want to delete this file?\nThe file will be deleted forever.");
+      if (alertConfirmation == true) {
+        Fliplet.Media.Files.delete({
+          fileId: $item.data('id'),
+          folderId: $item.data('folder')
+        }).then(function () {
+          $item.remove();
+        });
+      }
     }
   })
   .on('click', '#view-file', function() {
