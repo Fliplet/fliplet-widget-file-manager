@@ -186,7 +186,7 @@ $('.file-manager-wrapper')
   	$(this).next('.new-menu').toggleClass('active');
   })
   .on('click', '.file-options', function(event) {
-    contextualMenu($(this).parents('.file-row').data('id'));
+    contextualMenu( $(this).parents('.file-row').data('id'), $(this).parents('.file-row') );
 
     // PREVENTS SEVERAL ITEMS BEING IN ACTIVE STATE
     if ( $('.file-row').hasClass('active') ) {
@@ -233,13 +233,20 @@ $('.file-manager-wrapper')
   .on('click', '#view-file', function() {
     var itemID = $('#file-options-menu').attr('data-file-id');
     var $item = $('.file-row[data-id="' + itemID + '"]');
+    var fileURL = $item.attr('data-file-url');
 
-    // TODO: Get file info based on ID
+    window.open(fileURL, '_blank');
   });
 
 // AUX FUNCTIONS //
-function contextualMenu(fileID) {
+function contextualMenu(fileID, element) {
+  $element = element;
   $('#file-options-menu').attr('data-file-id', fileID);
+  if ( $element.attr('data-file-type') == 'folder' ) {
+    $('#file-options-menu #view-file').html('Open folder');
+  } else {
+    $('#file-options-menu #view-file').html('View file');
+  }
 }
 
 function startTether(target) {
