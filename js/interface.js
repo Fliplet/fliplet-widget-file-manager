@@ -1,14 +1,30 @@
 var $folderContents = $('.file-table-body');
-var $folderList = $('.folder-list');
+var $folderList;
+var $organizationAppList = $('.dropdown-menu-holder ul');
 var templates = {
   file: template('file'),
   folder: template('folder'),
-  folderItem: template('folder-item')
+  folderItem: template('folder-item'),
+  organizations: template('organizations'),
+  apps: template('apps')
 };
 
 var currentFolderId;
 var currentFolders;
 var currentFiles;
+
+function getOrganizationsList() {
+  Fliplet.Organizations.get().then(function (organizations) {
+    organizations.forEach(addOrganizations);
+    $folderList = $('.folder-list');
+  });
+}
+
+function getAppsList() {
+  Fliplet.Apps.get().then(function (apps) {
+    apps.forEach(addApps);
+  });
+}
 
 function getFolderContents(folderId) {
   currentFolderId = folderId;
@@ -61,6 +77,14 @@ function getListFolders(folderId, listEl) {
   });
 }
 
+function addOrganizations(organizations) {
+  $organizationAppList.append(templates.organizations(organizations));
+}
+
+function addApps(apps) {
+  $organizationAppList.append(templates.apps(apps));
+}
+
 function addFolder(folder) {
   currentFolders.push(folder);
   $folderContents.append(templates.folder(folder));
@@ -75,7 +99,15 @@ function template(name) {
   return Handlebars.compile($('#template-' + name).html());
 }
 
-// events
+// EVENTS //
+// Removes options popup by clicking elsewhere
+$(document).on("click", function(e) {
+  if ( $(e.target).is("#file-options-menu") === false && $(e.target).is(".file-options") === false ) {
+    $('.file-row.active').removeClass('active');
+    $('#file-options-menu').removeClass('active');
+  }
+});
+
 $('.file-manager-wrapper')
   .on('change', '#file_upload', function() {
     var $form = $('[data-upload-file]');
@@ -155,9 +187,25 @@ $('.file-manager-wrapper')
   })
   .on('click', '.file-options', function(event) {
     contextualMenu($(this).parents('.file-row').data('id'));
-  	$(this).parents('.file-row').toggleClass('active');
-    $('#file-options-menu').toggleClass('active');
-    startTether($(this));
+
+    // PREVENTS SEVERAL ITEMS BEING IN ACTIVE STATE
+    if ( $('.file-row').hasClass('active') ) {
+      $('.file-row.active').removeClass('active');
+      $(this).parents('.file-row').toggleClass('active');
+    } else {
+      $(this).parents('.file-row').toggleClass('active');
+    }
+
+    // PREVENTS HIDDING POPUP BY CLICKING ON OTHER OPTIONS BUTTON
+    if ( $('#file-options-menu').hasClass('active') ) {
+      $('#file-options-menu').toggleClass('active');
+      $('#file-options-menu').toggleClass('active');
+      startTether($(this));
+    } else {
+      $('#file-options-menu').toggleClass('active');
+      startTether($(this));
+    }
+
   })
   .on('click', '#delete-file', function() {
     var itemID = $('#file-options-menu').attr('data-file-id');
@@ -189,7 +237,7 @@ $('.file-manager-wrapper')
     // TODO: Get file info based on ID
   });
 
-// Aux Functions
+// AUX FUNCTIONS //
 function contextualMenu(fileID) {
   $('#file-options-menu').attr('data-file-id', fileID);
 }
@@ -210,8 +258,10 @@ function startTether(target) {
   });
 }
 
-// init
+// INIT //
 getFolderContents();
+getOrganizationsList();
+getAppsList();
 
 /* NOT USED - BACKUP
 ********************

@@ -2,6 +2,7 @@
 
   <div class="file-manager-header">
     <h1><i class="fa fa-folder" aria-hidden="true"></i> File Manager</h1>
+    <!-- HIDES SORT AND SEARCH
     <div class="sort-search-holder">
       <div class="form-group">
         <label for="sort-files" class="select-proxy-display">
@@ -22,6 +23,7 @@
         <button class="btn btn-primary search-files-btn"><i class="fa fa-search" aria-hidden="true"></i></button>
       </div>
     </div>
+    END OF HIDDING -->
   </div>
 
   <div class="file-manager-body">
@@ -43,37 +45,7 @@
       </div>
       <div class="dropdown-menu-holder">
         <ul>
-          <li class="active" data-type="organisation">
-            <div class="list-holder clearfix">
-              <i class="fa fa-chevron-right" aria-hidden="true"></i>
-              <div class="list-text-holder">
-                <span>Riverbed</span>
-                <p>Organisation</p>
-              </div>
-            </div>
-            <ul class="folder-list">
-              <!-- FOLDER LIST WILL BE HERE -->
-
-            </ul>
-          </li>
-          <li class="no-subfolder" data-type="app">
-            <div class="list-holder clearfix">
-              <i class="fa fa-chevron-right" aria-hidden="true"></i>
-              <div class="list-text-holder">
-                <span>August Event</span>
-                <p>App</p>
-              </div>
-            </div>
-          </li>
-          <li class="no-subfolder" data-type="app">
-            <div class="list-holder clearfix">
-              <i class="fa fa-chevron-right" aria-hidden="true"></i>
-              <div class="list-text-holder">
-                <span>Monthly Report</span>
-                <p>App</p>
-              </div>
-            </div>
-          </li>
+          <!-- Organization & Apps list here -->
         </ul>
       </div>
     </div>
@@ -91,9 +63,9 @@
 
                 <div class="file-table-placeholder">
                   <div class="file-col"></div>
-                  <div class="file-col file-owner"></div>
+                  <!-- HIDE<div class="file-col file-owner"></div>-->
                   <div class="file-col file-date"></div>
-                  <div class="file-col file-size"></div>
+                  <!-- HIDE<div class="file-col file-size"></div>-->
                   <div class="file-col file-options"></div>
                 </div>
 
@@ -104,21 +76,25 @@
                         Name
                       </div>
                     </div>
+                    <!-- HIDE
                     <div class="file-cell">
                       <div class="file-owner">
                         Owner
                       </div>
                     </div>
+                    -->
                     <div class="file-cell">
                       <div class="file-date">
                         Last modified
                       </div>
                     </div>
+                    <!-- HIDE
                     <div class="file-cell">
                       <div class="file-size">
                         File size
                       </div>
                     </div>
+                    -->
                     <div class="file-cell">
                       <div class="file-options"></div>
                     </div>
@@ -141,8 +117,10 @@
   <div class="file-options-menu" id="file-options-menu" data-file-id>
     <ul>
       <li id="view-file">View</li>
+      <!-- HIDE
       <li id="rename-file">Rename</li>
       <li id="move-file">Move to...</li>
+      -->
       <li id="delete-file">Delete</li>
     </ul>
   </div>
@@ -156,21 +134,25 @@
         \{{name}}
       </div>
     </div>
+    <!-- HIDE
     <div class="file-cell">
       <div class="file-owner">
         \{{owner}}
       </div>
     </div>
+    -->
     <div class="file-cell">
       <div class="file-date">
         \{{updatedAt}}
       </div>
     </div>
+    <!-- HIDE
     <div class="file-cell">
       <div class="file-size">
         \{{#if size}} \{{size}} \{{else}} - \{{/if}}
       </div>
     </div>
+    -->
     <div class="file-cell">
       <div class="file-options">
         <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
@@ -186,21 +168,25 @@
         \{{#if thumbnail}}<img src="\{{thumbnail}}"/>\{{/if}} \{{name}}
       </div>
     </div>
+    <!-- HIDE
     <div class="file-cell">
       <div class="file-owner">
         \{{owner}}
       </div>
     </div>
+    -->
     <div class="file-cell">
       <div class="file-date">
         \{{updatedAt}}
       </div>
     </div>
+    <!-- HIDE
     <div class="file-cell">
       <div class="file-size">
         \{{size}}
       </div>
     </div>
+    -->
     <div class="file-cell">
       <div class="file-options">
         <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
@@ -218,5 +204,35 @@
       </div>
     </div>
     <ul></ul>
+  </li>
+</template>
+
+<template id="template-organizations">
+  <li class="" data-type="organisation" data-org-id="\{{id}}">
+    <div class="list-holder clearfix">
+      <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      <div class="list-text-holder">
+        <span>\{{name}}</span>
+        <p>Organization</p>
+      </div>
+    </div>
+    <ul class="folder-list">
+      <!-- FOLDER LIST WILL BE HERE -->
+    </ul>
+  </li>
+</template>
+
+<template id="template-apps">
+  <li class="" data-type="app" data-app-id="\{{id}}">
+    <div class="list-holder clearfix">
+      <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      <div class="list-text-holder">
+        <span>\{{name}}</span>
+        <p>App</p>
+      </div>
+    </div>
+    <ul class="app-folder-list">
+      <!-- FOLDER LIST WILL BE HERE -->
+    </ul>
   </li>
 </template>
