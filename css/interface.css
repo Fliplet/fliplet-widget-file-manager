@@ -508,7 +508,7 @@ a {
 .file-table-body .file-name {
     padding-left: 30px;
 }
-.file-name[data-file-type="folder"] {
+.file-row[data-file-type="folder"] .file-name {
     cursor: pointer;
 }
 .file-owner {
@@ -559,7 +559,7 @@ a {
     font-size: 18px;
     text-align: center;
 }
-.file-name[data-file-type="image"] img {
+.file-row[data-file-type="image"] .file-name img {
     display: inline-block;
     position: absolute;
     left: 0;
@@ -569,19 +569,19 @@ a {
     line-height: 25px;
     text-align: center;
 }
-.file-name[data-file-type="folder"]:before {
+.file-row[data-file-type="folder"] .file-name:before {
     content: "\f07c";
 }
-.file-name[data-file-type="document"]:before {
+.file-row[data-file-type="document"] .file-name:before {
     content: "\f15b";
 }
-.file-name[data-file-type="video"]:before {
+.file-row[data-file-type="video"] .file-name:before {
     content: "\f03d";
 }
-.file-name[data-file-type="audio"]:before {
+.file-row[data-file-type="audio"] .file-name:before {
     content: "\f028";
 }
-.file-name[data-file-type="font"]:before {
+.file-row[data-file-type="font"] .file-name:before {
     content: "\f031";
 }
 .file-options-menu {

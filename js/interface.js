@@ -160,15 +160,27 @@ $('.file-manager-wrapper')
     startTether($(this));
   })
   .on('click', '#delete-file', function() {
-    var itemID = $('#file-options-menu').data('file-id');
-    var $item = $('.file-row[data-id="' + fileID + '"]');
+    var itemID = $('#file-options-menu').attr('data-file-id');
+    var $item = $('.file-row[data-id="' + itemID + '"]');
 
-    Fliplet.Media.Files.delete({
-      fileId: $item.data('id'),
-      folderId: $item.data('folder')
-    }).then(function () {
-      $item.remove();
-    });
+    if ( $item.data('file-type') == 'folder' ) {
+      Fliplet.Media.Folders.delete( $item.data('id') ).then(function () {
+        $item.remove();
+      });
+    } else {
+      Fliplet.Media.Files.delete({
+        fileId: $item.data('id'),
+        folderId: $item.data('folder')
+      }).then(function () {
+        $item.remove();
+      });
+    }
+  })
+  .on('click', '#view-file', function() {
+    var itemID = $('#file-options-menu').attr('data-file-id');
+    var $item = $('.file-row[data-id="' + itemID + '"]');
+
+    // TODO: Get file info based on ID
   });
 
 // Aux Functions
