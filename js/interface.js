@@ -24,20 +24,26 @@ function getFolderContents(folderId) {
   });
 }
 
-function getListFolders(folderId) {
+function getListFolders(folderId, listEl) {
+  $listElement = listEl;
   currentFolderId = folderId;
-  currentFolders = [];
-  $folderList.html('');
 
   Fliplet.Media.Folders.get({
     folderId: currentFolderId
   }).then(function (response) {
-    response.folders.forEach(addFolderItem);
+    response.folders.forEach(function(i) {
+      if (i.parentId != null) {
+        $listElement.removeClass('no-subfolder');
+        if ( $listElement.find('ul').first().find('li[data-id="'+i.id+'"]').length == 0 ) {
+          $listElement.find('ul').first().append(templates.folderItem(i));
+        }
+      } else {
+        if ( $folderList.find('li[data-id="'+i.id+'"]').length == 0 ) {
+          $folderList.append(templates.folderItem(i));
+        }
+      }
+    });
   });
-}
-
-function addFolderItem(folderItem) {
-  $folderList.append(templates.folderItem(folderItem));
 }
 
 function addFolder(folder) {
@@ -63,8 +69,11 @@ $('.file-manager-wrapper')
 
     $('.new-btn').click();
   })
-  .on('click', '[data-browse-folder]', function (event) {
+  .on('click', '.file-table-body [data-browse-folder]', function (event) {
     getFolderContents($(this).parents('.file-row').data('id'));
+  })
+  .on('click', '.dropdown-menu-holder [data-browse-folder]', function (event) {
+    getFolderContents($(this).data('id'));
   })
   .on('click', '[data-create-folder]', function (event) {
     var folderName = prompt('Type folder name');
@@ -109,16 +118,16 @@ $('.file-manager-wrapper')
   })
   .on('click', '.dropdown-menu-holder li', function(e) {
     e.stopPropagation();
+
+    var folderId = $(this).data('id');
+    getListFolders(folderId, $(this));
+
     $('.dropdown-menu-holder').find('li.active').removeClass('active');
     $(this).first().addClass('active');
   })
   .on('click', '.dropdown-menu-holder li > .list-holder .fa', function(e) {
     e.stopPropagation();
     if ($(this).hasClass('fa-chevron-right')) {
-
-      var folderId = $(this).parents('li[data-type="folder"]').data('id');
-      getListFolders(folderId);
-
       $(this).removeClass('fa-chevron-right').addClass('fa-chevron-down');
       $(this).parents('.list-holder').next('ul').addClass('expanded');
     } else if ($(this).hasClass('fa-chevron-down')) {
@@ -170,7 +179,6 @@ function startTether(target) {
 
 // init
 getFolderContents();
-getListFolders();
 
 /* NOT USED - BACKUP
 ********************
