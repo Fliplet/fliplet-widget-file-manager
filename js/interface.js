@@ -19,8 +19,20 @@ function getFolderContents(folderId) {
   Fliplet.Media.Folders.get({
     folderId: currentFolderId
   }).then(function (response) {
-    response.folders.forEach(addFolder);
-    response.files.forEach(addFile);
+    response.folders.forEach(function(i) {
+      // Converts to readable date format
+      var readableDate = moment(i.updatedAt).format("Do MMM YYYY");
+      i.updatedAt = readableDate;
+
+      addFolder(i);
+    });
+    response.files.forEach(function(i) {
+      // Converts to readable date format
+      var readableDate = moment(i.updatedAt).format("Do MMM YYYY");
+      i.updatedAt = readableDate;
+
+      addFile(i);
+    });
   });
 }
 
@@ -32,12 +44,15 @@ function getListFolders(folderId, listEl) {
     folderId: currentFolderId
   }).then(function (response) {
     response.folders.forEach(function(i) {
+      // Checks if is parent or children folders
       if (i.parentId != null) {
         $listElement.removeClass('no-subfolder');
+        // Checks if entry already exists in the HTML
         if ( $listElement.find('ul').first().find('li[data-id="'+i.id+'"]').length == 0 ) {
           $listElement.find('ul').first().append(templates.folderItem(i));
         }
       } else {
+        // Checks if entry already exists in the HTML
         if ( $folderList.find('li[data-id="'+i.id+'"]').length == 0 ) {
           $folderList.append(templates.folderItem(i));
         }
@@ -145,7 +160,7 @@ $('.file-manager-wrapper')
     startTether($(this));
   })
   .on('click', '#delete-file', function() {
-    var fileID = $('#file-options-menu').data('file-id');
+    var itemID = $('#file-options-menu').data('file-id');
     var $item = $('.file-row[data-id="' + fileID + '"]');
 
     Fliplet.Media.Files.delete({

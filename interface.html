@@ -150,9 +150,9 @@
 </div>
 
 <template id="template-folder">
-  <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}">
+  <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}" data-file-type="folder">
     <div class="file-cell">
-      <div class="file-name" data-file-type="folder" data-browse-folder>
+      <div class="file-name" data-browse-folder>
         \{{name}}
       </div>
     </div>
@@ -163,7 +163,7 @@
     </div>
     <div class="file-cell">
       <div class="file-date">
-        \{{date}}
+        \{{updatedAt}}
       </div>
     </div>
     <div class="file-cell">
@@ -180,9 +180,9 @@
 </template>
 
 <template id="template-file">
-  <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}">
+  <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}" data-file-type="image">
     <div class="file-cell">
-      <div class="file-name" data-file-type="image">
+      <div class="file-name">
         \{{#if thumbnail}}<img src="\{{thumbnail}}"/>\{{/if}} \{{name}}
       </div>
     </div>
@@ -193,7 +193,7 @@
     </div>
     <div class="file-cell">
       <div class="file-date">
-        \{{date}}
+        \{{updatedAt}}
       </div>
     </div>
     <div class="file-cell">
