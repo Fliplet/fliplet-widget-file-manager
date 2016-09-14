@@ -165,7 +165,7 @@
   <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}" data-file-type="\{{#if thumbnail}}image\{{else}}document\{{/if}}" data-file-url="\{{url}}">
     <div class="file-cell">
       <div class="file-name">
-        \{{#if thumbnail}}<img src="\{{thumbnail}}"/>\{{/if}}
+        \{{#if thumbnail}}<img src="\{{url}}"/>\{{/if}}
         <span>\{{name}}</span>
       </div>
     </div>
@@ -209,7 +209,7 @@
 </template>
 
 <template id="template-organizations">
-  <li class="no-subfolder" data-type="organisation" data-org-id="\{{id}}">
+  <li class="no-subfolder" data-type="organization" data-org-id="\{{id}}" data-browse-folder>
     <div class="list-holder clearfix">
       <i class="fa fa-chevron-right" aria-hidden="true"></i>
       <div class="list-text-holder">
@@ -224,7 +224,7 @@
 </template>
 
 <template id="template-apps">
-  <li class="no-subfolder" data-type="app" data-app-id="\{{id}}">
+  <li class="no-subfolder" data-type="app" data-app-id="\{{id}}" data-browse-folder>
     <div class="list-holder clearfix">
       <i class="fa fa-chevron-right" aria-hidden="true"></i>
       <div class="list-text-holder">

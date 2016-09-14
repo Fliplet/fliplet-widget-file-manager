@@ -25,40 +25,51 @@ function getOrganizationsList() {
 function getAppsList() {
   Fliplet.Apps.get().then(function (apps) {
     apps.forEach(addApps);
+    $folderList = $('.folder-list');
   });
 }
 
-function getFolderContents(folderId) {
-  currentFolderId = folderId;
+function getFolderContents(el) {
+  if (el.attr('data-type') == "app") {
+    var currentAppId = el.attr('data-app-id');
+  } else if (el.attr('data-type') == "organization") {
+    var currentOrgId = el.attr('data-org-id');
+  } else {
+    var currentFolderId = el.attr('data-id');
+  }
+
   currentFolders = [];
   currentFiles = [];
   $folderContents.html('');
 
   Fliplet.Media.Folders.get({
+    organizationId: currentOrgId,
+    appId: currentAppId,
     folderId: currentFolderId
   }).then(function (response) {
     response.folders.forEach(function(i) {
-      // Converts to readable date format
-      var readableDate = moment(i.updatedAt).format("Do MMM YYYY");
-      i.updatedAt = readableDate;
-
       addFolder(i);
     });
     response.files.forEach(function(i) {
-      // Converts to readable date format
-      var readableDate = moment(i.updatedAt).format("Do MMM YYYY");
-      i.updatedAt = readableDate;
-
       addFile(i);
     });
   });
 }
 
-function getListFolders(folderId, listEl) {
+function getListFolders(listEl) {
   $listElement = listEl;
-  currentFolderId = folderId;
+
+  if ($listElement.attr('data-type') == "app") {
+    var currentAppId = $listElement.attr('data-app-id');
+  } else if ($listElement.attr('data-type') == "organization") {
+    var currentOrgId = $listElement.attr('data-org-id');
+  } else {
+    var currentFolderId = $listElement.attr('data-id');
+  }
 
   Fliplet.Media.Folders.get({
+    organizationId: currentOrgId,
+    appId: currentAppId,
     folderId: currentFolderId
   }).then(function (response) {
     response.folders.forEach(function(i) {
@@ -87,8 +98,12 @@ function addOrganizations(organizations) {
   if (counter == 1) {
     $organizationAppList.append(templates.organizations(organizations));
     $organizationAppList.find('li').first().addClass('active');
+
+    var orgEl = $organizationAppList.find('li').first();
     var orgName = $organizationAppList.find('li').first().find('.list-text-holder span').first().text();
+
     $(".header-breadcrumbs").html('<strong>' + orgName + '</strong>');
+    getFolderContents(orgEl);
   } else {
     $organizationAppList.append(templates.organizations(organizations));
   }
@@ -100,11 +115,19 @@ function addApps(apps) {
 }
 
 function addFolder(folder) {
+  // Converts to readable date format
+  var readableDate = moment(folder.updatedAt).format("Do MMM YYYY");
+  folder.updatedAt = readableDate;
+
   currentFolders.push(folder);
   $folderContents.append(templates.folder(folder));
 }
 
 function addFile(file) {
+  // Converts to readable date format
+  var readableDate = moment(file.updatedAt).format("Do MMM YYYY");
+  file.updatedAt = readableDate;
+
   currentFiles.push(file);
   $folderContents.append(templates.file(file));
 }
@@ -131,10 +154,10 @@ $('.file-manager-wrapper')
     $('.new-btn').click();
   })
   .on('click', '.file-table-body [data-browse-folder]', function (event) {
-    getFolderContents($(this).parents('.file-row').data('id'));
+    getFolderContents($(this).parents('.file-row'));
   })
   .on('click', '.dropdown-menu-holder [data-browse-folder]', function (event) {
-    getFolderContents($(this).data('id'));
+    getFolderContents($(this));
   })
   .on('click', '[data-create-folder]', function (event) {
     var folderName = prompt('Type folder name');
@@ -181,8 +204,7 @@ $('.file-manager-wrapper')
     var _this = $(this);
     e.stopPropagation();
 
-    var folderId = _this.data('id');
-    getListFolders(folderId, _this);
+    getListFolders(_this);
 
     $('.dropdown-menu-holder').find('li.active').removeClass('active');
     _this.first().addClass('active');
@@ -217,7 +239,7 @@ $('.file-manager-wrapper')
   	$(this).next('.new-menu').toggleClass('active');
   })
   .on('click', '.file-options', function(event) {
-    contextualMenu( $(this).parents('.file-row').data('id'), $(this).parents('.file-row') );
+    contextualMenu( $(this).parents('.file-row').attr('data-id'), $(this).parents('.file-row') );
 
     // PREVENTS SEVERAL ITEMS BEING IN ACTIVE STATE
     if ( $('.file-row').hasClass('active') ) {
@@ -242,10 +264,10 @@ $('.file-manager-wrapper')
     var itemID = $('#file-options-menu').attr('data-file-id');
     var $item = $('.file-row[data-id="' + itemID + '"]');
 
-    if ( $item.data('file-type') == 'folder' ) {
+    if ( $item.attr('data-file-type') == 'folder' ) {
       var alertConfirmation = confirm("Are you sure you want to delete this folder?\nAll the content inside the folder will be deleted too.");
       if (alertConfirmation == true) {
-        Fliplet.Media.Folders.delete( $item.data('id') ).then(function () {
+        Fliplet.Media.Folders.delete( $item.attr('data-id') ).then(function () {
           $item.remove();
         });
       }
@@ -253,8 +275,8 @@ $('.file-manager-wrapper')
       var alertConfirmation = confirm("Are you sure you want to delete this file?\nThe file will be deleted forever.");
       if (alertConfirmation == true) {
         Fliplet.Media.Files.delete({
-          fileId: $item.data('id'),
-          folderId: $item.data('folder')
+          fileId: $item.attr('data-id'),
+          folderId: $item.attr('data-folder')
         }).then(function () {
           $item.remove();
         });
@@ -301,7 +323,6 @@ function startTether(target) {
 }
 
 // INIT //
-getFolderContents();
 getOrganizationsList();
 getAppsList();
 

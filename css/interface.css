@@ -355,7 +355,7 @@ a {
     font-size: 10px;
     margin: 0;
 }
-.dropdown-menu-holder li[data-type="organisation"] .list-text-holder:before {
+.dropdown-menu-holder li[data-type="organization"] .list-text-holder:before {
     content: "\f0c0";
     display: inline-block;
     font: normal normal normal 14px/1 FontAwesome;
