@@ -12,8 +12,10 @@ var templates = {
 var currentFolderId;
 var currentFolders;
 var currentFiles;
+var counter;
 
 function getOrganizationsList() {
+  counter = 0;
   Fliplet.Organizations.get().then(function (organizations) {
     organizations.forEach(addOrganizations);
     $folderList = $('.folder-list');
@@ -72,13 +74,23 @@ function getListFolders(folderId, listEl) {
         if ( $folderList.find('li[data-id="'+i.id+'"]').length == 0 ) {
           $folderList.append(templates.folderItem(i));
         }
+        if ( !$folderList.is(':empty') ) {
+          $folderList.parents('.active').first().removeClass('no-subfolder');
+        }
       }
     });
   });
 }
 
 function addOrganizations(organizations) {
-  $organizationAppList.append(templates.organizations(organizations));
+  counter++;
+  if (counter == 1) {
+    $organizationAppList.append(templates.organizations(organizations));
+    $organizationAppList.find('li').first().addClass('active');
+  } else {
+    $organizationAppList.append(templates.organizations(organizations));
+  }
+
 }
 
 function addApps(apps) {
@@ -164,13 +176,30 @@ $('.file-manager-wrapper')
     $(this).parents('.select-proxy-display').find('.select-value-proxy').html(selectedText);
   })
   .on('click', '.dropdown-menu-holder li', function(e) {
+    var _this = $(this);
     e.stopPropagation();
 
-    var folderId = $(this).data('id');
-    getListFolders(folderId, $(this));
+    var folderId = _this.data('id');
+    getListFolders(folderId, _this);
 
     $('.dropdown-menu-holder').find('li.active').removeClass('active');
-    $(this).first().addClass('active');
+    _this.first().addClass('active');
+
+    var currentItem = _this;
+    var path = '';
+
+    $(currentItem.parentsUntil( '.dropdown-menu-holder', 'li' ).get().reverse()).each(function () {
+      path += $(this).find('.list-text-holder span').first().text() + '<i class="fa fa-angle-right" aria-hidden="true"></i>';
+    });
+
+    if ( currentItem.attr('data-type') == 'organisation' ) {
+      path = '<strong>' + currentItem.find('.list-text-holder span').first().text() + '</strong>';
+    } else {
+      path += '<strong>' + currentItem.find('.list-text-holder span').first().text() + '</strong>';
+    }
+
+
+    $(".header-breadcrumbs").html(path);
   })
   .on('click', '.dropdown-menu-holder li > .list-holder .fa', function(e) {
     e.stopPropagation();
@@ -235,7 +264,11 @@ $('.file-manager-wrapper')
     var $item = $('.file-row[data-id="' + itemID + '"]');
     var fileURL = $item.attr('data-file-url');
 
-    window.open(fileURL, '_blank');
+    if ( fileURL != undefined ) {
+      window.open(fileURL, '_blank');
+    } else {
+      $item.find('.file-name').click();
+    }
   });
 
 // AUX FUNCTIONS //

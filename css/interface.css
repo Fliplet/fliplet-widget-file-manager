@@ -272,9 +272,15 @@ a {
     display: inline-block;
 }
 .header-breadcrumbs .fa {
-    font-size: 1.5em;
-    margin: 0 5px;
+    font-size: 1em;
+    margin: 0 10px;
     line-height: 44px;
+}
+.dropdown-menu-holder {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 .dropdown-menu-holder ul {
     list-style: none;
@@ -502,8 +508,13 @@ a {
     display: flex;
     height: 100%;
     width: 100%;
-    text-overflow: ellipsis;
     position: relative;
+    white-space: nowrap;
+}
+.file-name span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .file-table-body .file-name {
     padding-left: 30px;
@@ -512,16 +523,31 @@ a {
     cursor: pointer;
 }
 .file-owner {
-    text-overflow: ellipsis;
+    white-space: nowrap;
     width: 215px;
 }
-.file-date {
+.file-owner span {
+    overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.file-date {
+    white-space: nowrap;
     width: 176px;
 }
-.file-size {
+.file-date span {
+    overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.file-size {
+    white-space: nowrap;
     width: 100px;
+}
+.file-size span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .file-options {
     opacity: 0;
