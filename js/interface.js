@@ -222,7 +222,6 @@ $('.file-manager-wrapper')
       path += '<strong>' + currentItem.find('.list-text-holder span').first().text() + '</strong>';
     }
 
-
     $(".header-breadcrumbs").html(path);
   })
   .on('click', '.dropdown-menu-holder li > .list-holder .fa', function(e) {
