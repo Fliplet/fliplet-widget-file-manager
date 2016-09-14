@@ -87,6 +87,8 @@ function addOrganizations(organizations) {
   if (counter == 1) {
     $organizationAppList.append(templates.organizations(organizations));
     $organizationAppList.find('li').first().addClass('active');
+    var orgName = $organizationAppList.find('li').first().find('.list-text-holder span').first().text();
+    $(".header-breadcrumbs").html('<strong>' + orgName + '</strong>');
   } else {
     $organizationAppList.append(templates.organizations(organizations));
   }
