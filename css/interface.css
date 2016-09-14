@@ -257,6 +257,7 @@ a {
     display: flex;
     width: 350px;
     background-color: #e8eced;
+    padding: 15px 25px;
 }
 .file-manager-subheader {
     position: absolute;
