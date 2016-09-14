@@ -1,3 +1,4 @@
+// VAR SETUP //
 var $folderContents = $('.file-table-body');
 var $folderList;
 var $organizationAppList = $('.dropdown-menu-holder ul');
@@ -14,6 +15,8 @@ var currentFolders;
 var currentFiles;
 var counter;
 
+// CORE FUNCTIONS //
+// Get organizations and apps list for left side menu
 function getOrganizationsList() {
   counter = 0;
   Fliplet.Organizations.get().then(function (organizations) {
@@ -29,6 +32,7 @@ function getAppsList() {
   });
 }
 
+// Get folders and files depending on ID (Org, App, Folder) to add to the content area
 function getFolderContents(el) {
   if (el.attr('data-type') == "app") {
     var currentAppId = el.attr('data-app-id');
@@ -56,6 +60,7 @@ function getFolderContents(el) {
   });
 }
 
+// Get folders depending on ID (Org, App, Folder) to add as sub-folders
 function getListFolders(listEl) {
   $listElement = listEl;
 
@@ -93,6 +98,7 @@ function getListFolders(listEl) {
   });
 }
 
+// Adds organization item template
 function addOrganizations(organizations) {
   counter++;
   if (counter == 1) {
@@ -110,10 +116,12 @@ function addOrganizations(organizations) {
 
 }
 
+// Adds app item template
 function addApps(apps) {
   $organizationAppList.append(templates.apps(apps));
 }
 
+// Adds folder item template
 function addFolder(folder) {
   // Converts to readable date format
   var readableDate = moment(folder.updatedAt).format("Do MMM YYYY");
@@ -123,6 +131,7 @@ function addFolder(folder) {
   $folderContents.append(templates.folder(folder));
 }
 
+// Adds file item template
 function addFile(file) {
   // Converts to readable date format
   var readableDate = moment(file.updatedAt).format("Do MMM YYYY");
@@ -132,6 +141,7 @@ function addFile(file) {
   $folderContents.append(templates.file(file));
 }
 
+// Templating
 function template(name) {
   return Handlebars.compile($('#template-' + name).html());
 }
@@ -160,6 +170,7 @@ $('.file-manager-wrapper')
     getFolderContents($(this));
   })
   .on('click', '[data-create-folder]', function (event) {
+    // Creates folder
     var folderName = prompt('Type folder name');
 
     if (!folderName) {
@@ -174,6 +185,7 @@ $('.file-manager-wrapper')
     $('.new-btn').click();
   })
   .on('submit', '[data-upload-file]', function (event) {
+    // Upload file
     var $form = $(this);
     event.preventDefault();
 
@@ -201,6 +213,9 @@ $('.file-manager-wrapper')
     $(this).parents('.select-proxy-display').find('.select-value-proxy').html(selectedText);
   })
   .on('click', '.dropdown-menu-holder li', function(e) {
+    // Click on folder structure
+    // Gets sub-folder structure
+    // Adds Breadcrumbs
     var _this = $(this);
     e.stopPropagation();
 
@@ -225,6 +240,7 @@ $('.file-manager-wrapper')
     $(".header-breadcrumbs").html(path);
   })
   .on('click', '.dropdown-menu-holder li > .list-holder .fa', function(e) {
+    // Changes arrow icon orientation
     e.stopPropagation();
     if ($(this).hasClass('fa-chevron-right')) {
       $(this).removeClass('fa-chevron-right').addClass('fa-chevron-down');
@@ -238,6 +254,7 @@ $('.file-manager-wrapper')
   	$(this).next('.new-menu').toggleClass('active');
   })
   .on('click', '.file-options', function(event) {
+    // Opens options pop-up for folders/files
     contextualMenu( $(this).parents('.file-row').attr('data-id'), $(this).parents('.file-row') );
 
     // PREVENTS SEVERAL ITEMS BEING IN ACTIVE STATE
@@ -260,6 +277,7 @@ $('.file-manager-wrapper')
 
   })
   .on('click', '#delete-file', function() {
+    // Deletes folder or file
     var itemID = $('#file-options-menu').attr('data-file-id');
     var $item = $('.file-row[data-id="' + itemID + '"]');
 
@@ -283,6 +301,7 @@ $('.file-manager-wrapper')
     }
   })
   .on('click', '#view-file', function() {
+    // Open folder or file
     var itemID = $('#file-options-menu').attr('data-file-id');
     var $item = $('.file-row[data-id="' + itemID + '"]');
     var fileURL = $item.attr('data-file-url');
@@ -296,6 +315,7 @@ $('.file-manager-wrapper')
 
 // AUX FUNCTIONS //
 function contextualMenu(fileID, element) {
+  // Adds dynamic data to options pop-up
   $element = element;
   $('#file-options-menu').attr('data-file-id', fileID);
   if ( $element.attr('data-file-type') == 'folder' ) {
@@ -324,36 +344,3 @@ function startTether(target) {
 // INIT //
 getOrganizationsList();
 getAppsList();
-
-/* NOT USED - BACKUP
-********************
-.on('click', '[data-delete-folder]', function (event) {
-  event.preventDefault();
-  var $item = $(this).closest('li');
-
-  Fliplet.Media.Folders.delete($item.data('id')).then(function () {
-    $item.remove();
-  });
-})
-.on('click', '[data-select-file]', function (event) {
-  event.preventDefault();
-  var id = $(this).closest('li').data('id');
-  currentFiles.forEach(function (file) {
-    if (file.id === id) {
-      Fliplet.Widget.save(file).then(Fliplet.Widget.complete);
-    }
-  })
-})
-.on('click', '[data-delete-file]', function (event) {
-  event.preventDefault();
-  var $item = $(this).closest('li');
-
-  Fliplet.Media.Files.delete({
-    fileId: $item.data('id'),
-    folderId: $item.data('folder')
-  }).then(function () {
-    $item.remove();
-  });
-})
-********************
-END - BACKUP */
