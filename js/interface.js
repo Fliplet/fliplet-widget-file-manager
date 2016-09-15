@@ -36,14 +36,15 @@ function getAppsList() {
 function getFolderContents(el) {
   var currentAppID;
   var currentOrgID;
-  var currentFolderID;
 
   if (el.attr('data-type') == "app") {
     currentAppID = el.attr('data-app-id');
+    currentFolderId = '';
   } else if (el.attr('data-type') == "organization") {
     currentOrgID = el.attr('data-org-id');
+    currentFolderId = '';
   } else {
-    currentFolderID = el.attr('data-id');
+    currentFolderId = el.attr('data-id');
   }
 
   currentFolders = [];
@@ -53,7 +54,7 @@ function getFolderContents(el) {
   Fliplet.Media.Folders.get({
     organizationId: currentOrgID,
     appId: currentAppID,
-    folderId: currentFolderID
+    folderId: currentFolderId
   }).then(function (response) {
     response.folders.forEach(addFolder);
     response.files.forEach(addFile);
@@ -64,21 +65,22 @@ function getFolderContents(el) {
 function getListFolders(listEl) {
   var currentAppID;
   var currentOrgID;
-  var currentFolderID;
   $listElement = listEl;
 
   if ($listElement.attr('data-type') == "app") {
     currentAppID = $listElement.attr('data-app-id');
+    currentFolderId = '';
   } else if ($listElement.attr('data-type') == "organization") {
     currentOrgID = $listElement.attr('data-org-id');
+    currentFolderId = '';
   } else {
-    currentFolderID = $listElement.attr('data-id');
+    currentFolderId = $listElement.attr('data-id');
   }
 
   Fliplet.Media.Folders.get({
     organizationId: currentOrgID,
     appId: currentAppID,
-    folderId: currentFolderID
+    folderId: currentFolderId
   }).then(function (response) {
     response.folders.forEach(function(i) {
       // Checks if is parent or children folders
@@ -91,7 +93,7 @@ function getListFolders(listEl) {
       } else {
         // Checks if entry already exists in the HTML
         if ( $folderList.find('li[data-id="'+i.id+'"]').length == 0 ) {
-          $folderList.append(templates.folderItem(i));
+          $listElement.find('ul').first().append(templates.folderItem(i));
         }
         if ( !$folderList.is(':empty') ) {
           $folderList.parents('.active').first().removeClass('no-subfolder');
@@ -172,14 +174,22 @@ $('.file-manager-wrapper')
   .on('click', '[data-create-folder]', function (event) {
     // Creates folder
     var folderName = prompt('Type folder name');
-
+    var $selectedFolder = $('.dropdown-menu-holder li.active');
     if (!folderName) {
       return;
     }
 
+    if ($selectedFolder.attr('data-type') == "app") {
+      currentAppID = $selectedFolder.attr('data-app-id');
+    } else if ($selectedFolder.attr('data-type') == "organization") {
+      currentOrgID = $selectedFolder.attr('data-org-id');
+    }
+
     Fliplet.Media.Folders.create({
       name: folderName,
-      parentId: currentFolderId || undefined
+      parentId: currentFolderId || undefined,
+      organizationId: Fliplet.Env.get('organizationId'),
+      appId: currentAppID
     }).then(addFolder);
 
     $('.new-btn').click();
