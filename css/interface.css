@@ -210,6 +210,9 @@ a {
     background-color: #f2f6f7;
     border-left-color: #00abd2;
 }
+.new-menu ul li label {
+    cursor: pointer;
+}
 .new-menu hr {
     margin: 10px 15px;
     border-top-color: #e4e9eb;

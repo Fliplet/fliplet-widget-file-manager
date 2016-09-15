@@ -13,12 +13,12 @@ var templates = {
 var currentFolderId;
 var currentFolders;
 var currentFiles;
-var counter;
+var counterOrganisation;
 
 // CORE FUNCTIONS //
 // Get organizations and apps list for left side menu
 function getOrganizationsList() {
-  counter = 0;
+  counterOrganisation = 0;
   Fliplet.Organizations.get().then(function (organizations) {
     organizations.forEach(addOrganizations);
     $folderList = $('.folder-list');
@@ -34,12 +34,16 @@ function getAppsList() {
 
 // Get folders and files depending on ID (Org, App, Folder) to add to the content area
 function getFolderContents(el) {
+  var currentAppID;
+  var currentOrgID;
+  var currentFolderID;
+
   if (el.attr('data-type') == "app") {
-    var currentAppId = el.attr('data-app-id');
+    currentAppID = el.attr('data-app-id');
   } else if (el.attr('data-type') == "organization") {
-    var currentOrgId = el.attr('data-org-id');
+    currentOrgID = el.attr('data-org-id');
   } else {
-    var currentFolderId = el.attr('data-id');
+    currentFolderID = el.attr('data-id');
   }
 
   currentFolders = [];
@@ -47,35 +51,34 @@ function getFolderContents(el) {
   $folderContents.html('');
 
   Fliplet.Media.Folders.get({
-    organizationId: currentOrgId,
-    appId: currentAppId,
-    folderId: currentFolderId
+    organizationId: currentOrgID,
+    appId: currentAppID,
+    folderId: currentFolderID
   }).then(function (response) {
-    response.folders.forEach(function(i) {
-      addFolder(i);
-    });
-    response.files.forEach(function(i) {
-      addFile(i);
-    });
+    response.folders.forEach(addFolder);
+    response.files.forEach(addFile);
   });
 }
 
 // Get folders depending on ID (Org, App, Folder) to add as sub-folders
 function getListFolders(listEl) {
+  var currentAppID;
+  var currentOrgID;
+  var currentFolderID;
   $listElement = listEl;
 
   if ($listElement.attr('data-type') == "app") {
-    var currentAppId = $listElement.attr('data-app-id');
+    currentAppID = $listElement.attr('data-app-id');
   } else if ($listElement.attr('data-type') == "organization") {
-    var currentOrgId = $listElement.attr('data-org-id');
+    currentOrgID = $listElement.attr('data-org-id');
   } else {
-    var currentFolderId = $listElement.attr('data-id');
+    currentFolderID = $listElement.attr('data-id');
   }
 
   Fliplet.Media.Folders.get({
-    organizationId: currentOrgId,
-    appId: currentAppId,
-    folderId: currentFolderId
+    organizationId: currentOrgID,
+    appId: currentAppID,
+    folderId: currentFolderID
   }).then(function (response) {
     response.folders.forEach(function(i) {
       // Checks if is parent or children folders
@@ -100,9 +103,9 @@ function getListFolders(listEl) {
 
 // Adds organization item template
 function addOrganizations(organizations) {
-  counter++;
-  if (counter == 1) {
-    $organizationAppList.append(templates.organizations(organizations));
+  $organizationAppList.append(templates.organizations(organizations));
+
+  if ($organizationAppList.find('li').length === 1) {
     $organizationAppList.find('li').first().addClass('active');
 
     var orgEl = $organizationAppList.find('li').first();
@@ -110,10 +113,7 @@ function addOrganizations(organizations) {
 
     $(".header-breadcrumbs").html('<strong>' + orgName + '</strong>');
     getFolderContents(orgEl);
-  } else {
-    $organizationAppList.append(templates.organizations(organizations));
   }
-
 }
 
 // Adds app item template
@@ -216,15 +216,15 @@ $('.file-manager-wrapper')
     // Click on folder structure
     // Gets sub-folder structure
     // Adds Breadcrumbs
-    var _this = $(this);
+    var $el = $(this);
     e.stopPropagation();
 
-    getListFolders(_this);
+    getListFolders($el);
 
     $('.dropdown-menu-holder').find('li.active').removeClass('active');
-    _this.first().addClass('active');
+    $el.first().addClass('active');
 
-    var currentItem = _this;
+    var currentItem = $el;
     var path = '';
 
     $(currentItem.parentsUntil( '.dropdown-menu-holder', 'li' ).get().reverse()).each(function () {
