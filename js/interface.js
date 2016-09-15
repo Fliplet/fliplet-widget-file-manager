@@ -92,11 +92,12 @@ function getListFolders(listEl) {
         }
       } else {
         // Checks if entry already exists in the HTML
-        if ( $folderList.find('li[data-id="'+i.id+'"]').length == 0 ) {
+        if ( $listElement.find('ul').first().find('li[data-id="'+i.id+'"]').length == 0 ) {
           $listElement.find('ul').first().append(templates.folderItem(i));
         }
-        if ( !$folderList.is(':empty') ) {
+        if ( !$listElement.find($folderList).is(':empty') ) {
           $folderList.parents('.active').first().removeClass('no-subfolder');
+          //$listElement.find('ul').first().append(templates.folderItem(i));
         }
       }
     });
@@ -175,6 +176,9 @@ $('.file-manager-wrapper')
     // Creates folder
     var folderName = prompt('Type folder name');
     var $selectedFolder = $('.dropdown-menu-holder li.active');
+    var currentAppID;
+    var currentOrgID;
+    
     if (!folderName) {
       return;
     }
