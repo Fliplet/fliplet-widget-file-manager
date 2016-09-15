@@ -12,6 +12,8 @@
     ],
     "assets": [
       "vendor/handlebars.js",
+      "vendor/tether.min.js",
+      "vendor/moment.js",
       "js/interface.js",
       "css/interface.css"
     ]
