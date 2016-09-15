@@ -289,7 +289,7 @@ $('.file-manager-wrapper')
   .on('click', '#delete-file', function() {
     // Deletes folder or file
     var itemID = $('#file-options-menu').attr('data-file-id');
-    var $item = $('.file-row[data-id="' + itemID + '"]');
+    var $item = $('.file-row.active[data-id="' + itemID + '"]');
 
     if ( $item.attr('data-file-type') == 'folder' ) {
       var alertConfirmation = confirm("Are you sure you want to delete this folder?\nAll the content inside the folder will be deleted too.");
