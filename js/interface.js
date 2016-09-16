@@ -178,7 +178,7 @@ $('.file-manager-wrapper')
     var $selectedFolder = $('.dropdown-menu-holder li.active');
     var currentAppID;
     var currentOrgID;
-    
+
     if (!folderName) {
       return;
     }
@@ -305,10 +305,7 @@ $('.file-manager-wrapper')
     } else {
       var alertConfirmation = confirm("Are you sure you want to delete this file?\nThe file will be deleted forever.");
       if (alertConfirmation == true) {
-        Fliplet.Media.Files.delete({
-          fileId: $item.attr('data-id'),
-          folderId: $item.attr('data-folder')
-        }).then(function () {
+        Fliplet.Media.Files.delete( $item.attr('data-id') ).then(function () {
           $item.remove();
         });
       }
