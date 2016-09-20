@@ -34,16 +34,14 @@ function getAppsList() {
 
 // Get folders and files depending on ID (Org, App, Folder) to add to the content area
 function getFolderContents(el) {
-  var currentAppID;
-  var currentOrgID;
+  var options = {};
 
   if (el.attr('data-type') == "app") {
-    currentAppID = el.attr('data-app-id');
-    currentFolderId = '';
+    options.appId = el.attr('data-app-id');
   } else if (el.attr('data-type') == "organization") {
-    currentOrgID = el.attr('data-org-id');
-    currentFolderId = '';
+    options.organizationId = el.attr('data-org-id');
   } else {
+    options.folderId = el.attr('data-id');
     currentFolderId = el.attr('data-id');
   }
 
@@ -51,11 +49,7 @@ function getFolderContents(el) {
   currentFiles = [];
   $folderContents.html('');
 
-  Fliplet.Media.Folders.get({
-    organizationId: currentOrgID,
-    appId: currentAppID,
-    folderId: currentFolderId
-  }).then(function (response) {
+  Fliplet.Media.Folders.get(options).then(function (response) {
     response.folders.forEach(addFolder);
     response.files.forEach(addFile);
   });
@@ -63,25 +57,18 @@ function getFolderContents(el) {
 
 // Get folders depending on ID (Org, App, Folder) to add as sub-folders
 function getListFolders(listEl) {
-  var currentAppID;
-  var currentOrgID;
+  var options = {};
   $listElement = listEl;
 
   if ($listElement.attr('data-type') == "app") {
-    currentAppID = $listElement.attr('data-app-id');
-    currentFolderId = '';
+    options.appId = $listElement.attr('data-app-id');
   } else if ($listElement.attr('data-type') == "organization") {
-    currentOrgID = $listElement.attr('data-org-id');
-    currentFolderId = '';
+    options.organizationId = $listElement.attr('data-org-id');
   } else {
-    currentFolderId = $listElement.attr('data-id');
+    options.folderId = $listElement.attr('data-id');
   }
 
-  Fliplet.Media.Folders.get({
-    organizationId: currentOrgID,
-    appId: currentAppID,
-    folderId: currentFolderId
-  }).then(function (response) {
+  Fliplet.Media.Folders.get(options).then(function (response) {
     response.folders.forEach(function(i) {
       // Checks if is parent or children folders
       if (i.parentId != null) {
@@ -176,25 +163,32 @@ $('.file-manager-wrapper')
     // Creates folder
     var folderName = prompt('Type folder name');
     var $selectedFolder = $('.dropdown-menu-holder li.active');
-    var currentAppID;
-    var currentOrgID;
+
+    var options = {
+      name: folderName,
+      parentId: currentFolderId || undefined
+    };
 
     if (!folderName) {
       return;
     }
 
     if ($selectedFolder.attr('data-type') == "app") {
-      currentAppID = $selectedFolder.attr('data-app-id');
+      options.appId = $selectedFolder.attr('data-app-id');
     } else if ($selectedFolder.attr('data-type') == "organization") {
-      currentOrgID = $selectedFolder.attr('data-org-id');
+      options.organizationId = $selectedFolder.attr('data-org-id');
+    } else {
+      options.parentId = $selectedFolder.attr('data-id');
+
+      if ( $selectedFolder.parents('li[data-org]') != undefined ) {
+        options.organizationId = $selectedFolder.parents('li[data-org]').attr('data-org-id');
+      } else if ( $selectedFolder.parents('li[data-app]') != undefined ) {
+        options.appId = $selectedFolder.parents('li[data-org]').attr('data-org-id');
+      }
     }
 
-    Fliplet.Media.Folders.create({
-      name: folderName,
-      parentId: currentFolderId || undefined,
-      organizationId: Fliplet.Env.get('organizationId'),
-      appId: currentAppID
-    }).then(addFolder);
+
+    Fliplet.Media.Folders.create(options).then(addFolder);
 
     $('.new-btn').click();
   })

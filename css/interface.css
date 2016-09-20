@@ -172,7 +172,7 @@ a {
     bottom: 0;
 }
 .file-manager-body .file-manager-leftside {
-    min-width: 240px;
+    width: 240px;
     background-color: #f2f6f7;
     padding: 15px;
     position: relative;
@@ -320,6 +320,7 @@ a {
 .dropdown-menu-holder li ul li {
     padding: 0 0 0 25px;
     margin-bottom: 1px;
+    white-space: nowrap;
 }
 .dropdown-menu-holder li .fa {
     float: left;
@@ -418,8 +419,10 @@ a {
     color: #14505e;
 }
 .dropdown-menu-holder .no-subfolder .fa {
-    opacity: 0;
-    visibility: hidden;
+    display: none;
+}
+.dropdown-menu-holder .no-subfolder .list-text-holder {
+    margin-left: 20px;
 }
 .dropdown-menu-holder li ul {
     display: none;
