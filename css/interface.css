@@ -177,6 +177,7 @@ a {
     padding: 15px;
     position: relative;
     border-right: 1px solid #e4e9eb;
+    overflow: auto;
 }
 .file-manager-leftside .new-btn {
     display: block;
