@@ -27,7 +27,10 @@ function getOrganizationsList() {
 
 function getAppsList() {
   Fliplet.Apps.get().then(function (apps) {
-    apps.forEach(addApps);
+    apps.filter(function (app) {
+      return !app.legacy;
+    })
+      .forEach(addApps);
     $folderList = $('.folder-list');
   });
 }
