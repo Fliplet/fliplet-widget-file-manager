@@ -2,6 +2,8 @@
 var $folderContents = $('.file-table-body');
 var $folderList;
 var $organizationAppList = $('.dropdown-menu-holder ul');
+var $progress = $('.progress');
+var $progressBar = $progress.find('.progress-bar');
 var templates = {
   file: template('file'),
   folder: template('folder'),
@@ -211,15 +213,23 @@ $('.file-manager-wrapper')
       formData.append('files[' + i + ']', file);
     }
 
+    $progressBar.css({ width: '0%' });
+    $progress.removeClass('hidden');
+
     Fliplet.Media.Files.upload({
       folderId: currentFolderId,
       name: file.name,
-      data: formData
+      data: formData,
+      progress: function (percentage) {
+        $progressBar.css({ width: percentage + '%' });
+      }
     }).then(function (files) {
       $input.val('');
       files.forEach(function (file) {
         addFile(file);
       });
+
+      $progress.addClass('hidden');
     });
   })
   .on('change', '#sort-files', function() {
