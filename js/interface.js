@@ -197,15 +197,19 @@ $('.file-manager-wrapper')
   })
   .on('submit', '[data-upload-file]', function (event) {
     // Upload file
-    var $form = $(this);
     event.preventDefault();
 
-    var $input = $form.find('input');
-    var file = $input[0].files[0];
     var formData = new FormData();
+    var $form = $(this);
+    var $input = $form.find('input');
+    var files = $input[0].files;
+    var file;
 
-    formData.append('name', file.name);
-    formData.append('file', file);
+    for (var i = 0; i < files.length; i++) {
+      file = files.item(i);
+      formData.append('name[' + i + ']', file.name);
+      formData.append('files[' + i + ']', file);
+    }
 
     Fliplet.Media.Files.upload({
       folderId: currentFolderId,
