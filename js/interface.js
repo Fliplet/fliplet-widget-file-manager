@@ -56,7 +56,14 @@ function getFolderContents(el) {
 
   Fliplet.Media.Folders.get(options).then(function (response) {
     response.folders.forEach(addFolder);
-    response.files.forEach(addFile);
+    response.files.filter(function (file) {
+      // Don't show organizations/app files on root folder if they belong to a folder
+      if (!options.folderId) {
+        return !file.mediaFolderId;
+      }
+      return true;
+
+    }).forEach(addFile);
   });
 }
 
