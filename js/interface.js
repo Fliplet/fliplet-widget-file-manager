@@ -12,6 +12,9 @@ var templates = {
   apps: template('apps')
 };
 
+// This should contain either app/org/folder of current folder
+var currentSelection;
+
 var currentFolderId;
 var currentFolders;
 var currentFiles;
@@ -39,14 +42,14 @@ function getAppsList() {
 
 // Get folders and files depending on ID (Org, App, Folder) to add to the content area
 function getFolderContents(el) {
-  var options = {};
+  currentSelection = {};
 
   if (el.attr('data-type') == "app") {
-    options.appId = el.attr('data-app-id');
+    currentSelection.appId = el.attr('data-app-id');
   } else if (el.attr('data-type') == "organization") {
-    options.organizationId = el.attr('data-org-id');
+    currentSelection.organizationId = el.attr('data-org-id');
   } else {
-    options.folderId = el.attr('data-id');
+    currentSelection.folderId = el.attr('data-id');
     currentFolderId = el.attr('data-id');
   }
 
@@ -54,11 +57,11 @@ function getFolderContents(el) {
   currentFiles = [];
   $folderContents.html('');
 
-  Fliplet.Media.Folders.get(options).then(function (response) {
+  Fliplet.Media.Folders.get(currentSelection).then(function (response) {
     response.folders.forEach(addFolder);
     response.files.filter(function (file) {
       // Don't show organizations/app files on root folder if they belong to a folder
-      if (!options.folderId) {
+      if (!currentSelection.folderId) {
         return !file.mediaFolderId;
       }
       return true;
@@ -223,14 +226,15 @@ $('.file-manager-wrapper')
     $progressBar.css({ width: '0%' });
     $progress.removeClass('hidden');
 
-    Fliplet.Media.Files.upload({
-      folderId: currentFolderId,
+    var options = $.extend({}, currentSelection, {
       name: file.name,
       data: formData,
       progress: function (percentage) {
         $progressBar.css({ width: percentage + '%' });
       }
-    }).then(function (files) {
+    });
+
+    Fliplet.Media.Files.upload(options).then(function (files) {
       $input.val('');
       files.forEach(function (file) {
         addFile(file);
