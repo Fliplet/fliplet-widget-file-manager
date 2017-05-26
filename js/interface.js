@@ -17,21 +17,23 @@ var currentFolders;
 var currentFiles;
 var counterOrganisation;
 
+var tetherBox;
+
 // CORE FUNCTIONS //
 // Get organizations and apps list for left side menu
 function getOrganizationsList() {
   counterOrganisation = 0;
-  Fliplet.Organizations.get().then(function (organizations) {
+  Fliplet.Organizations.get().then(function(organizations) {
     organizations.forEach(addOrganizations);
     $folderList = $('.folder-list');
   });
 }
 
 function getAppsList() {
-  Fliplet.Apps.get().then(function (apps) {
-    apps.filter(function (app) {
-      return !app.legacy;
-    })
+  Fliplet.Apps.get().then(function(apps) {
+    apps.filter(function(app) {
+        return !app.legacy;
+      })
       .forEach(addApps);
     $folderList = $('.folder-list');
   });
@@ -54,7 +56,7 @@ function getFolderContents(el) {
   currentFiles = [];
   $folderContents.html('');
 
-  Fliplet.Media.Folders.get(options).then(function (response) {
+  Fliplet.Media.Folders.get(options).then(function(response) {
     response.folders.forEach(addFolder);
     response.files.forEach(addFile);
   });
@@ -73,21 +75,21 @@ function getListFolders(listEl) {
     options.folderId = $listElement.attr('data-id');
   }
 
-  Fliplet.Media.Folders.get(options).then(function (response) {
+  Fliplet.Media.Folders.get(options).then(function(response) {
     response.folders.forEach(function(i) {
       // Checks if is parent or children folders
       if (i.parentId != null) {
         $listElement.removeClass('no-subfolder');
         // Checks if entry already exists in the HTML
-        if ( $listElement.find('ul').first().find('li[data-id="'+i.id+'"]').length == 0 ) {
+        if ($listElement.find('ul').first().find('li[data-id="' + i.id + '"]').length == 0) {
           $listElement.find('ul').first().append(templates.folderItem(i));
         }
       } else {
         // Checks if entry already exists in the HTML
-        if ( $listElement.find('ul').first().find('li[data-id="'+i.id+'"]').length == 0 ) {
+        if ($listElement.find('ul').first().find('li[data-id="' + i.id + '"]').length == 0) {
           $listElement.find('ul').first().append(templates.folderItem(i));
         }
-        if ( !$listElement.find($folderList).is(':empty') ) {
+        if (!$listElement.find($folderList).is(':empty')) {
           $folderList.parents('.active').first().removeClass('no-subfolder');
           //$listElement.find('ul').first().append(templates.folderItem(i));
         }
@@ -144,9 +146,10 @@ function template(name) {
 // EVENTS //
 // Removes options popup by clicking elsewhere
 $(document).on("click", function(e) {
-  if ( $(e.target).is("#file-options-menu") === false && $(e.target).is(".file-options") === false ) {
+  if ($(e.target).is("#file-options-menu") === false && $(e.target).is(".file-options") === false) {
     $('.file-row.active').removeClass('active');
     $('#file-options-menu').removeClass('active');
+    $('.new-menu').removeClass('active');
   }
 });
 
@@ -158,13 +161,13 @@ $('.file-manager-wrapper')
 
     $('.new-btn').click();
   })
-  .on('click', '.file-table-body [data-browse-folder]', function (event) {
+  .on('dblclick', '.file-table-body [data-browse-folder]', function(event) {
     getFolderContents($(this).parents('.file-row'));
   })
-  .on('click', '.dropdown-menu-holder [data-browse-folder]', function (event) {
+  .on('click', '.dropdown-menu-holder [data-browse-folder]', function(event) {
     getFolderContents($(this));
   })
-  .on('click', '[data-create-folder]', function (event) {
+  .on('click', '[data-create-folder]', function(event) {
     // Creates folder
     var folderName = prompt('Type folder name');
     var $selectedFolder = $('.dropdown-menu-holder li.active');
@@ -185,9 +188,9 @@ $('.file-manager-wrapper')
     } else {
       options.parentId = $selectedFolder.attr('data-id');
 
-      if ( $selectedFolder.parents('li[data-org]') != undefined ) {
+      if ($selectedFolder.parents('li[data-org]') != undefined) {
         options.organizationId = $selectedFolder.parents('li[data-org]').attr('data-org-id');
-      } else if ( $selectedFolder.parents('li[data-app]') != undefined ) {
+      } else if ($selectedFolder.parents('li[data-app]') != undefined) {
         options.appId = $selectedFolder.parents('li[data-org]').attr('data-org-id');
       }
     }
@@ -197,7 +200,7 @@ $('.file-manager-wrapper')
 
     $('.new-btn').click();
   })
-  .on('submit', '[data-upload-file]', function (event) {
+  .on('submit', '[data-upload-file]', function(event) {
     // Upload file
     event.preventDefault();
 
@@ -213,19 +216,23 @@ $('.file-manager-wrapper')
       formData.append('files[' + i + ']', file);
     }
 
-    $progressBar.css({ width: '0%' });
+    $progressBar.css({
+      width: '0%'
+    });
     $progress.removeClass('hidden');
 
     Fliplet.Media.Files.upload({
       folderId: currentFolderId,
       name: file.name,
       data: formData,
-      progress: function (percentage) {
-        $progressBar.css({ width: percentage + '%' });
+      progress: function(percentage) {
+        $progressBar.css({
+          width: percentage + '%'
+        });
       }
-    }).then(function (files) {
+    }).then(function(files) {
       $input.val('');
-      files.forEach(function (file) {
+      files.forEach(function(file) {
         addFile(file);
       });
 
@@ -252,11 +259,11 @@ $('.file-manager-wrapper')
     var currentItem = $el;
     var path = '';
 
-    $(currentItem.parentsUntil( '.dropdown-menu-holder', 'li' ).get().reverse()).each(function () {
+    $(currentItem.parentsUntil('.dropdown-menu-holder', 'li').get().reverse()).each(function() {
       path += $(this).find('.list-text-holder span').first().text() + '<i class="fa fa-angle-right" aria-hidden="true"></i>';
     });
 
-    if ( currentItem.attr('data-type') == 'organisation' ) {
+    if (currentItem.attr('data-type') == 'organisation') {
       path = '<strong>' + currentItem.find('.list-text-holder span').first().text() + '</strong>';
     } else {
       path += '<strong>' + currentItem.find('.list-text-holder span').first().text() + '</strong>';
@@ -276,47 +283,51 @@ $('.file-manager-wrapper')
     }
   })
   .on('click', '.new-btn', function() {
-  	$(this).next('.new-menu').toggleClass('active');
+    $(this).next('.new-menu').toggleClass('active');
+
+    event.stopPropagation();
+  })
+  .on('click', '.file-row', function(event) {
+    $(this).addClass('active');
+    $('.file-row.active').not(this).removeClass('active');
+
+    event.stopPropagation();
   })
   .on('click', '.file-options', function(event) {
+    var itemId = $('#file-options-menu.active').attr('data-file-id');
+    var rowItemId = $(this).parents('.file-row').attr('data-id');
+
     // Opens options pop-up for folders/files
-    contextualMenu( $(this).parents('.file-row').attr('data-id'), $(this).parents('.file-row') );
+    contextualMenu($(this).parents('.file-row').attr('data-id'), $(this).parents('.file-row'));
 
-    // PREVENTS SEVERAL ITEMS BEING IN ACTIVE STATE
-    if ( $('.file-row').hasClass('active') ) {
-      $('.file-row.active').removeClass('active');
-      $(this).parents('.file-row').toggleClass('active');
+    if (itemId === rowItemId) {
+      $('#file-options-menu').removeClass('active');
+      $(this).parents('.file-row').removeClass('active');
     } else {
-      $(this).parents('.file-row').toggleClass('active');
-    }
-
-    // PREVENTS HIDDING POPUP BY CLICKING ON OTHER OPTIONS BUTTON
-    if ( $('#file-options-menu').hasClass('active') ) {
-      $('#file-options-menu').toggleClass('active');
-      $('#file-options-menu').toggleClass('active');
-      startTether($(this));
-    } else {
-      $('#file-options-menu').toggleClass('active');
+      $('#file-options-menu').addClass('active');
+      $(this).parents('.file-row').addClass('active');
+      $('.file-row.active').not($(this).parents('.file-row')).removeClass('active');
       startTether($(this));
     }
 
+    event.stopPropagation();
   })
   .on('click', '#delete-file', function() {
     // Deletes folder or file
     var itemID = $('#file-options-menu').attr('data-file-id');
     var $item = $('.file-row.active[data-id="' + itemID + '"]');
 
-    if ( $item.attr('data-file-type') == 'folder' ) {
+    if ($item.attr('data-file-type') == 'folder') {
       var alertConfirmation = confirm("Are you sure you want to delete this folder?\nAll the content inside the folder will be deleted too.");
       if (alertConfirmation == true) {
-        Fliplet.Media.Folders.delete( $item.attr('data-id') ).then(function () {
+        Fliplet.Media.Folders.delete($item.attr('data-id')).then(function() {
           $item.remove();
         });
       }
     } else {
       var alertConfirmation = confirm("Are you sure you want to delete this file?\nThe file will be deleted forever.");
       if (alertConfirmation == true) {
-        Fliplet.Media.Files.delete( $item.attr('data-id') ).then(function () {
+        Fliplet.Media.Files.delete($item.attr('data-id')).then(function() {
           $item.remove();
         });
       }
@@ -328,11 +339,25 @@ $('.file-manager-wrapper')
     var $item = $('.file-row[data-id="' + itemID + '"]');
     var fileURL = $item.attr('data-file-url');
 
-    if ( fileURL != undefined ) {
+    if (fileURL != undefined) {
       window.open(fileURL, '_blank');
     } else {
       $item.find('.file-name').click();
     }
+  })
+  .on('click', '#rename-file', function() {
+    // Rename folder or file
+    var itemID = $('#file-options-menu').attr('data-file-id');
+    var $item = $('.file-row[data-id="' + itemID + '"]');
+
+    // @TODO: Rename file
+  })
+  .on('click', '#rename-folder', function() {
+    // Rename folder or file
+    var itemID = $('#file-options-menu').attr('data-file-id');
+    var $item = $('.file-row[data-id="' + itemID + '"]');
+
+    // @TODO: Rename folder
   });
 
 // AUX FUNCTIONS //
@@ -340,26 +365,32 @@ function contextualMenu(fileID, element) {
   // Adds dynamic data to options pop-up
   $element = element;
   $('#file-options-menu').attr('data-file-id', fileID);
-  if ( $element.attr('data-file-type') == 'folder' ) {
+  if ($element.attr('data-file-type') === 'folder') {
     $('#file-options-menu #view-file').html('Open folder');
+    $('#file-options-menu #rename-file').removeClass('show');
+    $('#file-options-menu #rename-folder').addClass('show');
   } else {
     $('#file-options-menu #view-file').html('View file');
+    $('#file-options-menu #rename-folder').removeClass('show');
+    $('#file-options-menu #rename-file').addClass('show');
   }
 }
 
 function startTether(target) {
-  new Tether({
+  if (tetherBox) {
+    tetherBox.destroy();
+  }
+
+  tetherBox = new Tether({
     element: '#file-options-menu',
     target: target,
     attachment: 'top left',
     targetAttachment: 'top right',
-    constraints: [
-      {
-        to: 'scrollParent',
-        attachment: 'together',
-        pin: true
-      }
-    ]
+    constraints: [{
+      to: 'scrollParent',
+      attachment: 'together',
+      pin: true
+    }]
   });
 }
 
