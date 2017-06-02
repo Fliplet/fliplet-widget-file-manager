@@ -202,6 +202,17 @@ a {
   overflow: auto;
 }
 
+.file-manager-body .file-manager-leftside .split-bar {
+  background-color: transparent;
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 1;
+}
+
 .file-manager-leftside .new-btn {
   display: block;
 }
@@ -629,6 +640,7 @@ a {
   color: #fff;
 }
 
+.file-row.focused,
 .file-row:hover {
   background-color: #f3f3f3;
 }
@@ -775,10 +787,11 @@ a {
 }
 
 .file-options:active {
-  background-color: #14505e;
+  background-color: #bfbfbf;
 }
 
 .file-row.active .file-options,
+.file-row.focused .file-options,
 .file-row:hover .file-options {
   opacity: 1;
   visibility: visible;

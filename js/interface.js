@@ -24,6 +24,9 @@ var folders,
   organizations;
 var upTo = [];
 
+var sideBarMinWidth = 240;
+var sideBarMaxWidth = 395;
+
 // CORE FUNCTIONS //
 // Get organizations and apps list for left side menu
 function getOrganizationsList() {
@@ -47,8 +50,12 @@ function getAppsList() {
 function getFolderContents(el) {
   var options = {};
   // Default filter functions
-  var filterFiles = function (files) { return true };
-  var filterFolders = function(folders) { return true };
+  var filterFiles = function(files) {
+    return true
+  };
+  var filterFolders = function(folders) {
+    return true
+  };
 
   if (el.attr('data-type') === "app") {
     options.appId = el.attr('data-app-id');
@@ -60,7 +67,7 @@ function getFolderContents(el) {
       return !file.mediaFolderId;
     };
     filterFolders = function(folder) {
-        return !folder.parentFolderId;
+      return !folder.parentFolderId;
     };
   } else if (el.attr('data-type') === "organization") {
     options.organizationId = el.attr('data-org-id');
@@ -86,11 +93,10 @@ function getFolderContents(el) {
   Fliplet.Media.Folders.get(options).then(function(response) {
     folders = response.folders;
 
-    // Filter only the files from that request app/org/folder 
+    // Filter only the files from that request app/org/folder
     var mediaFiles = response.files.filter(filterFiles);
     var mediaFolders = response.folders.filter(filterFolders);
 
-    // Render files and folders
     mediaFolders.forEach(addFolder);
     mediaFiles.forEach(addFile);
   });
@@ -296,11 +302,15 @@ function resetUpTo(element) {
 // EVENTS //
 // Removes options popup by clicking elsewhere
 $(document).on("click", function(e) {
-  if ($(e.target).is("#file-options-menu") === false && $(e.target).is(".file-options") === false) {
-    $('#file-options-menu').removeClass('active');
-    $('.new-menu').removeClass('active');
-  }
-});
+    if ($(e.target).is("#file-options-menu") === false && $(e.target).is(".file-options") === false) {
+      $('.file-row.focused').removeClass('focused');
+      $('#file-options-menu').removeClass('active');
+      $('.new-menu').removeClass('active');
+    }
+  })
+  .mouseup(function(e) {
+    $(document).unbind('mousemove');
+  });
 
 $('.file-manager-wrapper')
   .on('change', '#file_upload', function() {
@@ -457,11 +467,11 @@ $('.file-manager-wrapper')
 
     if (itemId === rowItemId) {
       $('#file-options-menu').removeClass('active');
-      $(this).parents('.file-row').removeClass('active');
+      $(this).parents('.file-row').removeClass('focused');
     } else {
       $('#file-options-menu').addClass('active');
-      $(this).parents('.file-row').addClass('active');
-      $('.file-row.active').not($(this).parents('.file-row')).removeClass('active');
+      $(this).parents('.file-row').addClass('focused');
+      $('.file-row.focused').not($(this).parents('.file-row')).removeClass('focused');
       startTether($(this));
     }
 
@@ -528,20 +538,49 @@ $('.file-manager-wrapper')
     // Rename folder or file
     var itemID = $('#file-options-menu').attr('data-file-id');
     var $item = $('.file-row[data-id="' + itemID + '"]');
+    var fileName = $('.file-row[data-id="' + itemID + '"]').find('.file-name span').text();
 
-    // @TODO: Rename file
+    var changedName = prompt("Please enter the file name", fileName);
+
+    if (changedName != null) {
+      Fliplet.Media.Files.update(itemID, {
+        name: changedName
+      }).then(function() {
+        $('.file-row[data-id="' + itemID + '"]').find('.file-name span').html(changedName);
+      });
+    }
   })
   .on('click', '#rename-folder', function() {
     // Rename folder or file
     var itemID = $('#file-options-menu').attr('data-file-id');
     var $item = $('.file-row[data-id="' + itemID + '"]');
 
-    // @TODO: Rename folder
+    var fileName = $('.file-row[data-id="' + itemID + '"]').find('.file-name span').text();
+
+    var changedName = prompt("Please enter the file name", fileName);
+
+    if (changedName != null) {
+      Fliplet.Media.Folders.update(itemID, {
+        name: changedName
+      }).then(function() {
+        $('.file-row[data-id="' + itemID + '"]').find('.file-name span').html(changedName);
+      });
+    }
   })
   .on('click', '.header-breadcrumbs .back-btn', function() {
     upTo.pop();
     upTo[upTo.length - 1].back();
     updatePaths();
+  })
+  .on('mousedown', '.split-bar', function(e) {
+    e.preventDefault();
+    $(document).mousemove(function(e) {
+      e.preventDefault();
+      var x = e.pageX - $('.file-manager-leftside').offset().left;
+      if (x > sideBarMinWidth && x < sideBarMaxWidth) {
+        $('.file-manager-leftside').css("width", x);
+      }
+    })
   });
 
 // AUX FUNCTIONS //
