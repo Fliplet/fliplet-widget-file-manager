@@ -54,7 +54,12 @@
     <div class="file-manager-middleholder">
       <div class="file-manager-subheader">
         <div class="header-breadcrumbs">
-          <!-- Breadcrumbs here -->
+          <div class="current-folder-title">
+
+          </div>
+          <div class="back-btn hidden">
+            Back
+          </div>
         </div>
         <div class="delete-holder">
           <div class="btn btn-default delete-multiple">
@@ -78,6 +83,16 @@
 
                 <div class="file-table-header">
                   <div>
+                    <div class="file-cell selectable">
+                      <div class="file-select">
+                        <div class="checkbox checkbox-icon">
+                          <input type="checkbox" id="select_all" name="select_all" value="">
+                          <label for="select_all">
+                            <span class="check"><i class="fa fa-check"></i></span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                     <div class="file-cell">
                       <div class="file-name">
                         Name
@@ -143,6 +158,16 @@
 
 <template id="template-folder">
   <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}" data-file-type="folder">
+    <div class="file-cell selectable">
+      <div class="file-select">
+        <div class="checkbox checkbox-icon">
+          <input type="checkbox" id="select_folder_\{{id}}" name="select_folder_\{{id}}" value="\{{id}}">
+          <label for="select_folder_\{{id}}">
+            <span class="check"><i class="fa fa-check"></i></span>
+          </label>
+        </div>
+      </div>
+    </div>
     <div class="file-cell">
       <div class="file-name" data-browse-folder>
         <span>\{{name}}</span>
@@ -177,6 +202,16 @@
 
 <template id="template-file">
   <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}" data-file-type="\{{#if thumbnail}}image\{{else}}document\{{/if}}" data-file-url="\{{url}}">
+    <div class="file-cell selectable">
+      <div class="file-select">
+        <div class="checkbox checkbox-icon">
+          <input type="checkbox" id="select_file_\{{id}}" name="select_file_\{{id}}" value="\{{id}}">
+          <label for="select_file_\{{id}}">
+            <span class="check"><i class="fa fa-check"></i></span>
+          </label>
+        </div>
+      </div>
+    </div>
     <div class="file-cell">
       <div class="file-name">
         \{{#if thumbnail}}<img src="\{{url}}"/>\{{/if}}

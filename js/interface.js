@@ -1,6 +1,5 @@
 // VAR SETUP //
 var $folderContents = $('.file-table-body');
-var $folderList;
 var $organizationAppList = $('.dropdown-menu-holder ul');
 var $progress = $('.progress');
 var $progressBar = $progress.find('.progress-bar');
@@ -19,13 +18,17 @@ var counterOrganisation;
 
 var tetherBox;
 
+var folders,
+  apps,
+  organizations;
+var upTo = [];
+
 // CORE FUNCTIONS //
 // Get organizations and apps list for left side menu
 function getOrganizationsList() {
   counterOrganisation = 0;
   Fliplet.Organizations.get().then(function(organizations) {
     organizations.forEach(addOrganizations);
-    $folderList = $('.folder-list');
   });
 }
 
@@ -35,7 +38,7 @@ function getAppsList() {
         return !app.legacy;
       })
       .forEach(addApps);
-    $folderList = $('.folder-list');
+    checkForSubfolders();
   });
 }
 
@@ -43,9 +46,9 @@ function getAppsList() {
 function getFolderContents(el) {
   var options = {};
 
-  if (el.attr('data-type') == "app") {
+  if (el.attr('data-type') === "app") {
     options.appId = el.attr('data-app-id');
-  } else if (el.attr('data-type') == "organization") {
+  } else if (el.attr('data-type') === "organization") {
     options.organizationId = el.attr('data-org-id');
   } else {
     options.folderId = el.attr('data-id');
@@ -57,15 +60,16 @@ function getFolderContents(el) {
   $folderContents.html('');
 
   Fliplet.Media.Folders.get(options).then(function(response) {
+    folders = response.folders;
     response.folders.forEach(addFolder);
     response.files.forEach(addFile);
   });
 }
 
 // Get folders depending on ID (Org, App, Folder) to add as sub-folders
-function getListFolders(listEl) {
+function getListFolders(listEl, init) {
   var options = {};
-  $listElement = listEl;
+  var $listElement = listEl;
 
   if ($listElement.attr('data-type') == "app") {
     options.appId = $listElement.attr('data-app-id');
@@ -89,9 +93,11 @@ function getListFolders(listEl) {
         if ($listElement.find('ul').first().find('li[data-id="' + i.id + '"]').length == 0) {
           $listElement.find('ul').first().append(templates.folderItem(i));
         }
-        if (!$listElement.find($folderList).is(':empty')) {
-          $folderList.parents('.active').first().removeClass('no-subfolder');
+        if (!$listElement.find('.folder-list').is(':empty') && !init) {
+          $listElement.removeClass('no-subfolder');
           //$listElement.find('ul').first().append(templates.folderItem(i));
+        } else {
+          $listElement.removeClass('no-subfolder');
         }
       }
     });
@@ -103,12 +109,23 @@ function addOrganizations(organizations) {
   $organizationAppList.append(templates.organizations(organizations));
 
   if ($organizationAppList.find('li').length === 1) {
-    $organizationAppList.find('li').first().addClass('active');
-
     var orgEl = $organizationAppList.find('li').first();
     var orgName = $organizationAppList.find('li').first().find('.list-text-holder span').first().text();
 
-    $(".header-breadcrumbs").html('<strong>' + orgName + '</strong>');
+    $organizationAppList.find('li').first().addClass('active');
+
+    // Store to nav stack
+    backItem = {
+      id: $organizationAppList.find('li').first().data('org-id'),
+      name: orgName
+    };
+    backItem.back = function() {
+      getFolderContents($organizationAppList.find('li').first());
+    };
+    backItem.type = 'organizationId';
+    upTo.push(backItem);
+
+    $(".header-breadcrumbs .current-folder-title").html(orgName);
     getFolderContents(orgEl);
   }
 }
@@ -143,11 +160,113 @@ function template(name) {
   return Handlebars.compile($('#template-' + name).html());
 }
 
+function checkForSubfolders() {
+  $('.dropdown-menu-holder li.no-subfolder').each(function(i, el) {
+    getListFolders($(el), true);
+  });
+}
+
+function checkboxStatus() {
+  var numberOfRows = $('.file-row').length;
+  var numberOfActiveRows = $('.file-row.active').length;
+  $('.delete-holder').find('.badge').html(numberOfActiveRows);
+
+  if ($('.file-row').hasClass('active')) {
+    $('.delete-holder').addClass('active');
+    $('.file-cell.selectable').addClass('active');
+    $('.file-row').not(this).addClass('passive');
+  } else {
+    $('.delete-holder').removeClass('active');
+    $('.file-cell.selectable').removeClass('active');
+    $('.file-row').not(this).removeClass('passive');
+  }
+
+  if (numberOfRows === numberOfActiveRows) {
+    $('.file-table-header input[type="checkbox"]').prop('checked', true);
+  } else {
+    $('.file-table-header input[type="checkbox"]').prop('checked', false);
+  }
+}
+
+function toggleAll(el) {
+  if (el.is(':checked')) {
+    $('.file-row input[type="checkbox"]').each(function() {
+      $(this).prop('checked', true);
+      $(this).parents('.file-row').addClass('active');
+      $(this).parents('.file-cell.selectable').addClass('active');
+    });
+  } else {
+    $('.file-row input[type="checkbox"]').each(function() {
+      $(this).prop('checked', false);
+      $(this).parents('.file-row').removeClass('active');
+      $('.file-cell.selectable').removeClass('active');
+      $('.file-row').removeClass('passive');
+    });
+  }
+
+  var numberOfActiveRows = $('.file-row.active').length;
+  $('.delete-holder').find('.badge').html(numberOfActiveRows);
+
+  if (!$('.file-row').hasClass('active')) {
+    $('.delete-holder').removeClass('active');
+  }
+}
+
+function openRoot() {
+  // Update paths
+  $('.header-breadcrumbs').removeClass('child');
+  $('.back-btn').addClass('hidden');
+}
+
+function updatePaths() {
+  if (upTo.length === 1) {
+    // Hide them
+    $('.back-btn').addClass('hidden');
+    $('.header-breadcrumbs').removeClass('child');
+  } else if (upTo.length > 1) {
+    // Show them
+    $('.back-btn').removeClass('hidden');
+    $('.header-breadcrumbs').addClass('child');
+  }
+
+  // Current folder
+  $('.header-breadcrumbs .current-folder-title').html(upTo[upTo.length - 1].name);
+}
+
+function resetUpTo(element) {
+  upTo = [];
+
+  if (element.attr('data-type') === "app") {
+    backItem = {
+      id: element.data('app-id'),
+      name: element.find('.list-text-holder span').first().text()
+    };
+    backItem.type = 'appId';
+  } else if (element.attr('data-type') === "organization") {
+    backItem = {
+      id: element.data('org-id'),
+      name: element.find('.list-text-holder span').first().text()
+    };
+    backItem.type = 'organizationId';
+  } else {
+    backItem = {
+      id: element.data('id'),
+      name: element.find('.list-text-holder span').first().text()
+    };
+    backItem.type = 'folderId';
+  }
+  backItem.back = function() {
+    getFolderContents(element);
+  };
+
+  upTo.push(backItem);
+  updatePaths();
+}
+
 // EVENTS //
 // Removes options popup by clicking elsewhere
 $(document).on("click", function(e) {
   if ($(e.target).is("#file-options-menu") === false && $(e.target).is(".file-options") === false) {
-    $('.file-row.active').removeClass('active');
     $('#file-options-menu').removeClass('active');
     $('.new-menu').removeClass('active');
   }
@@ -162,9 +281,24 @@ $('.file-manager-wrapper')
     $('.new-btn').click();
   })
   .on('dblclick', '.file-table-body [data-browse-folder]', function(event) {
+    var $el = $(this);
+    var id = $el.parents('.file-row').data('id');
+    var backItem;
+
+    // Store to nav stack
+    backItem = _.find(folders, ['id', id]);
+    backItem.back = function() {
+      getFolderContents($('.file-row[data-id="' + id + '"]'));
+    };
+    backItem.type = 'folderId';
+    upTo.push(backItem);
+
+    // Update paths
+    updatePaths();
     getFolderContents($(this).parents('.file-row'));
   })
   .on('click', '.dropdown-menu-holder [data-browse-folder]', function(event) {
+    resetUpTo($(this));
     getFolderContents($(this));
   })
   .on('click', '[data-create-folder]', function(event) {
@@ -257,19 +391,8 @@ $('.file-manager-wrapper')
     $el.first().addClass('active');
 
     var currentItem = $el;
-    var path = '';
 
-    $(currentItem.parentsUntil('.dropdown-menu-holder', 'li').get().reverse()).each(function() {
-      path += $(this).find('.list-text-holder span').first().text() + '<i class="fa fa-angle-right" aria-hidden="true"></i>';
-    });
-
-    if (currentItem.attr('data-type') == 'organisation') {
-      path = '<strong>' + currentItem.find('.list-text-holder span').first().text() + '</strong>';
-    } else {
-      path += '<strong>' + currentItem.find('.list-text-holder span').first().text() + '</strong>';
-    }
-
-    $(".header-breadcrumbs").html(path);
+    $(".header-breadcrumbs .current-folder-title").html(currentItem.find('.list-text-holder span').first().text());
   })
   .on('click', '.dropdown-menu-holder li > .list-holder .fa', function(e) {
     // Changes arrow icon orientation
@@ -287,11 +410,12 @@ $('.file-manager-wrapper')
 
     event.stopPropagation();
   })
-  .on('click', '.file-row', function(event) {
-    $(this).addClass('active');
-    $('.file-row.active').not(this).removeClass('active');
-
-    event.stopPropagation();
+  .on('change', '.file-row input[type="checkbox"]', function() {
+    $(this).parents('.file-row').toggleClass('active');
+    checkboxStatus();
+  })
+  .on('change', '.file-table-header input[type="checkbox"]', function() {
+    toggleAll($(this));
   })
   .on('click', '.file-options', function(event) {
     var itemId = $('#file-options-menu.active').attr('data-file-id');
@@ -316,21 +440,45 @@ $('.file-manager-wrapper')
     // Deletes folder or file
     var itemID = $('#file-options-menu').attr('data-file-id');
     var $item = $('.file-row.active[data-id="' + itemID + '"]');
+    var alertConfirmation;
 
     if ($item.attr('data-file-type') == 'folder') {
-      var alertConfirmation = confirm("Are you sure you want to delete this folder?\nAll the content inside the folder will be deleted too.");
-      if (alertConfirmation == true) {
+      alertConfirmation = confirm("Are you sure you want to delete this folder?\nAll the content inside the folder will be deleted too.");
+      if (alertConfirmation === true) {
         Fliplet.Media.Folders.delete($item.attr('data-id')).then(function() {
           $item.remove();
         });
       }
     } else {
-      var alertConfirmation = confirm("Are you sure you want to delete this file?\nThe file will be deleted forever.");
-      if (alertConfirmation == true) {
+      alertConfirmation = confirm("Are you sure you want to delete this file?\nThe file will be deleted forever.");
+      if (alertConfirmation === true) {
         Fliplet.Media.Files.delete($item.attr('data-id')).then(function() {
           $item.remove();
         });
       }
+    }
+  })
+  .on('click', '.delete-multiple', function() {
+    var items = $('.file-row.active');
+
+    var alertConfirmation = confirm("Are you sure you want to delete all selected items?\nAll the content inside a folder will be deleted too.");
+
+    if (alertConfirmation === true) {
+      $(items).each(function() {
+        var $element = $(this);
+
+        if ($element.attr('data-file-type') == 'folder') {
+          Fliplet.Media.Folders.delete($element.attr('data-id')).then(function() {
+            $element.remove();
+            checkboxStatus();
+          });
+        } else {
+          Fliplet.Media.Files.delete($element.attr('data-id')).then(function() {
+            $element.remove();
+            checkboxStatus();
+          });
+        }
+      });
     }
   })
   .on('click', '#view-file', function() {
@@ -358,6 +506,11 @@ $('.file-manager-wrapper')
     var $item = $('.file-row[data-id="' + itemID + '"]');
 
     // @TODO: Rename folder
+  })
+  .on('click', '.header-breadcrumbs .back-btn', function() {
+    upTo.pop();
+    upTo[upTo.length - 1].back();
+    updatePaths();
   });
 
 // AUX FUNCTIONS //

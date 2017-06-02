@@ -313,13 +313,48 @@ a {
 }
 
 .header-breadcrumbs {
-  width: 70%;
-  padding-right: 20px;
+  display: flex;
+  width: 80%;
+  margin-right: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.header-breadcrumbs .fa {
-  font-size: 1em;
-  margin: 0 10px;
+.header-breadcrumbs .current-folder-title {
+  font-weight: bold;
+  color: #14505e;
+  padding: 0 16px 0 0;
+  position: relative;
+  display: inline-block;
+}
+
+.header-breadcrumbs.child .current-folder-title {
+  border-right: 1px solid #e4e9eb;
+}
+
+.header-breadcrumbs .back-btn {
+  padding: 0 16px;
+  position: relative;
+  cursor: pointer;
+  text-align: right;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-breadcrumbs .back-btn:hover {
+  text-decoration: underline;
+}
+
+.header-breadcrumbs .back-btn:before {
+  content: "\f148";
+  font: normal normal normal 16px FontAwesome;
+  position: absolute;
+  right: 0;
+  width: 10px;
+  height: 44px;
   line-height: 44px;
 }
 
@@ -389,7 +424,7 @@ a {
 }
 
 .dropdown-menu-holder li ul li {
-  padding: 0 0 0 25px;
+  padding: 0 0 0 22px;
   margin-bottom: 1px;
   white-space: nowrap;
   overflow: hidden;
@@ -420,6 +455,10 @@ a {
   margin-left: 2px;
   padding-left: 25px;
   position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: calc(100% - 27px);
 }
 
 .dropdown-menu-holder li .list-text-holder span {
@@ -511,10 +550,6 @@ a {
 }
 
 .dropdown-menu-holder .no-subfolder .list-text-holder {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: calc(100% - 30px);
   margin-left: 17px;
 }
 
@@ -576,7 +611,7 @@ a {
 }
 
 .file-table-body {
-  display: table-row-group;
+  display: table-caption;
 }
 
 .file-row {
@@ -589,9 +624,13 @@ a {
 }
 
 .file-row.active,
-.file-row:hover {
+.file-row.active:hover {
   background-color: #00abd2;
   color: #fff;
+}
+
+.file-row:hover {
+  background-color: #f3f3f3;
 }
 
 .file-cell {
@@ -604,13 +643,57 @@ a {
   width: 100%;
 }
 
-.file-cell:first-child {
-  padding-left: 30px;
-}
-
 .file-table-header .file-cell {
   border-bottom: none;
   width: 100%;
+}
+
+.file-cell.selectable {
+  width: 40px;
+  padding-right: 10px;
+}
+
+.file-select {
+  opacity: 0;
+  visibility: hidden;
+  width: 40px;
+  text-align: center;
+}
+
+.file-row.active .file-select,
+.file-row.passive .file-select,
+.file-row:hover .file-select {
+  opacity: 1;
+  visibility: visible;
+}
+
+.file-table-header .selectable.active .file-select {
+  opacity: 1;
+  visibility: visible;
+}
+
+.file-row.active .checkbox.checkbox-icon input[type="checkbox"]:checked + label > span.check {
+  background-color: #ffffff;
+}
+
+.file-row.active .checkbox.checkbox-icon input[type="checkbox"]:checked + label span.check > i.fa {
+  color: #00abd2;
+}
+
+.file-select .checkbox {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.file-select .checkbox.checkbox-icon label {
+  padding-left: 0;
+}
+
+.file-select .checkbox.checkbox-icon label > span.check {
+  left: 50%;
+  top: 50%;
+  margin-left: -10px;
+  margin-top: -10px;
 }
 
 .file-name {
@@ -684,6 +767,10 @@ a {
 }
 
 .file-options:hover {
+  background-color: #dedede;
+}
+
+.file-row.active .file-options:hover {
   background-color: #0499bb;
 }
 
