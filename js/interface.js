@@ -71,7 +71,7 @@ function getFolderContents(el) {
         return !(file.appId || file.mediaFolderId);
       });
       mediaFolders = response.folders.filter(function removeNonRootOrganizationFolders(folder) {
-        return !(file.appId || file.parentFolderId);
+        return !(folder.appId || folder.parentFolderId);
       });
     }
 
