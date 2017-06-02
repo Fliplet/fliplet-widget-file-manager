@@ -12,6 +12,7 @@ var templates = {
 };
 
 var currentFolderId;
+var currentAppId;
 var currentFolders;
 var currentFiles;
 var counterOrganisation;
@@ -45,11 +46,34 @@ function getAppsList() {
 // Get folders and files depending on ID (Org, App, Folder) to add to the content area
 function getFolderContents(el) {
   var options = {};
+  // Default filter functions
+  var filterFiles = function (files) { return true };
+  var filterFolders = function(folders) { return true };
 
   if (el.attr('data-type') === "app") {
     options.appId = el.attr('data-app-id');
+    currentAppId = el.attr('data-app-id');
+    currentFolderId = null;
+
+    // Filter functions
+    filterFiles = function(file) {
+      return !file.mediaFolderId;
+    };
+    filterFolders = function(folder) {
+        return !folder.parentFolderId;
+    };
   } else if (el.attr('data-type') === "organization") {
     options.organizationId = el.attr('data-org-id');
+    currentAppId = null;
+    currentFolderId = null;
+
+    // Filter functions
+    filterFiles = function(file) {
+      return !(file.appId || file.mediaFolderId);
+    };
+    filterFolders = function(folder) {
+      return !(folder.appId || folder.parentFolderId);
+    };
   } else {
     options.folderId = el.attr('data-id');
     currentFolderId = el.attr('data-id');
@@ -63,29 +87,11 @@ function getFolderContents(el) {
     folders = response.folders;
 
     // Filter only the files from that request app/org/folder 
-    var mediaFiles;
-    var mediaFolders;
-
-    if (options.organizationId) {
-      mediaFiles = response.files.filter(function removeNonRootOrganizationFiles(file) {
-        return !(file.appId || file.mediaFolderId);
-      });
-      mediaFolders = response.folders.filter(function removeNonRootOrganizationFolders(folder) {
-        return !(folder.appId || folder.parentFolderId);
-      });
-    }
-
-    if (options.appId) {
-      mediaFiles = response.files.filter(function removeNonRootAppFiles(file) {
-        return !file.mediaFolderId;
-      });
-      mediaFolders = response.folders.filter(function removeNonRootAppFolders(folder) {
-        return !folder.parentFolderId;
-      });
-    }
+    var mediaFiles = response.files.filter(filterFiles);
+    var mediaFolders = response.folders.filter(filterFolders);
 
     // Render files and folders
-    mediaFolders.folders.forEach(addFolder);
+    mediaFolders.forEach(addFolder);
     mediaFiles.forEach(addFile);
   });
 }
@@ -381,6 +387,7 @@ $('.file-manager-wrapper')
 
     Fliplet.Media.Files.upload({
       folderId: currentFolderId,
+      appId: currentAppId,
       name: file.name,
       data: formData,
       progress: function(percentage) {
