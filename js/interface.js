@@ -70,7 +70,7 @@ function getFolderContents(el) {
       mediaFiles = response.files.filter(function removeNonRootOrganizationFiles(file) {
         return !(file.appId || file.mediaFolderId);
       });
-      mediaFolders = response.files.filter(function removeNonRootOrganizationFolders(folder) {
+      mediaFolders = response.folders.filter(function removeNonRootOrganizationFolders(folder) {
         return !(file.appId || file.parentFolderId);
       });
     }
@@ -79,7 +79,7 @@ function getFolderContents(el) {
       mediaFiles = response.files.filter(function removeNonRootAppFiles(file) {
         return !file.mediaFolderId;
       });
-      mediaFolders = response.files.filter(function removeNonRootAppFolders(folder) {
+      mediaFolders = response.folders.filter(function removeNonRootAppFolders(folder) {
         return !folder.parentFolderId;
       });
     }
