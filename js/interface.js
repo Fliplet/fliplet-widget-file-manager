@@ -61,8 +61,32 @@ function getFolderContents(el) {
 
   Fliplet.Media.Folders.get(options).then(function(response) {
     folders = response.folders;
-    response.folders.forEach(addFolder);
-    response.files.forEach(addFile);
+
+    // Filter only the files from that request app/org/folder 
+    var mediaFiles;
+    var mediaFolders;
+
+    if (options.organizationId) {
+      mediaFiles = response.files.filter(function removeNonRootOrganizationFiles(file) {
+        return !(file.appId || file.mediaFolderId);
+      });
+      mediaFolders = response.files.filter(function removeNonRootOrganizationFolders(folder) {
+        return !(file.appId || file.parentFolderId);
+      });
+    }
+
+    if (options.appId) {
+      mediaFiles = response.files.filter(function removeNonRootAppFiles(file) {
+        return !file.mediaFolderId;
+      });
+      mediaFolders = response.files.filter(function removeNonRootAppFolders(folder) {
+        return !folder.parentFolderId;
+      });
+    }
+
+    // Render files and folders
+    mediaFolders.folders.forEach(addFolder);
+    mediaFiles.forEach(addFile);
   });
 }
 
