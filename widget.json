@@ -9,7 +9,8 @@
     "dependencies": [
       "fliplet-media",
       "fliplet-studio-ui",
-      "lodash"
+      "lodash",
+      "bootstrap"
     ],
     "assets": [
       "vendor/handlebars.js",

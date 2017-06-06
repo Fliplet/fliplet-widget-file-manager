@@ -4,52 +4,13 @@
     <div class="progress-bar progress-bar-striped active" role="progressbar" style="width: 0%"></div>
   </div>
 
-  <div class="file-manager-header">
-    <h1><i class="fa fa-folder" aria-hidden="true"></i> File Manager</h1>
-    <!-- HIDES SORT AND SEARCH
-    <div class="sort-search-holder">
-      <div class="form-group">
-        <label for="sort-files" class="select-proxy-display">
-          <span class="icon fa fa-chevron-down"></span>
-          <span class="select-value-proxy">Show all file types</span>
-          <select name="sort_files" id="sort-files" data-label="select" class="hidden-select form-control">
-            <option selected value="all">Show all file types</option>
-            <option value="documents">Show only document files</option>
-            <option value="images">Show only images</option>
-            <option value="videos">Show only video files</option>
-            <option value="audio">Show only audio files</option>
-            <option value="fonts">Show only fonts</option>
-          </select>
-        </label>
-      </div>
-      <div class="form-group">
-        <input type="search" class="form-control file-manager-search" id="file_search" name="file-search" placeholder="Search all files">
-        <button class="btn btn-primary search-files-btn"><i class="fa fa-search" aria-hidden="true"></i></button>
-      </div>
-    </div>
-    END OF HIDDING -->
-  </div>
-
   <div class="file-manager-body">
     <div class="file-manager-leftside">
-      <div class="split-bar"></div>
-      <div class="btn btn-primary new-btn">New</div>
-      <div class="new-menu">
-        <ul>
-          <li data-create-folder><i class="fa fa-plus-circle" aria-hidden="true"></i> Create new folder</li>
-          <hr>
-          <li>
-            <form data-upload-file>
-              <input type="file" name="files[]" id="file_upload" multiple />
-              <label id="choose-file" for="file_upload">
-                <i class="fa fa-cloud-upload" aria-hidden="true"></i> Upload new file
-              </label>
-            </form>
-          </li>
-        </ul>
-      </div>
+      <!-- <div class="split-bar"></div> -->
       <div class="dropdown-menu-holder">
-        <ul></ul>
+        <div class="panel-group" id="organisations-accordion" role="tablist">
+          <!-- Organisation List Here -->
+        </div>
       </div>
     </div>
     <div class="file-manager-middleholder">
@@ -58,15 +19,31 @@
           <div class="current-folder-title">
 
           </div>
-          <div class="back-btn hidden">
-            Back
+        </div>
+        <div class="new-btn-holder">
+          <div class="btn btn-primary new-btn">New</div>
+          <div class="new-menu">
+            <ul>
+              <li data-create-folder><i class="fa fa-plus-circle" aria-hidden="true"></i> Create new folder</li>
+              <hr>
+              <li>
+                <form data-upload-file>
+                  <input type="file" name="files[]" id="file_upload" multiple />
+                  <label id="choose-file" for="file_upload">
+                    <i class="fa fa-cloud-upload" aria-hidden="true"></i> Upload new file
+                  </label>
+                </form>
+              </li>
+            </ul>
           </div>
         </div>
+        <!--
         <div class="delete-holder">
           <div class="btn btn-default delete-multiple">
             <i class="fa fa-trash" aria-hidden="true"></i> Delete <span class="badge">3</span>
           </div>
         </div>
+      -->
       </div>
       <div class="file-manager-filelist">
         <div class="f-a">
@@ -128,16 +105,39 @@
                   <!-- FOLDER CONTENT WILL BE HERE -->
                 </div>
 
+                <div class="empty-state">
+                  <span>&#x1F633</span>
+                  <h3>This seems to be empty.</h3>
+                  <p>Use the "New" button.</p>
+                </div>
+
               </div>
             </div>
           </div>
         </div>
       </div>
       <div class="file-manager-rightside">
-        <div>
+        <div class="help-tips">
           <h2>Did you know?</h2>
           <p>All users from an organization can access <strong>Organization</strong> folders and edit its content.</p>
           <p>You can make files only accessible to specific apps. Use the menu on the left to browse app specific files.</p>
+        </div>
+        <div class="side-actions">
+          <div class="multiple item">
+            <i class="fa fa-files-o"></i>
+          </div>
+          <div class="file item">
+            <i class="fa fa-file"></i>
+          </div>
+          <div class="folder item">
+            <i class="fa fa-folder-open"></i>
+          </div>
+          <p>You have selected <span class="items-selected"></span></p>
+          <div class="delete-holder">
+            <div class="btn btn-default delete-multiple">
+              <i class="fa fa-trash" aria-hidden="true"></i> Delete <span class="badge">3</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -214,7 +214,7 @@
       </div>
     </div>
     <div class="file-cell">
-      <div class="file-name">
+      <div class="file-name" data-open-file>
         \{{#if thumbnail}}<img src="\{{url}}"/>\{{/if}}
         <span>\{{name}}</span>
       </div>
@@ -247,39 +247,41 @@
 </template>
 
 <template id="template-folder-item">
-  <li class="no-subfolder" data-type="folder" data-folder data-id="\{{id}}" data-browse-folder>
+  <li data-type="folder" data-folder data-id="\{{id}}" data-browse-folder>
     <div class="list-holder clearfix">
       <i class="fa fa-chevron-right" aria-hidden="true"></i>
       <div class="list-text-holder">
         <span>\{{name}}</span>
       </div>
     </div>
-    <ul></ul>
   </li>
 </template>
 
 <template id="template-organizations">
-  <li class="no-subfolder" data-type="organization" data-org-id="\{{id}}" data-org data-browse-folder>
-    <div class="list-holder clearfix">
-      <i class="fa fa-chevron-right" aria-hidden="true"></i>
-      <div class="list-text-holder">
-        <span>\{{name}}</span>
-        <p>Organization</p>
+  <div class="panel panel-default">
+    <div class="panel-heading" role="tab">
+      <i class="fa fa-angle-down" role="button" data-toggle="collapse" href="#organisation-\{{id}}"></i>
+      <h4 class="panel-title collapsed list-holder" data-type="organization" data-org-id="\{{id}}" data-org data-browse-folder>
+        <div class="list-text-holder">
+          <span>\{{name}}</span>
+          <p>Organization</p>
+        </div>
+      </h4>
+    </div>
+    <div id="organisation-\{{id}}" class="panel-collapse collapse" role="tabpanel">
+      <div class="panel-body">
+
       </div>
     </div>
-    <ul class="folder-list"></ul>
-  </li>
+  </div>
 </template>
 
 <template id="template-apps">
-  <li class="no-subfolder" data-type="app" data-app-id="\{{id}}" data-app data-browse-folder>
-    <div class="list-holder clearfix">
-      <i class="fa fa-chevron-right" aria-hidden="true"></i>
+  <div class="app-holder" data-type="app" data-app-id="\{{id}}" data-app data-browse-folder>
+    <div class="list-holder">
       <div class="list-text-holder">
         <span>\{{name}}</span>
-        <p>App</p>
       </div>
     </div>
-    <ul class="folder-list"></ul>
-  </li>
+  </div>
 </template>
