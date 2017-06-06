@@ -62,7 +62,6 @@ function getAppsList() {
 
 // Get folders and files depending on ID (Org, App, Folder) to add to the content area
 function getFolderContents(el) {
-<<<<<<< HEAD
   var options = {};
   // Default filter functions
   var filterFiles = function(files) {
@@ -96,16 +95,8 @@ function getFolderContents(el) {
     filterFolders = function(folder) {
       return !(folder.appId || folder.parentFolderId);
     };
-=======
-  currentSelection = {};
-
-  if (el.attr('data-type') == "app") {
-    currentSelection.appId = el.attr('data-app-id');
-  } else if (el.attr('data-type') == "organization") {
-    currentSelection.organizationId = el.attr('data-org-id');
->>>>>>> master
   } else {
-    currentSelection.folderId = el.attr('data-id');
+    options.folderId = el.attr('data-id');
     currentFolderId = el.attr('data-id');
   }
 
@@ -113,31 +104,11 @@ function getFolderContents(el) {
   currentFiles = [];
   $folderContents.html('');
 
-<<<<<<< HEAD
   Fliplet.Media.Folders.get(options).then(function(response) {
     if (response.files.length === 0 && response.folders.length === 0) {
       $('.empty-state').addClass('active');
     } else {
       folders = response.folders;
-=======
-  Fliplet.Media.Folders.get(currentSelection).then(function (response) {
-    response.folders.forEach(addFolder);
-    response.files.filter(function (file) {
-      // Don't show organizations/app files on root folder if they belong to a folder
-      if (!currentSelection.folderId) {
-        return !file.mediaFolderId;
-      }
-      return true;
-
-    }).forEach(addFile);
-  });
-}
-
-// Get folders depending on ID (Org, App, Folder) to add as sub-folders
-function getListFolders(listEl) {
-  var options = {};
-  $listElement = listEl;
->>>>>>> master
 
       // Filter only the files from that request app/org/folder
       var mediaFiles = response.files.filter(filterFiles);
@@ -435,13 +406,9 @@ $('.file-manager-wrapper')
     });
     $progress.removeClass('hidden');
 
-<<<<<<< HEAD
     Fliplet.Media.Files.upload({
       folderId: currentFolderId,
       appId: currentAppId,
-=======
-    var options = $.extend({}, currentSelection, {
->>>>>>> master
       name: file.name,
       data: formData,
       progress: function(percentage) {
@@ -449,13 +416,7 @@ $('.file-manager-wrapper')
           width: percentage + '%'
         });
       }
-<<<<<<< HEAD
     }).then(function(files) {
-=======
-    });
-
-    Fliplet.Media.Files.upload(options).then(function (files) {
->>>>>>> master
       $input.val('');
       files.forEach(function(file) {
         addFile(file);
