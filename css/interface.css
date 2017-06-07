@@ -192,7 +192,7 @@ a {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  width: 240px;
+  width: 260px;
   background-color: #ffffff;
   border-left: 1px solid #e4e9eb;
   padding: 15px;
@@ -410,8 +410,8 @@ a {
   margin-bottom: 15px;
 }
 
-.side-actions .item-actions .btn {
-  margin-bottom: 10px;
+.side-actions .item-actions a {
+  margin: 0 5px;
 }
 
 .side-actions .item-actions .multiple-item,
@@ -424,7 +424,7 @@ a {
 }
 
 .side-actions .item-actions.single .single-item {
-  display: inline-grid;
+  display: block;
 }
 
 .dropdown-menu-holder {
@@ -444,6 +444,7 @@ a {
   background-color: transparent;
   -webkit-box-shadow: none;
   box-shadow: none;
+  border-bottom: 1px solid #e4e9eb;
 }
 
 .dropdown-menu-holder .panel-default > .panel-heading {
@@ -455,26 +456,36 @@ a {
   padding-left: 10px;
 }
 
-.dropdown-menu-holder .panel-heading > .fa {
+.dropdown-menu-holder .panel-heading > .arrow-holder {
   position: absolute;
-  right: 5px;
+  left: 0;
   top: 50%;
   width: 30px;
-  height: 44px;
-  line-height: 44px;
-  margin-top: -22px;
-  text-align: center;
-  font-size: 22px;
+  height: 30px;
+  line-height: 30px;
+  margin-top: -15px;
   cursor: pointer;
   pointer-events: all;
   z-index: 5;
+}
+
+.dropdown-menu-holder .panel-heading > .arrow-holder:hover {
+  background-color: #e8eced;
+}
+
+.dropdown-menu-holder .panel-heading > .arrow-holder .fa {
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  font-size: 22px;
   -webkit-transition: all 0.25s ease;
   transition: all 0.25s ease;
   -webkit-transform: rotate(0deg);
 }
 
-.dropdown-menu-holder .panel-heading > .fa.rotate {
-  -webkit-transform: rotate(-180deg);
+.dropdown-menu-holder .panel-heading > .arrow-holder .fa.rotate {
+  -webkit-transform: rotate(90deg);
 }
 
 .dropdown-menu-holder .panel-heading .panel-title {
@@ -511,11 +522,12 @@ a {
 
 .dropdown-menu-holder .panel-title .list-text-holder {
   padding-left: 25px;
+  margin-left: 25px;
   position: relative;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: calc(100% - 35px);
+  width: calc(100% - 30px);
   line-height: 1.35;
 }
 
@@ -562,10 +574,6 @@ a {
 
 .dropdown-menu-holder .panel-body .app-holder {
   position: relative;
-}
-
-.dropdown-menu-holder .panel-default > .panel-collapse {
-  background-color: #e8eced;
 }
 
 .dropdown-menu-holder .panel-body .list-holder {

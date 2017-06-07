@@ -137,20 +137,20 @@
           </div>
           <div class="item-actions">
             <div class="single-item">
-              <div class="btn btn-default" open-action>
+              <a href="#" open-action>
                 <i class="fa fa-external-link"></i> Open
-              </div>
-              <div class="btn btn-default" rename-action>
+              </a>
+              <a href="#" rename-action>
                 <i class="fa fa-pencil"></i> Rename
-              </div>
-              <div class="btn btn-danger" delete-action>
+              </a>
+              <a href="#" class="text-danger" delete-action>
                 <i class="fa fa-trash"></i> Delete
-              </div>
+              </a>
             </div>
             <div class="multiple-item">
-              <div class="btn btn-danger" delete-action>
+              <a href="#" class="text-danger" delete-action>
                 <i class="fa fa-trash"></i> Delete
-              </div>
+              </a>
             </div>
           </div>
         </div>
@@ -252,7 +252,9 @@
 <template id="template-organizations">
   <div class="panel panel-default">
     <div class="panel-heading" role="tab">
-      <i class="fa fa-angle-down" role="button" data-toggle="collapse" href="#organisation-\{{id}}"></i>
+      <span class="arrow-holder" role="button" data-toggle="collapse" href="#organisation-\{{id}}">
+        <i class="fa fa-angle-right"></i>
+      </span>
       <h4 class="panel-title list-holder" data-type="organization" data-org-id="\{{id}}" data-org data-browse-folder>
         <div class="list-text-holder">
           <span>\{{name}}</span>
