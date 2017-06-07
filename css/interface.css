@@ -384,17 +384,47 @@ a {
 }
 
 .side-actions .item {
-  font-size: 50px;
+  font-size: 60px;
+  height: 100px;
+  margin-bottom: 10px;
+}
+
+.side-actions .item.file,
+.side-actions .item.folder,
+.side-actions .item.image,
+.side-actions .item.multiple {
+  display: none;
 }
 
 .side-actions .item.file,
 .side-actions .item.folder,
 .side-actions .item.multiple {
-  display: none;
+  line-height: 100px;
+}
+
+.side-actions .item.image img {
+  max-height: 100%;
 }
 
 .side-actions .item ~ p {
   margin-bottom: 15px;
+}
+
+.side-actions .item-actions .btn {
+  margin-bottom: 10px;
+}
+
+.side-actions .item-actions .multiple-item,
+.side-actions .item-actions .single-item {
+  display: none;
+}
+
+.side-actions .item-actions.multiple .multiple-item {
+  display: block;
+}
+
+.side-actions .item-actions.single .single-item {
+  display: inline-grid;
 }
 
 .dropdown-menu-holder {
@@ -773,31 +803,6 @@ a {
   white-space: nowrap;
 }
 
-.file-options {
-  opacity: 0;
-  visibility: hidden;
-  width: 25px;
-  text-align: center;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.file-options .fa {
-  pointer-events: none;
-}
-
-.file-options:hover {
-  background-color: #dedede;
-}
-
-.file-row.active .file-options:hover {
-  background-color: #0499bb;
-}
-
-.file-options:active {
-  background-color: #bfbfbf;
-}
-
 .file-row.active .file-options,
 .file-row.focused .file-options,
 .file-row:hover .file-options {
@@ -929,6 +934,7 @@ a {
   width: 100%;
   height: 8px;
   border-radius: 0;
+  z-index: 1;
 }
 
 .progress-bar {

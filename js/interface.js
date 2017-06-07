@@ -127,6 +127,7 @@ function addOrganizations(organizations) {
   $organizationList.append(templates.organizations(organizations));
 
   if ($organizationList.find('.panel-title').length === 1) {
+    $(".panel-collapse").first().collapse('show');
     var orgEl = $organizationList.find('.panel-title').first();
     var orgName = $organizationList.find('.panel-title').first().find('.list-text-holder span').first().text();
 
@@ -186,8 +187,12 @@ function template(name) {
 function checkboxStatus() {
   var numberOfRows = $('.file-row').length;
   var numberOfActiveRows = $('.file-row.active').length;
-  $('.delete-holder').find('.badge').html(numberOfActiveRows);
+  var fileURL = $('.file-row.active').data('file-url');
   $('.items-selected').html(numberOfActiveRows > 1 ? numberOfActiveRows + ' items' : numberOfActiveRows + ' item');
+
+  if (numberOfRows === 0) {
+    $('.empty-state').addClass('active');
+  }
 
   if ($('.file-row').hasClass('active')) {
     $('.side-actions').addClass('active');
@@ -202,17 +207,20 @@ function checkboxStatus() {
     $('.side-actions .item').removeClass('show');
   }
 
+  $('.side-actions .item').removeClass('show');
+  $('.side-actions .item-actions').removeClass('single multiple');
   if (numberOfActiveRows > 1) {
-    $('.side-actions .item').removeClass('show');
     $('.side-actions .item.multiple').addClass('show');
+    $('.side-actions .item-actions').addClass('multiple');
   } else if (numberOfActiveRows === 1) {
     var itemType = $('.file-row.active').data('file-type');
-
+    $('.side-actions .item-actions').addClass('single');
     if (itemType === 'folder') {
-      $('.side-actions .item').removeClass('show');
       $('.side-actions .item.folder').addClass('show');
+    } else if (itemType === 'image') {
+      $('.side-actions .item.image').addClass('show');
+      $('.side-actions .item.image').find('img').attr('src', fileURL);
     } else {
-      $('.side-actions .item').removeClass('show');
       $('.side-actions .item.file').addClass('show');
     }
   }
@@ -241,8 +249,16 @@ function toggleAll(el) {
   }
 
   var numberOfActiveRows = $('.file-row.active').length;
-  $('.delete-holder').find('.badge').html(numberOfActiveRows);
   $('.items-selected').html(numberOfActiveRows > 1 ? numberOfActiveRows + ' items' : numberOfActiveRows + ' item');
+
+  $('.side-actions .item').removeClass('show');
+  $('.side-actions .item-actions').removeClass('single multiple');
+  if (numberOfActiveRows > 1) {
+    $('.side-actions .item.multiple').addClass('show');
+    $('.side-actions .item-actions').addClass('multiple');
+  } else if (numberOfActiveRows === 1) {
+    $('.side-actions .item-actions').addClass('single');
+  }
 
   if (!$('.file-row').hasClass('active')) {
     $('.side-actions').removeClass('active');
@@ -303,9 +319,7 @@ function resetUpTo(element) {
 // EVENTS //
 // Removes options popup by clicking elsewhere
 $(document).on("click", function(e) {
-    if ($(e.target).is("#file-options-menu") === false && $(e.target).is(".file-options") === false) {
-      $('.file-row.focused').removeClass('focused');
-      $('#file-options-menu').removeClass('active');
+    if ($(e.target).is(".new-menu") === false && $(e.target).is("ul") === false) {
       $('.new-menu').removeClass('active');
     }
   })
@@ -453,48 +467,7 @@ $('.file-manager-wrapper')
   .on('change', '.file-table-header input[type="checkbox"]', function() {
     toggleAll($(this));
   })
-  .on('click', '.file-options', function(event) {
-    var itemId = $('#file-options-menu.active').attr('data-file-id');
-    var rowItemId = $(this).parents('.file-row').attr('data-id');
-
-    // Opens options pop-up for folders/files
-    contextualMenu($(this).parents('.file-row').attr('data-id'), $(this).parents('.file-row'));
-
-    if (itemId === rowItemId) {
-      $('#file-options-menu').removeClass('active');
-      $(this).parents('.file-row').removeClass('focused');
-    } else {
-      $('#file-options-menu').addClass('active');
-      $(this).parents('.file-row').addClass('focused');
-      $('.file-row.focused').not($(this).parents('.file-row')).removeClass('focused');
-      startTether($(this));
-    }
-
-    event.stopPropagation();
-  })
-  .on('click', '#delete-file', function() {
-    // Deletes folder or file
-    var itemID = $('#file-options-menu').attr('data-file-id');
-    var $item = $('.file-row.active[data-id="' + itemID + '"]');
-    var alertConfirmation;
-
-    if ($item.attr('data-file-type') == 'folder') {
-      alertConfirmation = confirm("Are you sure you want to delete this folder?\nAll the content inside the folder will be deleted too.");
-      if (alertConfirmation === true) {
-        Fliplet.Media.Folders.delete($item.attr('data-id')).then(function() {
-          $item.remove();
-        });
-      }
-    } else {
-      alertConfirmation = confirm("Are you sure you want to delete this file?\nThe file will be deleted forever.");
-      if (alertConfirmation === true) {
-        Fliplet.Media.Files.delete($item.attr('data-id')).then(function() {
-          $item.remove();
-        });
-      }
-    }
-  })
-  .on('click', '.delete-multiple', function() {
+  .on('click', '[delete-action]', function() {
     var items = $('.file-row.active');
 
     var alertConfirmation = confirm("Are you sure you want to delete all selected items?\nAll the content inside a folder will be deleted too.");
@@ -503,7 +476,7 @@ $('.file-manager-wrapper')
       $(items).each(function() {
         var $element = $(this);
 
-        if ($element.attr('data-file-type') == 'folder') {
+        if ($element.attr('data-file-type') === 'folder') {
           Fliplet.Media.Folders.delete($element.attr('data-id')).then(function() {
             $element.remove();
             checkboxStatus();
@@ -517,49 +490,39 @@ $('.file-manager-wrapper')
       });
     }
   })
-  .on('click', '#view-file', function() {
+  .on('click', '[open-action]', function() {
     // Open folder or file
-    var itemID = $('#file-options-menu').attr('data-file-id');
-    var $item = $('.file-row[data-id="' + itemID + '"]');
-    var fileURL = $item.attr('data-file-url');
+    var itemID = $('.file-row.active').data('id');
+    var fileURL = $('.file-row.active').data('file-url');
 
-    if (fileURL != undefined) {
+    if (fileURL !== undefined) {
       window.open(fileURL, '_blank');
     } else {
-      $item.find('.file-name').dblclick();
+      $('.file-row.active').find('.file-name').dblclick();
     }
   })
-  .on('click', '#rename-file', function() {
+  .on('click', '[rename-action]', function() {
     // Rename folder or file
-    var itemID = $('#file-options-menu').attr('data-file-id');
-    var $item = $('.file-row[data-id="' + itemID + '"]');
+    var itemID = $('.file-row.active').data('id');
+    var itemType = $('.file-row.active').data('file-type');
     var fileName = $('.file-row[data-id="' + itemID + '"]').find('.file-name span').text();
 
     var changedName = prompt("Please enter the file name", fileName);
 
-    if (changedName != null) {
-      Fliplet.Media.Files.update(itemID, {
-        name: changedName
-      }).then(function() {
-        $('.file-row[data-id="' + itemID + '"]').find('.file-name span').html(changedName);
-      });
-    }
-  })
-  .on('click', '#rename-folder', function() {
-    // Rename folder or file
-    var itemID = $('#file-options-menu').attr('data-file-id');
-    var $item = $('.file-row[data-id="' + itemID + '"]');
-
-    var fileName = $('.file-row[data-id="' + itemID + '"]').find('.file-name span').text();
-
-    var changedName = prompt("Please enter the file name", fileName);
-
-    if (changedName != null) {
-      Fliplet.Media.Folders.update(itemID, {
-        name: changedName
-      }).then(function() {
-        $('.file-row[data-id="' + itemID + '"]').find('.file-name span').html(changedName);
-      });
+    if (changedName !== null) {
+      if (itemType === "folder") {
+        Fliplet.Media.Folders.update(itemID, {
+          name: changedName
+        }).then(function() {
+          $('.file-row[data-id="' + itemID + '"]').find('.file-name span').html(changedName);
+        });
+      } else {
+        Fliplet.Media.Files.update(itemID, {
+          name: changedName
+        }).then(function() {
+          $('.file-row[data-id="' + itemID + '"]').find('.file-name span').html(changedName);
+        });
+      }
     }
   })
   .on('click', '.header-breadcrumbs [data-breadcrumb]', function() {
@@ -588,40 +551,6 @@ $('.file-manager-wrapper')
   });
 });
 */
-
-// AUX FUNCTIONS //
-function contextualMenu(fileID, element) {
-  // Adds dynamic data to options pop-up
-  $element = element;
-  $('#file-options-menu').attr('data-file-id', fileID);
-  if ($element.attr('data-file-type') === 'folder') {
-    $('#file-options-menu #view-file').html('Open folder');
-    $('#file-options-menu #rename-file').removeClass('show');
-    $('#file-options-menu #rename-folder').addClass('show');
-  } else {
-    $('#file-options-menu #view-file').html('View file');
-    $('#file-options-menu #rename-folder').removeClass('show');
-    $('#file-options-menu #rename-file').addClass('show');
-  }
-}
-
-function startTether(target) {
-  if (tetherBox) {
-    tetherBox.destroy();
-  }
-
-  tetherBox = new Tether({
-    element: '#file-options-menu',
-    target: target,
-    attachment: 'top left',
-    targetAttachment: 'top right',
-    constraints: [{
-      to: 'scrollParent',
-      attachment: 'together',
-      pin: true
-    }]
-  });
-}
 
 // INIT //
 getOrganizationsList();
