@@ -214,9 +214,7 @@ a {
   display: flex;
   width: 80%;
   margin-right: 20px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: auto;
 }
 
 .header-breadcrumbs .current-folder-title {
