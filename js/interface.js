@@ -17,7 +17,7 @@ var currentFolderId;
 var currentAppId;
 var currentFolders;
 var currentFiles;
-var counterOrganisation;
+var counterOrganization;
 
 var tetherBox;
 
@@ -32,7 +32,7 @@ var sideBarMaxWidth = 395;
 // CORE FUNCTIONS //
 // Get organizations and apps list for left side menu
 function getOrganizationsList() {
-  counterOrganisation = 0;
+  counterOrganization = 0;
   Fliplet.Organizations.get().then(function(organizations) {
     // Sort alphabetically
     organizations = _.sortBy(organizations, [function(o) {
@@ -152,7 +152,7 @@ function addOrganizations(organizations) {
 
 // Adds app item template
 function addApps(apps) {
-  var $appList = $('.dropdown-menu-holder #organisation-' + apps.organizationId + ' .panel-body');
+  var $appList = $('.dropdown-menu-holder #organization-' + apps.organizationId + ' .panel-body');
   $appList.append(templates.apps(apps));
 }
 
