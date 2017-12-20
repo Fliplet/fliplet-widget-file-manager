@@ -280,10 +280,6 @@
   margin-bottom: 15px;
 }
 
-.side-actions .item-actions a {
-  margin: 0 5px;
-}
-
 .side-actions .item-actions .multiple-item,
 .side-actions .item-actions .single-item {
   display: none;
@@ -295,6 +291,10 @@
 
 .side-actions .item-actions.single .single-item {
   display: block;
+}
+
+.dropdown-menu > li > a.text-danger {
+  color: #a94442;
 }
 
 .dropdown-menu-holder {

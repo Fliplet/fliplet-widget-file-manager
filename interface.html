@@ -137,20 +137,42 @@
           </div>
           <div class="item-actions">
             <div class="single-item">
-              <a href="#" open-action>
-                <i class="fa fa-external-link"></i> Open
-              </a>
-              <a href="#" rename-action>
-                <i class="fa fa-pencil"></i> Rename
-              </a>
-              <a href="#" class="text-danger" delete-action>
-                <i class="fa fa-trash"></i> Delete
-              </a>
+              <div class="btn-group">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Action <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a href="#" open-action>Open</a>
+                  </li>
+                  <li>
+                    <a href="#" rename-action>Rename</a>
+                  </li>
+                  <li>
+                    <a href="#" download-action>Download</a>
+                  </li>
+                  <li role="separator" class="divider"></li>
+                  <li>
+                    <a href="#" class="text-danger" delete-action>Delete</a>
+                  </li>
+                </ul>
+              </div>
             </div>
             <div class="multiple-item">
-              <a href="#" class="text-danger" delete-action>
-                <i class="fa fa-trash"></i> Delete
-              </a>
+              <div class="btn-group">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Action <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a href="#" download-action>Download</a>
+                  </li>
+                  <li role="separator" class="divider"></li>
+                  <li>
+                    <a href="#" class="text-danger" delete-action>Delete</a>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

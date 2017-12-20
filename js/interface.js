@@ -24,7 +24,7 @@ var tetherBox;
 var folders = [],
   apps,
   organizations;
-var upTo = [];
+var navStack = [];
 
 var sideBarMinWidth = 240;
 var sideBarMaxWidth = 395;
@@ -143,7 +143,7 @@ function addOrganizations(organizations) {
       getFolderContents(backItem.tempElement);
     };
     backItem.type = 'organizationId';
-    upTo.push(backItem);
+    navStack.push(backItem);
 
     $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + orgName + '</a></span>');
     getFolderContents(orgEl);
@@ -268,11 +268,11 @@ function toggleAll(el) {
 }
 
 function updatePaths() {
-  if (upTo.length > 1) {
+  if (navStack.length > 1) {
     var breadcrumbsPath = '';
 
-    for (var i = 0; i < upTo.length; i++) {
-      breadcrumbsPath += '<span class="bread-link"><a href="#" data-breadcrumb="' + i + '">' + upTo[i].name + '</a></span>';
+    for (var i = 0; i < navStack.length; i++) {
+      breadcrumbsPath += '<span class="bread-link"><a href="#" data-breadcrumb="' + i + '">' + navStack[i].name + '</a></span>';
     }
 
     $('.header-breadcrumbs .current-folder-title').html(breadcrumbsPath);
@@ -280,11 +280,11 @@ function updatePaths() {
   }
 
   // Current folder
-  $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + upTo[upTo.length - 1].name + '</a></span>');
+  $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + navStack[navStack.length - 1].name + '</a></span>');
 }
 
 function resetUpTo(element) {
-  upTo = [];
+  navStack = [];
 
   if (element.attr('data-type') === "app") {
     backItem = {
@@ -312,7 +312,7 @@ function resetUpTo(element) {
     getFolderContents(backItem.tempElement);
   };
 
-  upTo.push(backItem);
+  navStack.push(backItem);
   updatePaths();
 }
 
@@ -349,7 +349,7 @@ $('.file-manager-wrapper')
         getFolderContents(backItem.tempElement);
       };
       backItem.type = 'folderId';
-      upTo.push(backItem);
+      navStack.push(backItem);
 
       // Update paths
       updatePaths();
@@ -369,7 +369,7 @@ $('.file-manager-wrapper')
   .on('click', '[data-create-folder]', function(event) {
     // Creates folder
     var folderName = prompt('Type folder name');
-    var lastFolderSelected = upTo[upTo.length - 1];
+    var lastFolderSelected = navStack[navStack.length - 1];
 
     var options = {
       name: folderName,
@@ -393,7 +393,6 @@ $('.file-manager-wrapper')
         options.appId = lastFolderSelected.appId;
       }
     }
-
 
     Fliplet.Media.Folders.create(options).then(addFolder);
 
@@ -490,6 +489,40 @@ $('.file-manager-wrapper')
       });
     }
   })
+  .on('click', '[download-action]', function() {
+    var items = $('.file-row.active'),
+        context = navStack[navStack.length - 1],
+        contextType = context.type,
+        contextId = context.id,
+        files,
+        folders,
+        params = '',
+        contentToZip = {
+          files: [],
+          folders: []
+        };
+
+    $(items).each(function() {
+      var $element = $(this);
+
+      if ($element.attr('data-file-type') === 'folder') {
+        contentToZip.folders.push($element.attr('data-id'));
+      } else {
+        contentToZip.files.push($element.attr('data-id'));
+      }
+    });
+
+    if (contentToZip.files.length) {
+      files = contentToZip.files.toString();
+      params += '&files=' + files;
+    }
+    if (contentToZip.folders.length) {
+      folders = contentToZip.folders.toString();
+      params += '&folders=' + folders;
+    }
+
+    window.location.href = '/v1/media/zip?' + contextType + '=' + contextId + params;
+  })
   .on('click', '[open-action]', function() {
     // Open folder or file
     var itemID = $('.file-row.active').data('id');
@@ -529,8 +562,8 @@ $('.file-manager-wrapper')
     var index = $(this).data('breadcrumb');
     var position = index + 1;
 
-    upTo.splice(position, 9999);
-    upTo[index].back();
+    navStack.splice(position, 9999);
+    navStack[index].back();
     updatePaths();
   })
   .on('show.bs.collapse', '.panel-collapse', function() {
