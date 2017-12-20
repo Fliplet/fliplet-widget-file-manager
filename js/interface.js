@@ -24,7 +24,7 @@ var tetherBox;
 var folders = [],
   apps,
   organizations;
-var upTo = [];
+window.upTo = [];
 
 var sideBarMinWidth = 240;
 var sideBarMaxWidth = 395;
@@ -394,7 +394,6 @@ $('.file-manager-wrapper')
       }
     }
 
-
     Fliplet.Media.Folders.create(options).then(addFolder);
 
     $('.new-btn').click();
@@ -489,6 +488,42 @@ $('.file-manager-wrapper')
         }
       });
     }
+  })
+  .on('click', '[download-action]', function() {
+    var items = $('.file-row.active'),
+        context = upTo[upTo.length - 1],
+        contextType = context.type,
+        contextId = context.id,
+        files,
+        folders,
+        params = '',
+        contentToZip = {
+          files: [],
+          folders: []
+        };
+
+    $(items).each(function() {
+      var $element = $(this);
+
+      if ($element.attr('data-file-type') === 'folder') {
+        contentToZip.folders.push($element.attr('data-id'));
+      } else {
+        contentToZip.files.push($element.attr('data-id'));
+      }
+    });
+
+    debugger;
+
+    if (contentToZip.files.length) {
+      files = contentToZip.files.toString();
+      params += '&files=' + files;
+    }
+    if (contentToZip.folders.length) {
+      folders = contentToZip.folders.toString();
+      params += '&folders=' + folders;
+    }
+
+    window.location.href = '/v1/media/zip?' + contextType + '=' + contextId + params;
   })
   .on('click', '[open-action]', function() {
     // Open folder or file
