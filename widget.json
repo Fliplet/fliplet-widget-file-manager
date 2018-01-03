@@ -10,7 +10,8 @@
       "fliplet-media",
       "fliplet-studio-ui",
       "lodash",
-      "bootstrap"
+      "bootstrap",
+      "animate-css"
     ],
     "assets": [
       "vendor/handlebars.js",

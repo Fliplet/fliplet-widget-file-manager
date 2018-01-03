@@ -3,6 +3,7 @@ var $folderContents = $('.file-table-body');
 var $organizationList = $('.dropdown-menu-holder .panel-group');
 var $progress = $('.progress');
 var $progressBar = $progress.find('.progress-bar');
+var $dropZone = $('#drop-zone');
 var templates = {
   file: template('file'),
   folder: template('folder'),
@@ -315,6 +316,71 @@ function resetUpTo(element) {
   navStack.push(backItem);
   updatePaths();
 }
+
+function showDropZone() {
+  $('.drop-zone-folder-name').html(navStack[navStack.length - 1].name);
+  $dropZone.addClass('active');
+}
+
+function hideDropZone() {
+  $dropZone.removeClass('active');
+}
+
+function uploadFiles(files) {
+  var formData = new FormData();
+  var file;
+  for (var i = 0; i < files.length; i++) {
+    file = files.item(i);
+    formData.append('name[' + i + ']', file.name);
+    formData.append('files[' + i + ']', file);
+  }
+
+  $progressBar.css({
+    width: '0%'
+  });
+  $progress.removeClass('hidden');
+
+  Fliplet.Media.Files.upload({
+    folderId: currentFolderId,
+    appId: currentAppId,
+    name: file.name,
+    data: formData,
+    progress: function(percentage) {
+      $progressBar.css({
+        width: percentage + '%'
+      });
+    }
+  }).then(function(files) {
+    files.forEach(function(file) {
+      addFile(file);
+    });
+
+    $progress.addClass('hidden');
+  });
+}
+
+$dropZone.on('drop', function(e) {
+  e.preventDefault();
+  hideDropZone();
+  var dataTransfer = e.originalEvent.dataTransfer;
+  var files = dataTransfer.files;
+  if (!files.length) return hideDropZone();
+  uploadFiles(files);
+});
+
+$dropZone.on('dragover', function(e) {
+  e.preventDefault();
+});
+
+$dropZone.on('dragleave', function(e) {
+  e.preventDefault();
+  hideDropZone();
+});
+
+$('html').on('dragenter', function(e) {
+  e.preventDefault();
+  showDropZone();
+});
 
 // EVENTS //
 // Removes options popup by clicking elsewhere
