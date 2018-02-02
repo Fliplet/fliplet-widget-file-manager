@@ -1,4 +1,6 @@
 // VAR SETUP //
+var widgetId = parseInt(Fliplet.Widget.getDefaultId(), 10);
+var data = Fliplet.Widget.getData(widgetId) || {};
 var $folderContents = $('.file-table-body');
 var $organizationList = $('.dropdown-menu-holder .panel-group');
 var $progress = $('.progress');
@@ -58,6 +60,10 @@ function getAppsList() {
     }]);
     // Add to HTML
     apps.forEach(addApps);
+
+    if (data && data.appId) {
+      $('[data-app-id="' + data.appId + '"][data-browse-folder], [data-app-id="' + data.appId + '"] .list-holder').trigger('click');
+    }
   });
 }
 
