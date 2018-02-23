@@ -1,6 +1,11 @@
 /* FILE MANAGER */
+html, body {
+  height: 100%;
+}
 
 .file-manager-wrapper {
+  position: relative;
+  height: 100%;
   background-color: #FFF;
 }
 
