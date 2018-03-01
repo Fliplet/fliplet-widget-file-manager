@@ -62,10 +62,87 @@ function getAppsList() {
     apps.forEach(addApps);
 
     if (data && data.appId) {
+      var $listHolder;
+      var folderId;
+      var type;
       var $el = $('[data-app-id="' + data.appId + '"][data-browse-folder]');
+
+      // Activate folder on left sidebar
+      if ($el.data('type') === 'organization') {
+        $listHolder = $el;
+      } else {
+        $listHolder = $el.find('.list-holder');
+      }
+      
+      $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
+      $listHolder.first().addClass('active');
+
+      // Set first fodler of breadcrumbs
       resetUpTo($el);
-      getFolderContents($el, true);
+
+      if (data.navStack && data.folder) {
+        // Updates navStack with folders before the selected one
+        var newNavStack = data.navStack.upTo.slice(1);
+        newNavStack.forEach(function(obj, idx) {
+          navStack.push(obj);
+        });
+
+        // Updates navStack with selected folder
+        navStack.push(data.folder);
+        folderId = data.folder.id;
+        type = 'folder';
+        updatePaths();
+      } else {
+        folderId = data.appId;
+        type = 'app';
+      }
+      
+      getFolderContentsById(folderId, type);
     }
+  });
+}
+
+function getFolderContentsById(id, type) {
+  var options = {};
+  var filterFiles = function(files) {
+    return true
+  };
+  var filterFolders = function(folders) {
+    return true
+  };
+
+  if (type === "app") {
+    options.appId = id
+    currentAppId = id
+    currentFolderId = null;
+
+    // Filter functions
+    filterFiles = function(file) {
+      return !file.mediaFolderId;
+    };
+    filterFolders = function(folder) {
+      return !folder.parentFolderId;
+    };
+  } else {
+    options.folderId = id;
+    currentFolderId = id;
+  }
+  
+  Fliplet.Media.Folders.get(options).then(function(response) {
+    if (response.files.length === 0 && response.folders.length === 0) {
+      $('.empty-state').addClass('active');
+    } else {
+      folders = response.folders;
+
+      // Filter only the files from that request app/org/folder
+      var mediaFiles = response.files.filter(filterFiles);
+      var mediaFolders = response.folders.filter(filterFolders);
+
+      mediaFolders.forEach(addFolder);
+      mediaFiles.forEach(addFile);
+    }
+  }, function() {
+    $('.empty-state').addClass('active');
   });
 }
 
@@ -82,12 +159,8 @@ function getFolderContents(el, rootFolder) {
       $listHolder = $el.find('.list-holder');
     }
     
-
     $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
     $listHolder.first().addClass('active');
-
-    var currentItem = $listHolder;
-    $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + currentItem.find('.list-text-holder span').first().text() + '</a></span>');
   }
 
   var options = {};
