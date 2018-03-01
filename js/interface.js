@@ -62,13 +62,34 @@ function getAppsList() {
     apps.forEach(addApps);
 
     if (data && data.appId) {
-      $('[data-app-id="' + data.appId + '"][data-browse-folder], [data-app-id="' + data.appId + '"] .list-holder').trigger('click');
+      var $el = $('[data-app-id="' + data.appId + '"][data-browse-folder]');
+      resetUpTo($el);
+      getFolderContents($el, true);
     }
   });
 }
 
 // Get folders and files depending on ID (Org, App, Folder) to add to the content area
-function getFolderContents(el) {
+function getFolderContents(el, rootFolder) {
+  if (rootFolder) {
+    // Restart Breadcrumbs
+    var $el = el;
+    var $listHolder;
+
+    if ($el.data('type') === 'organization') {
+      $listHolder = $el;
+    } else {
+      $listHolder = $el.find('.list-holder');
+    }
+    
+
+    $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
+    $listHolder.first().addClass('active');
+
+    var currentItem = $listHolder;
+    $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + currentItem.find('.list-text-holder span').first().text() + '</a></span>');
+  }
+
   var options = {};
   // Default filter functions
   var filterFiles = function(files) {
@@ -436,7 +457,7 @@ $('.file-manager-wrapper')
   })
   .on('click', '.dropdown-menu-holder [data-browse-folder]', function(event) {
     resetUpTo($(this));
-    getFolderContents($(this));
+    getFolderContents($(this), true);
   })
   .on('click', '[data-create-folder]', function(event) {
     // Creates folder
@@ -514,17 +535,6 @@ $('.file-manager-wrapper')
     var selectedValue = $(this).val();
     var selectedText = $(this).find("option:selected").text();
     $(this).parents('.select-proxy-display').find('.select-value-proxy').html(selectedText);
-  })
-  .on('click', '.dropdown-menu-holder .list-holder', function(e) {
-    // Click on folder structure
-    // Adds Breadcrumbs
-    var $el = $(this);
-
-    $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
-    $el.first().addClass('active');
-
-    var currentItem = $el;
-    $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + currentItem.find('.list-text-holder span').first().text() + '</a></span>');
   })
   .on('click', '.new-btn', function() {
     $(this).next('.new-menu').toggleClass('active');
