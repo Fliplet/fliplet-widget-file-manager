@@ -92,6 +92,10 @@
   padding: 0 16px 0 0;
   position: relative;
   display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl;
 }
 
 .header-breadcrumbs.child .current-folder-title {
