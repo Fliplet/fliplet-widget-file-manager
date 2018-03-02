@@ -1,4 +1,6 @@
-// VAR SETUP //
+/* eslint-disable */
+var widgetId = parseInt(Fliplet.Widget.getDefaultId(), 10);
+var data = Fliplet.Widget.getData(widgetId) || {};
 var $folderContents = $('.file-table-body');
 var $organizationList = $('.dropdown-menu-holder .panel-group');
 var $progress = $('.progress');
@@ -22,9 +24,9 @@ var counterOrganization;
 
 var tetherBox;
 
-var folders = [],
-  apps,
-  organizations;
+var folders = [];
+var apps;
+var organizations;
 var navStack = [];
 
 var sideBarMinWidth = 240;
@@ -46,23 +48,140 @@ function getOrganizationsList() {
   });
 }
 
+function navigateToDefaultFolder() {
+  if (typeof data === 'undefined' || !data || !data.appId) {
+    // No folder was specified
+    return;
+  }
+
+  var $listHolder;
+  var folderId;
+  var type;
+  var $el = $('[data-app-id="' + data.appId + '"][data-browse-folder]');
+
+  // Activate folder on left sidebar
+  if ($el.data('type') === 'organization') {
+    $listHolder = $el;
+  } else {
+    $listHolder = $el.find('.list-holder');
+  }
+
+  $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
+  $listHolder.first().addClass('active');
+
+  // Set first folder of breadcrumbs
+  resetUpTo($el);
+
+  if (data.navStack && data.folder) {
+    // Updates navStack with folders before the selected one
+    var newNavStack = data.navStack.upTo.slice(1);
+    newNavStack.forEach(function(obj, idx) {
+      navStack.push(obj);
+    });
+
+    // Updates navStack with selected folder
+    navStack.push(data.folder);
+    navStack.forEach(function(obj, idx) {
+      if (idx !== 0) {
+        obj.back = function() {
+          getFolderContentsById(obj.id);
+        }
+      }
+    });
+
+    folderId = data.folder.id;
+    type = 'folder';
+    updatePaths();
+  } else {
+    folderId = data.appId;
+    type = 'app';
+  }
+
+  getFolderContentsById(folderId, type);
+}
+
 function getAppsList() {
   Fliplet.Apps.get().then(function(apps) {
     // Remove V1 apps
     apps.filter(function(app) {
       return !app.legacy;
     });
-    // Sort alphabetically
+    // Sort apps alphabetically
     apps = _.sortBy(apps, [function(o) {
       return o.name;
     }]);
-    // Add to HTML
+    // Add apps to HTML
     apps.forEach(addApps);
+
+    navigateToDefaultFolder();
+  });
+}
+
+function getFolderContentsById(id, type) {
+  var options = {};
+  var filterFiles = function(files) {
+    return true
+  };
+  var filterFolders = function(folders) {
+    return true
+  };
+
+  if (type === "app") {
+    options.appId = id
+    currentAppId = id
+    currentFolderId = null;
+
+    // Filter functions
+    filterFiles = function(file) {
+      return !file.mediaFolderId;
+    };
+    filterFolders = function(folder) {
+      return !folder.parentFolderId;
+    };
+  } else {
+    options.folderId = id;
+    currentFolderId = id;
+  }
+
+  currentFolders = [];
+  currentFiles = [];
+  $folderContents.html('');
+
+  Fliplet.Media.Folders.get(options).then(function(response) {
+    if (response.files.length === 0 && response.folders.length === 0) {
+      $('.empty-state').addClass('active');
+    } else {
+      folders = response.folders;
+
+      // Filter only the files from that request app/org/folder
+      var mediaFiles = response.files.filter(filterFiles);
+      var mediaFolders = response.folders.filter(filterFolders);
+
+      mediaFolders.forEach(addFolder);
+      mediaFiles.forEach(addFile);
+    }
+  }, function() {
+    $('.empty-state').addClass('active');
   });
 }
 
 // Get folders and files depending on ID (Org, App, Folder) to add to the content area
-function getFolderContents(el) {
+function getFolderContents(el, isRootFolder) {
+  if (isRootFolder) {
+    // Restart breadcrumbs
+    var $el = el;
+    var $listHolder;
+
+    if ($el.data('type') === 'organization') {
+      $listHolder = $el;
+    } else {
+      $listHolder = $el.find('.list-holder');
+    }
+
+    $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
+    $listHolder.first().addClass('active');
+  }
+
   var options = {};
   // Default filter functions
   var filterFiles = function(files) {
@@ -127,28 +246,30 @@ function getFolderContents(el) {
 function addOrganizations(organizations) {
   $organizationList.append(templates.organizations(organizations));
 
-  if ($organizationList.find('.panel-title').length === 1) {
-    $(".panel-collapse").first().collapse('show');
-    var orgEl = $organizationList.find('.panel-title').first();
-    var orgName = $organizationList.find('.panel-title').first().find('.list-text-holder span').first().text();
-
-    $organizationList.find('.panel-title').first().addClass('active');
-
-    // Store to nav stack
-    backItem = {
-      id: $organizationList.find('.panel-title').first().data('org-id'),
-      name: orgName,
-      tempElement: $organizationList.find('.panel-title').first()
-    };
-    backItem.back = function() {
-      getFolderContents(backItem.tempElement);
-    };
-    backItem.type = 'organizationId';
-    navStack.push(backItem);
-
-    $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + orgName + '</a></span>');
-    getFolderContents(orgEl);
+  if ($organizationList.find('.panel-title').length !== 1) {
+    return;
   }
+
+  $(".panel-collapse").first().collapse('show');
+  var orgEl = $organizationList.find('.panel-title').first();
+  var orgName = $organizationList.find('.panel-title').first().find('.list-text-holder span').first().text();
+
+  $organizationList.find('.panel-title').first().addClass('active');
+
+  // Store to nav stack
+  backItem = {
+    id: $organizationList.find('.panel-title').first().data('org-id'),
+    name: orgName,
+    tempElement: $organizationList.find('.panel-title').first()
+  };
+  backItem.back = function() {
+    getFolderContents(backItem.tempElement);
+  };
+  backItem.type = 'organizationId';
+  navStack.push(backItem);
+
+  $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + orgName + '</a></span>');
+  getFolderContents(orgEl);
 }
 
 // Adds app item template
@@ -430,7 +551,7 @@ $('.file-manager-wrapper')
   })
   .on('click', '.dropdown-menu-holder [data-browse-folder]', function(event) {
     resetUpTo($(this));
-    getFolderContents($(this));
+    getFolderContents($(this), true);
   })
   .on('click', '[data-create-folder]', function(event) {
     // Creates folder
@@ -508,17 +629,6 @@ $('.file-manager-wrapper')
     var selectedValue = $(this).val();
     var selectedText = $(this).find("option:selected").text();
     $(this).parents('.select-proxy-display').find('.select-value-proxy').html(selectedText);
-  })
-  .on('click', '.dropdown-menu-holder .list-holder', function(e) {
-    // Click on folder structure
-    // Adds Breadcrumbs
-    var $el = $(this);
-
-    $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
-    $el.first().addClass('active');
-
-    var currentItem = $el;
-    $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + currentItem.find('.list-text-holder span').first().text() + '</a></span>');
   })
   .on('click', '.new-btn', function() {
     $(this).next('.new-menu').toggleClass('active');
