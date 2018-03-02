@@ -81,6 +81,14 @@ function navigateToDefaultFolder() {
 
     // Updates navStack with selected folder
     navStack.push(data.folder);
+    navStack.forEach(function(obj, idx) {
+      if (idx !== 0) {
+        obj.back = function() {
+          getFolderContentsById(obj.id);
+        }
+      }
+    });
+
     folderId = data.folder.id;
     type = 'folder';
     updatePaths();
@@ -134,6 +142,10 @@ function getFolderContentsById(id, type) {
     options.folderId = id;
     currentFolderId = id;
   }
+
+  currentFolders = [];
+  currentFiles = [];
+  $folderContents.html('');
 
   Fliplet.Media.Folders.get(options).then(function(response) {
     if (response.files.length === 0 && response.folders.length === 0) {
