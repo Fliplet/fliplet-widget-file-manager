@@ -73,11 +73,11 @@ function getAppsList() {
       } else {
         $listHolder = $el.find('.list-holder');
       }
-      
+
       $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
       $listHolder.first().addClass('active');
 
-      // Set first fodler of breadcrumbs
+      // Set first folder of breadcrumbs
       resetUpTo($el);
 
       if (data.navStack && data.folder) {
@@ -96,7 +96,7 @@ function getAppsList() {
         folderId = data.appId;
         type = 'app';
       }
-      
+
       getFolderContentsById(folderId, type);
     }
   });
@@ -127,7 +127,7 @@ function getFolderContentsById(id, type) {
     options.folderId = id;
     currentFolderId = id;
   }
-  
+
   Fliplet.Media.Folders.get(options).then(function(response) {
     if (response.files.length === 0 && response.folders.length === 0) {
       $('.empty-state').addClass('active');
@@ -158,7 +158,7 @@ function getFolderContents(el, rootFolder) {
     } else {
       $listHolder = $el.find('.list-holder');
     }
-    
+
     $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
     $listHolder.first().addClass('active');
   }
