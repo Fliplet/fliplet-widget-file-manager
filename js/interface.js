@@ -1,4 +1,4 @@
-// VAR SETUP //
+/* eslint-disable */
 var widgetId = parseInt(Fliplet.Widget.getDefaultId(), 10);
 var data = Fliplet.Widget.getData(widgetId) || {};
 var $folderContents = $('.file-table-body');
@@ -24,9 +24,9 @@ var counterOrganization;
 
 var tetherBox;
 
-var folders = [],
-  apps,
-  organizations;
+var folders = [];
+var apps;
+var organizations;
 var navStack = [];
 
 var sideBarMinWidth = 240;
@@ -48,57 +48,64 @@ function getOrganizationsList() {
   });
 }
 
+function navigateToDefaultFolder() {
+  if (typeof data === 'undefined' || !data || !data.appId) {
+    // No folder was specified
+    return;
+  }
+
+  var $listHolder;
+  var folderId;
+  var type;
+  var $el = $('[data-app-id="' + data.appId + '"][data-browse-folder]');
+
+  // Activate folder on left sidebar
+  if ($el.data('type') === 'organization') {
+    $listHolder = $el;
+  } else {
+    $listHolder = $el.find('.list-holder');
+  }
+
+  $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
+  $listHolder.first().addClass('active');
+
+  // Set first folder of breadcrumbs
+  resetUpTo($el);
+
+  if (data.navStack && data.folder) {
+    // Updates navStack with folders before the selected one
+    var newNavStack = data.navStack.upTo.slice(1);
+    newNavStack.forEach(function(obj, idx) {
+      navStack.push(obj);
+    });
+
+    // Updates navStack with selected folder
+    navStack.push(data.folder);
+    folderId = data.folder.id;
+    type = 'folder';
+    updatePaths();
+  } else {
+    folderId = data.appId;
+    type = 'app';
+  }
+
+  getFolderContentsById(folderId, type);
+}
+
 function getAppsList() {
   Fliplet.Apps.get().then(function(apps) {
     // Remove V1 apps
     apps.filter(function(app) {
       return !app.legacy;
     });
-    // Sort alphabetically
+    // Sort apps alphabetically
     apps = _.sortBy(apps, [function(o) {
       return o.name;
     }]);
-    // Add to HTML
+    // Add apps to HTML
     apps.forEach(addApps);
 
-    if (data && data.appId) {
-      var $listHolder;
-      var folderId;
-      var type;
-      var $el = $('[data-app-id="' + data.appId + '"][data-browse-folder]');
-
-      // Activate folder on left sidebar
-      if ($el.data('type') === 'organization') {
-        $listHolder = $el;
-      } else {
-        $listHolder = $el.find('.list-holder');
-      }
-
-      $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
-      $listHolder.first().addClass('active');
-
-      // Set first folder of breadcrumbs
-      resetUpTo($el);
-
-      if (data.navStack && data.folder) {
-        // Updates navStack with folders before the selected one
-        var newNavStack = data.navStack.upTo.slice(1);
-        newNavStack.forEach(function(obj, idx) {
-          navStack.push(obj);
-        });
-
-        // Updates navStack with selected folder
-        navStack.push(data.folder);
-        folderId = data.folder.id;
-        type = 'folder';
-        updatePaths();
-      } else {
-        folderId = data.appId;
-        type = 'app';
-      }
-
-      getFolderContentsById(folderId, type);
-    }
+    navigateToDefaultFolder();
   });
 }
 
@@ -147,9 +154,9 @@ function getFolderContentsById(id, type) {
 }
 
 // Get folders and files depending on ID (Org, App, Folder) to add to the content area
-function getFolderContents(el, rootFolder) {
-  if (rootFolder) {
-    // Restart Breadcrumbs
+function getFolderContents(el, isRootFolder) {
+  if (isRootFolder) {
+    // Restart breadcrumbs
     var $el = el;
     var $listHolder;
 
@@ -227,28 +234,30 @@ function getFolderContents(el, rootFolder) {
 function addOrganizations(organizations) {
   $organizationList.append(templates.organizations(organizations));
 
-  if ($organizationList.find('.panel-title').length === 1) {
-    $(".panel-collapse").first().collapse('show');
-    var orgEl = $organizationList.find('.panel-title').first();
-    var orgName = $organizationList.find('.panel-title').first().find('.list-text-holder span').first().text();
-
-    $organizationList.find('.panel-title').first().addClass('active');
-
-    // Store to nav stack
-    backItem = {
-      id: $organizationList.find('.panel-title').first().data('org-id'),
-      name: orgName,
-      tempElement: $organizationList.find('.panel-title').first()
-    };
-    backItem.back = function() {
-      getFolderContents(backItem.tempElement);
-    };
-    backItem.type = 'organizationId';
-    navStack.push(backItem);
-
-    $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + orgName + '</a></span>');
-    getFolderContents(orgEl);
+  if ($organizationList.find('.panel-title').length !== 1) {
+    return;
   }
+
+  $(".panel-collapse").first().collapse('show');
+  var orgEl = $organizationList.find('.panel-title').first();
+  var orgName = $organizationList.find('.panel-title').first().find('.list-text-holder span').first().text();
+
+  $organizationList.find('.panel-title').first().addClass('active');
+
+  // Store to nav stack
+  backItem = {
+    id: $organizationList.find('.panel-title').first().data('org-id'),
+    name: orgName,
+    tempElement: $organizationList.find('.panel-title').first()
+  };
+  backItem.back = function() {
+    getFolderContents(backItem.tempElement);
+  };
+  backItem.type = 'organizationId';
+  navStack.push(backItem);
+
+  $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + orgName + '</a></span>');
+  getFolderContents(orgEl);
 }
 
 // Adds app item template
