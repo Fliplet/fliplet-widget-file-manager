@@ -269,7 +269,10 @@ function addOrganizations(organizations) {
   navStack.push(backItem);
 
   $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + orgName + '</a></span>');
-  getFolderContents(orgEl);
+
+  if (typeof data === 'undefined' || !data || !data.appId) {
+    getFolderContents(orgEl);
+  }
 }
 
 // Adds app item template
