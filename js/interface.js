@@ -633,7 +633,7 @@ $('.file-manager-wrapper')
     var selectedText = $(this).find("option:selected").text();
     $(this).parents('.select-proxy-display').find('.select-value-proxy').html(selectedText);
   })
-  .on('click', '.new-btn', function() {
+  .on('click', '.new-btn', function(event) {
     $(this).next('.new-menu').toggleClass('active');
 
     event.stopPropagation();
