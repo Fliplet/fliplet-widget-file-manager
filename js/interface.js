@@ -651,7 +651,6 @@ $('.file-manager-wrapper')
     event.stopPropagation();
   })
   .on('click', '.file-row > div:not(.selectable)', function() {
-    console.log('Clicked')
     $(this).parents('.file-row').find('input[type="checkbox"]').click();
   })
   .on('change', '.file-row input[type="checkbox"]', function() {
