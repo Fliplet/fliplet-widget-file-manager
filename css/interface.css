@@ -508,7 +508,7 @@
 .f-c {
   height: 100%;
   overflow-x: hidden;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .file-table {
@@ -546,10 +546,6 @@
 
 .file-row {
   display: table-row;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
   cursor: default;
 }
 
@@ -685,6 +681,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.file-ID {
+  white-space: nowrap;
+  width: 60px;
+  text-align: center;
+}
+
+.file-table-body .file-ID {
+  color: #bbbbbb;
 }
 
 .file-row.active .file-options,
