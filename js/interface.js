@@ -531,6 +531,18 @@ $('.file-manager-wrapper')
     var id = $el.parents('.file-row').data('id');
     var backItem;
 
+    // Remove any selected field
+    $('.file-row input[type="checkbox"]').each(function() {
+      $(this).prop('checked', false);
+      $(this).parents('.file-row').removeClass('active');
+      $('.file-cell.selectable').removeClass('active');
+      $('.file-row').removeClass('passive');
+    });
+    // Hide side actions
+    $('.side-actions').removeClass('active');
+    $('.side-actions .item').removeClass('show');
+    $('.help-tips').removeClass('hidden');
+
     if ($parent.data('file-type') === 'folder') {
       // Store to nav stack
       backItem = _.find(folders, ['id', id]);
@@ -637,6 +649,9 @@ $('.file-manager-wrapper')
     $(this).next('.new-menu').toggleClass('active');
 
     event.stopPropagation();
+  })
+  .on('click', '.file-row', function() {
+    $(this).find('input[type="checkbox"]').click();
   })
   .on('change', '.file-row input[type="checkbox"]', function() {
     $(this).parents('.file-row').toggleClass('active');
