@@ -353,12 +353,17 @@
   text-align: center;
   font-size: 22px;
   -webkit-transition: all 0.25s ease;
+  -ms-transition: all 0.25s ease;
   transition: all 0.25s ease;
   -webkit-transform: rotate(0deg);
+  -ms-transform: rotate(0deg);
+  transform: rotate(0deg);
 }
 
 .dropdown-menu-holder .panel-heading > .arrow-holder .fa.rotate {
   -webkit-transform: rotate(90deg);
+  -ms-transform: rotate(90deg);
+  transform: rotate(90deg);
 }
 
 .dropdown-menu-holder .panel-heading .panel-title {
@@ -535,6 +540,7 @@
   position: absolute;
   right: 0;
   -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
   transform: translateZ(0);
   z-index: 1;
   color: #999;
@@ -707,23 +713,31 @@
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
   position: absolute;
+  top: 50%;
   left: 0;
   width: 25px;
   height: 25px;
   line-height: 25px;
   font-size: 18px;
   text-align: center;
+  -webkit-transform: translate3d(0, -50%, 0);
+  -ms-transform: translate3d(0, -50%, 0);
+  transform: translate3d(0, -50%, 0);
 }
 
 .file-row[data-file-type="image"] .file-name img {
   display: inline-block;
   position: absolute;
+  top: 50%;
   left: 0;
   max-width: 25px;
   height: auto;
   max-height: 25px;
   line-height: 25px;
   text-align: center;
+  -webkit-transform: translate3d(0, -50%, 0);
+  -ms-transform: translate3d(0, -50%, 0);
+  transform: translate3d(0, -50%, 0);
 }
 
 .file-row[data-file-type="folder"] .file-name:before {
