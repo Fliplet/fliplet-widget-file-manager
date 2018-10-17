@@ -152,7 +152,6 @@ function getFolderContentsById(id, type) {
     switch (navItem.type) {
       case 'organizationId':
         return;
-        break;
       case 'appId':
         // User is no longer browsing the app folder
         if (!options.hasOwnProperty('appId') || parseInt(options.appId, 10) !== navItem.id) {
