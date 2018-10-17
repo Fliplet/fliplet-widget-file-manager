@@ -72,7 +72,6 @@ function navigateToDefaultFolder() {
   // Set first folder of breadcrumbs
   resetUpTo($el);
 
-  debugger;
   if (data.navStack && data.folder) {
     // Updates navStack with folders before the selected one
     var newNavStack = data.navStack.upTo.slice(1);
@@ -155,11 +154,13 @@ function getFolderContentsById(id, type) {
         return;
         break;
       case 'appId':
+        // User is no longer browsing the app folder
         if (!options.hasOwnProperty('appId') || parseInt(options.appId, 10) !== navItem.id) {
           return;
         }
         break;
       case 'folderId':
+        // User us no longer browsing folder
         if (!options.hasOwnProperty('folderId') || parseInt(options.folderId, 10) !== navItem.id) {
           return;
         }
@@ -251,16 +252,19 @@ function getFolderContents(el, isRootFolder) {
     var navItem = navStack[navStack.length-1];
     switch (navItem.type) {
       case 'organizationId':
+        // User is no longer browsing the organization folder
         if (options.hasOwnProperty('folderId') || !options.hasOwnProperty('organizationId') || parseInt(options.organizationId, 10) !== navItem.id) {
           return;
         }
         break;
       case 'appId':
+        // User is no longer browsing the app folder
         if (!options.hasOwnProperty('appId') || parseInt(options.appId, 10) !== navItem.id) {
           return;
         }
         break;
       case 'folderId':
+        // User is no longer browsing the folder
         if (!options.hasOwnProperty('folderId') || parseInt(options.folderId, 10) !== navItem.id) {
           return;
         }
