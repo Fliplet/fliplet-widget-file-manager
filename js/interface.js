@@ -72,6 +72,7 @@ function navigateToDefaultFolder() {
   // Set first folder of breadcrumbs
   resetUpTo($el);
 
+  debugger;
   if (data.navStack && data.folder) {
     // Updates navStack with folders before the selected one
     var newNavStack = data.navStack.upTo.slice(1);
@@ -145,9 +146,31 @@ function getFolderContentsById(id, type) {
 
   currentFolders = [];
   currentFiles = [];
-  $folderContents.html('');
+  $folderContents.empty();
 
   Fliplet.Media.Folders.get(options).then(function(response) {
+    var navItem = navStack[navStack.length-1];
+    switch (navItem.type) {
+      case 'organizationId':
+        return;
+        break;
+      case 'appId':
+        if (!options.hasOwnProperty('appId') || parseInt(options.appId, 10) !== navItem.id) {
+          return;
+        }
+        break;
+      case 'folderId':
+        if (!options.hasOwnProperty('folderId') || parseInt(options.folderId, 10) !== navItem.id) {
+          return;
+        }
+        break;
+    }
+
+    if (!$folderContents.is(':empty')) {
+      // Content already rendered from a recent request. Do nothing.
+      return;
+    }
+
     if (response.files.length === 0 && response.folders.length === 0) {
       $('.empty-state').addClass('active');
     } else {
@@ -222,9 +245,33 @@ function getFolderContents(el, isRootFolder) {
 
   currentFolders = [];
   currentFiles = [];
-  $folderContents.html('');
+  $folderContents.empty();
 
   Fliplet.Media.Folders.get(options).then(function(response) {
+    var navItem = navStack[navStack.length-1];
+    switch (navItem.type) {
+      case 'organizationId':
+        if (options.hasOwnProperty('folderId') || !options.hasOwnProperty('organizationId') || parseInt(options.organizationId, 10) !== navItem.id) {
+          return;
+        }
+        break;
+      case 'appId':
+        if (!options.hasOwnProperty('appId') || parseInt(options.appId, 10) !== navItem.id) {
+          return;
+        }
+        break;
+      case 'folderId':
+        if (!options.hasOwnProperty('folderId') || parseInt(options.folderId, 10) !== navItem.id) {
+          return;
+        }
+        break;
+    }
+
+    if (!$folderContents.is(':empty')) {
+      // Content already rendered from a recent request. Do nothing.
+      return;
+    }
+
     if (response.files.length === 0 && response.folders.length === 0) {
       $('.empty-state').addClass('active');
     } else {
