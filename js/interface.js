@@ -118,7 +118,10 @@ function getAppsList() {
 }
 
 function getFolderContentsById(id, type) {
-  var options = {};
+  var options = {
+    cdn: true
+  };
+
   var filterFiles = function(files) {
     return true
   };
@@ -159,7 +162,7 @@ function getFolderContentsById(id, type) {
         }
         break;
       case 'folderId':
-        // User us no longer browsing folder
+        // User is no longer browsing folder
         if (!options.hasOwnProperty('folderId') || parseInt(options.folderId, 10) !== navItem.id) {
           return;
         }
@@ -179,6 +182,12 @@ function getFolderContentsById(id, type) {
       // Filter only the files from that request app/org/folder
       var mediaFiles = response.files.filter(filterFiles);
       var mediaFolders = response.folders.filter(filterFolders);
+
+      mediaFiles.forEach(function (file) {
+        if (file.isEncrypted) {
+          file.url = Fliplet.Media.authenticate(file.url);
+        }
+      });
 
       mediaFolders.forEach(addFolder);
       mediaFiles.forEach(addFile);
@@ -205,7 +214,10 @@ function getFolderContents(el, isRootFolder) {
     $listHolder.first().addClass('active');
   }
 
-  var options = {};
+  var options = {
+    cdn: true
+  };
+
   // Default filter functions
   var filterFiles = function(files) {
     return true
@@ -283,6 +295,12 @@ function getFolderContents(el, isRootFolder) {
       // Filter only the files from that request app/org/folder
       var mediaFiles = response.files.filter(filterFiles);
       var mediaFolders = response.folders.filter(filterFolders);
+
+      mediaFiles.forEach(function (file) {
+        if (file.isEncrypted) {
+          file.url = Fliplet.Media.authenticate(file.url);
+        }
+      });
 
       mediaFolders.forEach(addFolder);
       mediaFiles.forEach(addFile);
