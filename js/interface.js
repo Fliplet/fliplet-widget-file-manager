@@ -57,7 +57,7 @@ function parseThumbnail(file) {
     return;
   }
 
-  file.thumbnail = Fliplet.Media.authenticate(file.thumbnail.replace(Fliplet.Env.get('apiUrl'), Fliplet.Env.get('apiCdnUrl')));
+  file.thumbnail = Fliplet.Media.authenticate(file.url.replace(Fliplet.Env.get('apiUrl'), Fliplet.Env.get('apiCdnUrl')));
 }
 
 function navigateToDefaultFolder() {
