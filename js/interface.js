@@ -52,6 +52,14 @@ function getOrganizationsList() {
   });
 }
 
+function parseThumbnail(file) {
+  if (file.thumbnail) {
+    return;
+  }
+
+  file.thumbnail = Fliplet.Media.authenticate(file.thumbnail.replace(Fliplet.Env.get('apiUrl'), Fliplet.Env.get('apiCdnUrl')));
+}
+
 function navigateToDefaultFolder() {
   if (typeof data === 'undefined' || !data || !data.appId) {
     // No folder was specified
@@ -187,6 +195,8 @@ function getFolderContentsById(id, type) {
       var mediaFiles = response.files.filter(filterFiles);
       var mediaFolders = response.folders.filter(filterFolders);
 
+      mediaFiles.forEach(parseThumbnail);
+
       mediaFolders.forEach(addFolder);
       mediaFiles.forEach(addFile);
     }
@@ -296,6 +306,8 @@ function getFolderContents(el, isRootFolder) {
 
       mediaFolders.forEach(addFolder);
       mediaFiles.forEach(addFile);
+
+      mediaFiles.forEach(parseThumbnail);
     }
   }, function() {
     $('.empty-state').addClass('active');
