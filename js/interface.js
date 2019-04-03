@@ -32,6 +32,10 @@ var navStack = [];
 var sideBarMinWidth = 240;
 var sideBarMaxWidth = 395;
 
+// Keep it as false because people copy this URL and use it into their apps,
+// therefore we want this to be an clean direct link to the API with no token.
+var useCdn = false;
+
 // CORE FUNCTIONS //
 // Get organizations and apps list for left side menu
 function getOrganizationsList() {
@@ -46,6 +50,14 @@ function getOrganizationsList() {
   }).then(function() {
     getAppsList();
   });
+}
+
+function parseThumbnail(file) {
+  if (file.thumbnail) {
+    return;
+  }
+
+  file.thumbnail = Fliplet.Media.authenticate(file.url.replace(Fliplet.Env.get('apiUrl'), Fliplet.Env.get('apiCdnUrl')));
 }
 
 function navigateToDefaultFolder() {
@@ -119,7 +131,7 @@ function getAppsList() {
 
 function getFolderContentsById(id, type) {
   var options = {
-    cdn: true
+    cdn: useCdn
   };
 
   var filterFiles = function(files) {
@@ -183,11 +195,7 @@ function getFolderContentsById(id, type) {
       var mediaFiles = response.files.filter(filterFiles);
       var mediaFolders = response.folders.filter(filterFolders);
 
-      mediaFiles.forEach(function (file) {
-        if (file.isEncrypted) {
-          file.url = Fliplet.Media.authenticate(file.url);
-        }
-      });
+      mediaFiles.forEach(parseThumbnail);
 
       mediaFolders.forEach(addFolder);
       mediaFiles.forEach(addFile);
@@ -215,7 +223,7 @@ function getFolderContents(el, isRootFolder) {
   }
 
   var options = {
-    cdn: true
+    cdn: useCdn
   };
 
   // Default filter functions
@@ -296,14 +304,10 @@ function getFolderContents(el, isRootFolder) {
       var mediaFiles = response.files.filter(filterFiles);
       var mediaFolders = response.folders.filter(filterFolders);
 
-      mediaFiles.forEach(function (file) {
-        if (file.isEncrypted) {
-          file.url = Fliplet.Media.authenticate(file.url);
-        }
-      });
-
       mediaFolders.forEach(addFolder);
       mediaFiles.forEach(addFile);
+
+      mediaFiles.forEach(parseThumbnail);
     }
   }, function() {
     $('.empty-state').addClass('active');
