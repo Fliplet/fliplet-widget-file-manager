@@ -457,6 +457,7 @@
 .dropdown-menu-holder .panel-body .list-holder {
   padding: 5px 0 5px 25px;
   cursor: pointer;
+  word-break: break-word;
 }
 
 .dropdown-menu-holder .panel-body .list-holder.active span {
