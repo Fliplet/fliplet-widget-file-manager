@@ -600,6 +600,11 @@
   visibility: visible;
 }
 
+.file-table-header .selectable .file-select {
+  opacity: 0;
+  visibility: hidden;
+}
+
 .file-table-header .selectable.active .file-select {
   opacity: 1;
   visibility: visible;
