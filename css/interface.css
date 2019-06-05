@@ -1,6 +1,6 @@
 /* For Safari to hide scrollbar */
 html {
-  overflow:   scroll;
+  overflow: scroll;
 }
 ::-webkit-scrollbar {
   width: 0;

@@ -381,6 +381,7 @@ function addFile(file) {
   $folderContents.append(templates.file(file));
   $('.empty-state').removeClass('active');
   $('.new-menu').removeClass('active');
+
   // Toggle checkbox header to false
   $('.file-table-header input[type="checkbox"]').prop('checked', false);
   $('.file-cell.selectable').css({'opacity': '1', 'visibility': 'visible'});
@@ -756,6 +757,7 @@ $('.file-manager-wrapper')
           Fliplet.Media.Folders.delete($element.attr('data-id')).then(function() {
             $element.remove();
             checkboxStatus();
+
             // Toggle checkbox header to false
             $('.file-table-header input[type="checkbox"]').prop('checked', false);
             $('.file-cell.selectable').css({'opacity': '0', 'visibility': 'hidden'});
@@ -764,6 +766,7 @@ $('.file-manager-wrapper')
           Fliplet.Media.Files.delete($element.attr('data-id')).then(function() {
             $element.remove();
             checkboxStatus();
+
             // Toggle checkbox header to false
             $('.file-table-header input[type="checkbox"]').prop('checked', false);
             $('.file-cell.selectable').css({'opacity': '0', 'visibility': 'hidden'});
