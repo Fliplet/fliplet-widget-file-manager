@@ -49,6 +49,7 @@ function getOrganizationsList() {
     organizations.forEach(addOrganizations);
   }).then(function() {
     getAppsList();
+    $('.file-cell.selectable').addClass('active');
   });
 }
 
@@ -188,6 +189,7 @@ function getFolderContentsById(id, type) {
 
     if (response.files.length === 0 && response.folders.length === 0) {
       $('.empty-state').addClass('active');
+      $('.file-cell.selectable').addClass('active');
     } else {
       folders = response.folders;
 
@@ -296,6 +298,7 @@ function getFolderContents(el, isRootFolder) {
     }
 
     if (response.files.length === 0 && response.folders.length === 0) {
+      $('.file-cell.selectable').addClass('active');
       $('.empty-state').addClass('active');
     } else {
       folders = response.folders;
@@ -363,6 +366,9 @@ function addFolder(folder) {
   folders.push(folder);
   $folderContents.append(templates.folder(folder));
   $('.empty-state').removeClass('active');
+  // Toggle checkbox header to false
+  $('.file-table-header input[type="checkbox"]').prop('checked', false);
+  $('.file-cell.selectable').css({'opacity': '1', 'visibility': 'visible'});
 }
 
 // Adds file item template
@@ -374,6 +380,10 @@ function addFile(file) {
   currentFiles.push(file);
   $folderContents.append(templates.file(file));
   $('.empty-state').removeClass('active');
+  $('.new-menu').removeClass('active');
+  // Toggle checkbox header to false
+  $('.file-table-header input[type="checkbox"]').prop('checked', false);
+  $('.file-cell.selectable').css({'opacity': '1', 'visibility': 'visible'});
 }
 
 // Templating
@@ -389,6 +399,7 @@ function checkboxStatus() {
 
   if (numberOfRows === 0) {
     $('.empty-state').addClass('active');
+    $('.file-cell.selectable').removeClass('active');
   }
 
   if ($('.file-row').hasClass('active')) {
@@ -398,7 +409,6 @@ function checkboxStatus() {
     $('.help-tips').addClass('hidden');
   } else {
     $('.side-actions').removeClass('active');
-    $('.file-cell.selectable').removeClass('active');
     $('.file-row').not(this).removeClass('passive');
     $('.help-tips').removeClass('hidden');
     $('.side-actions .item').removeClass('show');
@@ -434,13 +444,13 @@ function toggleAll(el) {
     $('.file-row input[type="checkbox"]').each(function() {
       $(this).prop('checked', true);
       $(this).parents('.file-row').addClass('active');
-      $(this).parents('.file-cell.selectable').addClass('active');
+      $('.side-actions').addClass('active');
+      $('.help-tips').addClass('hidden');
     });
   } else {
     $('.file-row input[type="checkbox"]').each(function() {
       $(this).prop('checked', false);
       $(this).parents('.file-row').removeClass('active');
-      $('.file-cell.selectable').removeClass('active');
       $('.file-row').removeClass('passive');
     });
   }
@@ -746,11 +756,17 @@ $('.file-manager-wrapper')
           Fliplet.Media.Folders.delete($element.attr('data-id')).then(function() {
             $element.remove();
             checkboxStatus();
+            // Toggle checkbox header to false
+            $('.file-table-header input[type="checkbox"]').prop('checked', false);
+            $('.file-cell.selectable').css({'opacity': '0', 'visibility': 'hidden'});
           });
         } else {
           Fliplet.Media.Files.delete($element.attr('data-id')).then(function() {
             $element.remove();
             checkboxStatus();
+            // Toggle checkbox header to false
+            $('.file-table-header input[type="checkbox"]').prop('checked', false);
+            $('.file-cell.selectable').css({'opacity': '0', 'visibility': 'hidden'});
           });
         }
       });
