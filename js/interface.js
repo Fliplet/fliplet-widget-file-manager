@@ -199,6 +199,8 @@ function getFolderContentsById(id, type) {
 
       mediaFolders.forEach(addFolder);
       mediaFiles.forEach(addFile);
+
+      renderList();
     }
   }, function() {
     $('.empty-state').addClass('active');
@@ -308,6 +310,8 @@ function getFolderContents(el, isRootFolder) {
       mediaFiles.forEach(addFile);
 
       mediaFiles.forEach(parseThumbnail);
+
+      renderList();
     }
   }, function() {
     $('.empty-state').addClass('active');
@@ -361,7 +365,7 @@ function addFolder(folder) {
 
   currentFolders.push(folder);
   folders.push(folder);
-  $folderContents.append(templates.folder(folder));
+
   $('.empty-state').removeClass('active');
 }
 
@@ -372,7 +376,7 @@ function addFile(file) {
   file.updatedAt = readableDate;
 
   currentFiles.push(file);
-  $folderContents.append(templates.file(file));
+
   $('.empty-state').removeClass('active');
 }
 
@@ -549,10 +553,88 @@ function uploadFiles(files) {
   }).then(function(files) {
     files.forEach(function(file) {
       addFile(file);
+      insertItem(file);
     });
 
     $progress.addClass('hidden');
   });
+}
+
+// Sorts items by name
+function sortItems(items) {
+  return _.sortBy(items, [
+    function (item) {
+      return item.name.toLowerCase();
+    },
+    'id'
+  ]);
+}
+
+// Adds single item to DOM
+function renderItem(item, isFolder, insertIndex) {
+  var template = isFolder ? templates.folder(item) : templates.file(item);
+
+  if (insertIndex >= 0) {
+    var $item = $folderContents.find('.file-row').eq(insertIndex);
+    $item.before(template);
+  } else {
+    $folderContents.append(template);
+  }
+}
+
+// Renders sorted list of folders and files
+function renderList() {
+  var folders = sortItems(currentFolders);
+  var files = sortItems(currentFiles);
+
+  $folderContents.empty();
+
+  folders.forEach(function (folder) {
+    renderItem(folder, true);
+  });
+
+  files.forEach(function (file) {
+    renderItem(file, false);
+  });
+}
+
+//Finds insert index for a new item
+function findItemInsertIndex(item, isFolder) {
+  var items = sortItems(currentFolders).concat(sortItems(currentFiles));
+  items = items.filter(function (i) {
+    return i.id !== item.id;
+  });
+
+  var insertIndex = -1;
+
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].name.toLowerCase() > item.name.toLowerCase()) {
+      insertIndex = i;
+      break;
+    }
+  }
+
+  if (insertIndex === -1) {
+    if (isFolder) {
+      if (currentFolders.length) {
+        if (currentFiles.length) {
+          insertIndex = currentFolders.length - 1;
+        }
+      } else {
+        if (currentFiles.length) {
+          insertIndex = 0;
+        }
+      }
+    }
+  }
+
+  return insertIndex;
+}
+
+//Inserts new item to a specific position to the item list
+function insertItem(item, isFolder) {
+  var insertIndex = findItemInsertIndex(item, isFolder);
+  renderItem(item, isFolder, insertIndex);
 }
 
 $dropZone.on('drop', function(e) {
@@ -668,7 +750,10 @@ $('.file-manager-wrapper')
       }
     }
 
-    Fliplet.Media.Folders.create(options).then(addFolder);
+    Fliplet.Media.Folders.create(options).then(function (folder) {
+      addFolder(folder);
+      insertItem(folder, true);
+    });
 
     $('.new-btn').click();
   })
@@ -707,6 +792,7 @@ $('.file-manager-wrapper')
       $input.val('');
       files.forEach(function(file) {
         addFile(file);
+        insertItem(file);
       });
 
       $progress.addClass('hidden');
@@ -742,15 +828,24 @@ $('.file-manager-wrapper')
       $(items).each(function() {
         var $element = $(this);
 
+        var itemID = $element.attr('data-id');
         if ($element.attr('data-file-type') === 'folder') {
-          Fliplet.Media.Folders.delete($element.attr('data-id')).then(function() {
+          Fliplet.Media.Folders.delete(itemID).then(function() {
             $element.remove();
             checkboxStatus();
+
+            currentFolders = currentFolders.filter(function(folder){
+              return folder.id != itemID;
+            });
           });
         } else {
-          Fliplet.Media.Files.delete($element.attr('data-id')).then(function() {
+          Fliplet.Media.Files.delete(itemID).then(function() {
             $element.remove();
             checkboxStatus();
+
+            currentFiles = currentFiles.filter(function(file){
+              return file.id != itemID;
+            });
           });
         }
       });
@@ -815,12 +910,18 @@ $('.file-manager-wrapper')
           name: changedName
         }).then(function() {
           $('.file-row[data-id="' + itemID + '"]').find('.file-name span').html(changedName);
+
+          var folder = _.find(currentFolders, ['id', itemID]);
+          folder.name = changedName;
         });
       } else {
         Fliplet.Media.Files.update(itemID, {
           name: changedName
         }).then(function() {
           $('.file-row[data-id="' + itemID + '"]').find('.file-name span').html(changedName);
+
+          var file = _.find(currentFiles, ['id', itemID]);
+          file.name = changedName;
         });
       }
     }
