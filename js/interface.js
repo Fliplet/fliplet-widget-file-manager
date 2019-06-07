@@ -17,7 +17,7 @@ var templates = {
 var currentSelection;
 
 var currentOrgId;
-var CurrentOrganisationId = null;
+var currentOrganisationId = null;
 var currentFolderId;
 var currentAppId;
 var currentFolders;
@@ -541,14 +541,14 @@ function uploadFiles(files) {
   $progress.removeClass('hidden');
 
   if(currentFolderId == null && currentAppId == null){
-    CurrentOrganisationId = currentOrgId;
+    currentOrganisationId = currentOrgId;
   } else {
-    CurrentOrganisationId = null;
+    currentOrganisationId = null;
   }
   Fliplet.Media.Files.upload({
     folderId: currentFolderId,
     appId: currentAppId,
-    organizationId : CurrentOrganisationId,
+    organizationId : currentOrganisationId,
     name: file.name,
     data: formData,
     progress: function(percentage) {
@@ -704,14 +704,14 @@ $('.file-manager-wrapper')
     $progress.removeClass('hidden');
 
     if(currentFolderId == null && currentAppId == null){
-      CurrentOrganisationId = currentOrgId;
+      currentOrganisationId = currentOrgId;
     } else {
-      CurrentOrganisationId = null;
+      currentOrganisationId = null;
     }
     Fliplet.Media.Files.upload({
       folderId: currentFolderId,
       appId: currentAppId,
-      organizationId : CurrentOrganisationId,
+      organizationId : currentOrganisationId,
       name: file.name,
       data: formData,
       progress: function(percentage) {
