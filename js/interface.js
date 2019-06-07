@@ -16,6 +16,8 @@ var templates = {
 // This should contain either app/org/folder of current folder
 var currentSelection;
 
+var currentOrgId;
+var CurrentOrganisationId = null;
 var currentFolderId;
 var currentAppId;
 var currentFolders;
@@ -272,6 +274,7 @@ function getFolderContents(el, isRootFolder) {
     switch (navItem.type) {
       case 'organizationId':
         // User is no longer browsing the organization folder
+        currentOrgId = options.organizationId
         if (options.hasOwnProperty('folderId') || !options.hasOwnProperty('organizationId') || parseInt(options.organizationId, 10) !== navItem.id) {
           return;
         }
@@ -523,6 +526,7 @@ function hideDropZone() {
 }
 
 function uploadFiles(files) {
+  
   var formData = new FormData();
   var file;
   for (var i = 0; i < files.length; i++) {
@@ -536,9 +540,15 @@ function uploadFiles(files) {
   });
   $progress.removeClass('hidden');
 
+  if(currentFolderId == null && currentAppId == null){
+    CurrentOrganisationId = currentOrgId;
+  } else {
+    CurrentOrganisationId = null;
+  }
   Fliplet.Media.Files.upload({
     folderId: currentFolderId,
     appId: currentAppId,
+    organizationId : CurrentOrganisationId,
     name: file.name,
     data: formData,
     progress: function(percentage) {
@@ -693,9 +703,15 @@ $('.file-manager-wrapper')
     });
     $progress.removeClass('hidden');
 
+    if(currentFolderId == null && currentAppId == null){
+      CurrentOrganisationId = currentOrgId;
+    } else {
+      CurrentOrganisationId = null;
+    }
     Fliplet.Media.Files.upload({
       folderId: currentFolderId,
       appId: currentAppId,
+      organizationId : CurrentOrganisationId,
       name: file.name,
       data: formData,
       progress: function(percentage) {
