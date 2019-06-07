@@ -62,15 +62,16 @@ function parseThumbnail(file) {
 
 function navigateToDefaultFolder() {
   if (typeof data === 'undefined' || !data || !data.appId) {
-// No folder was specified
+    // No folder was specified
     return;
   }
+
   var $listHolder;
   var folderId;
   var type;
   var $el = $('[data-app-id="' + data.appId + '"][data-browse-folder]');
 
-// Activate folder on left sidebar
+  // Activate folder on left sidebar
   if ($el.data('type') === 'organization') {
     $listHolder = $el;
   } else {
@@ -80,21 +81,21 @@ function navigateToDefaultFolder() {
   $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
   $listHolder.first().addClass('active');
 
-// Set first folder of breadcrumbs
+  // Set first folder of breadcrumbs
   resetUpTo($el);
   
-  if(data.appId) {
+  if (data.appId) {
     getFolderContents($el, true);
     return;
   }
   if (data.navStack && data.folder) {
-// Updates navStack with folders before the selected one
+    // Updates navStack with folders before the selected one
     var newNavStack = data.navStack.upTo.slice(1);
     newNavStack.forEach(function(obj, idx) {
       navStack.push(obj);
     });
 
-// Updates navStack with selected folder
+    // Updates navStack with selected folder
     navStack.push(data.folder);
     navStack.forEach(function(obj, idx) {
       if (idx !== 0) {
@@ -103,7 +104,7 @@ function navigateToDefaultFolder() {
         }
       }
     });
-    
+
     folderId = data.folder.id;
     type = 'folder';
     updatePaths();
