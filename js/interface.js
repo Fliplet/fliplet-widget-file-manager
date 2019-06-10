@@ -548,7 +548,7 @@ function uploadFiles(files) {
   Fliplet.Media.Files.upload({
     folderId: currentFolderId,
     appId: currentAppId,
-    organizationId : currentOrganisationId,
+    organizationId: currentOrganisationId,
     name: file.name,
     data: formData,
     progress: function(percentage) {
@@ -711,7 +711,7 @@ $('.file-manager-wrapper')
     Fliplet.Media.Files.upload({
       folderId: currentFolderId,
       appId: currentAppId,
-      organizationId : currentOrganisationId,
+      organizationId: currentOrganisationId,
       name: file.name,
       data: formData,
       progress: function(percentage) {
