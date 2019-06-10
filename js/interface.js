@@ -374,6 +374,18 @@ function addFile(file) {
   currentFiles.push(file);
   $folderContents.append(templates.file(file));
   $('.empty-state').removeClass('active');
+  sortImageFiles();
+}
+
+function sortImageFiles() {
+  var sort_by_name = function(a, b) {    
+    return $(a).find('.file-cell .file-name span').first().text().localeCompare($(b).find('.file-cell .file-name span').first().text());
+  }
+  var list = $(".file-table-body > div[data-file-type='image']").get();
+  list.sort(sort_by_name);
+  for (var i = 0; i < list.length; i++) {
+      list[i].parentNode.appendChild(list[i]);
+  }
 }
 
 // Templating
