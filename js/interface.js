@@ -540,7 +540,7 @@ function uploadFiles(files) {
   });
   $progress.removeClass('hidden');
 
-  if(currentFolderId == null && currentAppId == null){
+  if (currentFolderId == null && currentAppId == null) {
     currentOrganisationId = currentOrgId;
   } else {
     currentOrganisationId = null;
@@ -703,7 +703,7 @@ $('.file-manager-wrapper')
     });
     $progress.removeClass('hidden');
 
-    if(currentFolderId == null && currentAppId == null){
+    if (currentFolderId == null && currentAppId == null) {
       currentOrganisationId = currentOrgId;
     } else {
       currentOrganisationId = null;
