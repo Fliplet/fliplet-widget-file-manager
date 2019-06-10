@@ -523,6 +523,7 @@ function hideDropZone() {
 }
 
 function uploadFiles(files) {
+  
   var formData = new FormData();
   var file;
   for (var i = 0; i < files.length; i++) {

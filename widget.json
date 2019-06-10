@@ -1,6 +1,6 @@
 {
   "name": "File Manager",
-  "package": "com.fliplet.file-manager.softobiz",
+  "package": "com.fliplet.file-manager.upload-correct-order",
   "version": "1.0.0",
   "icon": "img/icon.png",
   "tags": ["type:component", "category:general"],
