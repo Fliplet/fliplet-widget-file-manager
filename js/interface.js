@@ -550,19 +550,25 @@ function uploadFiles(files) {
     files.forEach(function(file) {
       addFile(file);
     });
-    sortImageFiles();
+    sortFoldersAndFiles();
     $progress.addClass('hidden');
   });
 }
 
-function sortImageFiles() {
-  var sort_by_name = function (a, b) {
+function sortFoldersAndFiles() {
+  var sortByName = function (a, b) {
       return $(a).find('.file-cell .file-name span').first().text().localeCompare($(b).find('.file-cell .file-name span').first().text());
   }
-  var list = $(".file-table-body > div[data-file-type='image']").get();
-  list.sort(sort_by_name);
-  for (var i = 0; i < list.length; i++) {
-      list[i].parentNode.appendChild(list[i]);
+  var folders = $(".file-table-body > div[data-file-type='folder']").get();
+  folders.sort(sortByName);
+  for (var i = 0; i < folders.length; i++) {
+    folders[i].parentNode.appendChild(folders[i]);
+  }
+
+  var files = $(".file-table-body > div[data-file-type!='folder']").get();
+  files.sort(sortByName);
+  for (var i = 0; i < files.length; i++) {
+    files[i].parentNode.appendChild(files[i]);
   }
 }
 
@@ -679,7 +685,7 @@ $('.file-manager-wrapper')
       }
     }
 
-    Fliplet.Media.Folders.create(options).then(addFolder);
+    Fliplet.Media.Folders.create(options).then(addFolder).then(sortFoldersAndFiles);
 
     $('.new-btn').click();
   })
@@ -719,7 +725,7 @@ $('.file-manager-wrapper')
       files.forEach(function(file) {
         addFile(file);
       });
-      sortImageFiles();
+      sortFoldersAndFiles();
       $progress.addClass('hidden');
     });
   })
