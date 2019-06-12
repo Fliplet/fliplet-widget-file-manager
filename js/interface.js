@@ -557,8 +557,8 @@ function uploadFiles(files) {
 }
 
 function sortImageFiles() {
-  var sort_by_name = function(a, b) {    
-    return $(a).find('.file-cell .file-name span').first().text().localeCompare($(b).find('.file-cell .file-name span').first().text());
+  var sort_by_name = function (a, b) {
+      return $(a).find('.file-cell .file-name span').first().text().localeCompare($(b).find('.file-cell .file-name span').first().text());
   }
   var list = $(".file-table-body > div[data-file-type='image']").get();
   list.sort(sort_by_name);
