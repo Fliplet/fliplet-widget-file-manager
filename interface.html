@@ -20,6 +20,13 @@
 
           </div>
         </div>
+        <div class="search-holder">
+          <select class="form-control search-type">
+            <option value="all">All</option>
+            <option value="this-folder" selected>This folder</option>
+          </select>
+          <input type="text" class="form-control search-term" placeholder="Search...">
+        </div>
         <div class="new-btn-holder">
           <div class="btn btn-primary new-btn">New</div>
           <div class="new-menu">
@@ -85,7 +92,7 @@
                     -->
                     <div class="file-cell">
                       <div class="file-date">
-                        Last modified
+                        Created
                       </div>
                     </div>
                     <!-- HIDE
@@ -95,7 +102,17 @@
                       </div>
                     </div>
                     -->
-                    <div class="file-cell">
+                    <div class="file-cell search-result-cell">
+                      <div class="file-path">
+                        Path
+                      </div>
+                    </div>
+                    <div class="file-cell search-result-cell">
+                      <div class="file-size">
+                        Dimensions
+                      </div>
+                    </div>
+                    <div class="file-cell folder-result-cell">
                       <div class="file-ID">
                         ID
                       </div>
@@ -113,7 +130,12 @@
                   <p>Use the "New" button.</p>
                 </div>
 
+                <div class="search-empty-state">
+                  <span>&#x1F633</span>
+                  <h3>Nothing found.</h3>
+                </div>
               </div>
+              <div class="pagination pull-right"></div>
             </div>
           </div>
         </div>
@@ -228,7 +250,7 @@
     -->
     <div class="file-cell">
       <div class="file-date">
-        <span>\{{updatedAt}}</span>
+        <span>\{{formattedDate}}</span>
       </div>
     </div>
     <!-- HIDE
@@ -238,7 +260,19 @@
       </div>
     </div>
     -->
-    <div class="file-cell">
+    <div class="file-cell search-result-cell">
+      <div class="file-path">
+        <span>
+          <a href="javascript:;" class="path-link" data-folder data-id="\{{parentItemId}}" data-type="\{{parentItemType}}" title="\{{relativePath}}">\{{relativePath}}</a>
+        </span>
+      </div>
+    </div>
+    <div class="file-cell search-result-cell">
+      <div class="file-size">
+        <span></span>
+      </div>
+    </div>
+    <div class="file-cell folder-result-cell">
       <div class="file-ID">
         <span>\{{id}}</span>
       </div>
@@ -273,7 +307,7 @@
     -->
     <div class="file-cell">
       <div class="file-date">
-        <span>\{{updatedAt}}</span>
+        <span>\{{formattedDate}}</span>
       </div>
     </div>
     <!-- HIDE
@@ -283,7 +317,19 @@
       </div>
     </div>
     -->
-    <div class="file-cell">
+    <div class="file-cell search-result-cell">
+      <div class="file-path">
+        <span>
+          <a href="javascript:;" class="path-link" data-folder data-id="\{{parentItemId}}" data-type="\{{parentItemType}}" title="\{{relativePath}}">\{{relativePath}}</a>
+        </span>
+      </div>
+    </div>
+    <div class="file-cell search-result-cell">
+      <div class="file-size">
+        <span>\{{dimensions}}</span>
+      </div>
+    </div>
+    <div class="file-cell folder-result-cell">
       <div class="file-ID">
         <span>\{{id}}</span>
       </div>
