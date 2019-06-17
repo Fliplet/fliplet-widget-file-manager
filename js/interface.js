@@ -10,7 +10,11 @@ var templates = {
   file: template('file'),
   folder: template('folder'),
   organizations: template('organizations'),
-  apps: template('apps')
+  apps: template('apps'),
+  moveModal: template('move-modal'),
+  organizationsSelect: template('select-organizations'),
+  appsSelect: template('select-apps'),
+  moveModalFolders: template('move-modal-folders')
 };
 
 // This should contain either app/org/folder of current folder
@@ -21,12 +25,15 @@ var currentAppId;
 var currentFolders;
 var currentFiles;
 var counterOrganization;
+var foldersForMoving = {};
+foldersForMoving.navStack = [];
+var selectedItemsForMoving;
 
 var tetherBox;
 
 var folders = [];
-var apps;
-var organizations;
+var appsList;
+var organizationsList;
 var navStack = [];
 
 var sideBarMinWidth = 240;
@@ -36,17 +43,26 @@ var sideBarMaxWidth = 395;
 // therefore we want this to be an clean direct link to the API with no token.
 var useCdn = false;
 
+Handlebars.registerHelper({
+  eq: function (v1, v2) {
+    return v1 === v2;
+  },
+  gt: function (v1, v2) {
+    return v1 > v2;
+  }
+});
+
 // CORE FUNCTIONS //
 // Get organizations and apps list for left side menu
 function getOrganizationsList() {
   counterOrganization = 0;
   Fliplet.Organizations.get().then(function(organizations) {
     // Sort alphabetically
-    organizations = _.sortBy(organizations, [function(o) {
+    organizationsList = _.sortBy(organizations, [function(o) {
       return o.name;
     }]);
     // Add to HTML
-    organizations.forEach(addOrganizations);
+    organizationsList.forEach(addOrganizations);
   }).then(function() {
     getAppsList();
   });
@@ -119,11 +135,11 @@ function getAppsList() {
       return !app.legacy;
     });
     // Sort apps alphabetically
-    apps = _.sortBy(apps, [function(o) {
+    appsList = _.sortBy(apps, [function(o) {
       return o.name;
     }]);
     // Add apps to HTML
-    apps.forEach(addApps);
+    appsList.forEach(addApps);
 
     navigateToDefaultFolder();
   });
@@ -555,6 +571,217 @@ function uploadFiles(files) {
   });
 }
 
+// FUNCTIONS FOR MOVING FILES/FOLDERS IN MODAL
+
+// Check if folder that has selected items to move has a subfolder and filter it
+function excludeFolders(items) {
+  var parentItemIdOfSelectedItems = navStack[navStack.length-1].id;
+  var selectedIdPlaceInModal = foldersForMoving.navStack[foldersForMoving.navStack.length-1].id;
+  var searchResult = items;
+  var selectedIdForMoving = [];
+  
+  for (var i = 0; i < selectedItemsForMoving.length; i++) {
+    if ($(selectedItemsForMoving[i]).attr('data-file-type') === 'folder') {
+      selectedIdForMoving.push(Number($(selectedItemsForMoving[i]).attr('data-id')));
+    }
+  }
+  
+  if (parentItemIdOfSelectedItems === selectedIdPlaceInModal) {
+    searchResult = searchResult.filter(function (item) {
+      for (var i = 0; i < selectedIdForMoving.length; i++) {
+        return item.id !== selectedIdForMoving[i];
+      }
+    })
+  }
+  
+  return searchResult;
+  
+}
+
+// Add app select item template
+function addAppsToSelect(apps) {
+  var $appSelectList = $('#organization-optgroup-' + apps.organizationId);
+  $appSelectList.append(templates.appsSelect(apps));
+}
+
+// Create list of folders in modal
+function addFoldersToMoveModal(res) {
+  if (Array.isArray(res)) {
+    if (res.length < 1) {
+      $('.move-modal-empty-state').addClass('active');
+    } else {
+      res = _.sortBy(res, [function(o) {
+        return o.name;
+      }]);
+      res.forEach(function (folder) {
+        $('.move-modal-list').append(templates.moveModalFolders(folder));
+      });
+    }
+  } else {
+    $('.move-modal-list').append(templates.moveModalFolders(res));
+    $('.move-modal-empty-state').removeClass('active');
+  }
+}
+
+// Add organization select item template
+function addOrganizationsToSelect(org) {
+  var $organizationsSelectList = $('#move-model-organizations-select');
+  $organizationsSelectList.append(templates.organizationsSelect(org));
+  appsList.forEach(addAppsToSelect);
+}
+
+// Users selected folders tree (for breadcrumbs)
+function addPathToStack(id, name, orgId, appId, parentId, type) {
+  foldersForMoving['navStack'].push(
+    {
+      id: Number(id)?Number(id):null,
+      name: name,
+      organizationId: Number(orgId)?Number(orgId):null,
+      appId: Number(appId)?Number(appId):null,
+      parentId: Number(parentId)?Number(parentId):null,
+      type: type
+    }
+    );
+}
+
+//Check if any folders exists
+function checkExistsMovingFolders(id) {
+  if (foldersForMoving.hasOwnProperty(id)) {
+    return foldersForMoving[id];
+  } else {
+    return false;
+  }
+}
+
+//Function for creating breadcrumbs
+function createMoveModalBreadCrumbsPaths() {
+  if (foldersForMoving['navStack'].length >= 1) {
+    var breadcrumbsPath = '';
+    
+    for (var i = 0; i < foldersForMoving['navStack'].length; i++) {
+      breadcrumbsPath +=
+        '<span class="bread-link">' +
+        '<a href="#" ' +
+        'data-breadcrumb-item ' +
+        'data-breadcrumb="' + foldersForMoving['navStack'][i].id + '" ' +
+        'data-breadcrumb-index="' + i + '" ' +
+        'data-breadcrumb-type="' + foldersForMoving['navStack'][i].type + '"' +
+        '>' + foldersForMoving['navStack'][i].name + '</a>' +
+        '</span>';
+    }
+    
+    $('#move-modal .current-folder-title').html(breadcrumbsPath);
+  }
+}
+
+//Create array tree form search result
+function createTreeFoldersArr(arr) {
+  var currentArr = arr;
+  
+  function transformToTree(arr) {
+    var nodes = {};
+    return arr.filter(function(obj) {
+      var id = obj["id"],
+        parentId = obj["parentId"];
+      
+      nodes[id] = _.defaults(obj, nodes[id], { children: [] });
+      parentId && (nodes[parentId] = (nodes[parentId] || { children: [] }))["children"].push(obj);
+      
+      return !parentId;
+    });
+  }
+  return transformToTree(currentArr);
+}
+
+//Create and open move modal
+function openMovePopup() {
+  foldersForMoving['navStack'] = [];
+  selectedItemsForMoving = $('.file-row.active');
+  var objData = {
+    items: selectedItemsForMoving,
+    itemsLength: selectedItemsForMoving.length
+  };
+  $('.file-manager-wrapper').append(templates.moveModal(objData));
+  $('#move-modal').modal('show');
+  organizationsList.forEach(addOrganizationsToSelect);
+  var $moveSelectPlaces = $('#move-model-organizations-select').find('option').first();
+  var id = $moveSelectPlaces.attr('data-id');
+  var type = $moveSelectPlaces.attr('data-type');
+  var name = $moveSelectPlaces.val();
+  addPathToStack(id, name, null, null, null, type);
+  this.searchFolders(id, type);
+}
+
+//Function for opening children folders
+function openChildrenFolders(folderId) {
+  var folder;
+  var folders = [];
+  var id = $('#move-model-organizations-select').find(':selected').attr('data-id');
+  
+  foldersForMoving[id].forEach(function (currChild) {
+    if (!!searchTree(currChild, folderId)) {
+      folder = searchTree(currChild, folderId);
+    }
+    folder = searchTree(currChild, folderId);
+  });
+  
+  folders = folder.children;
+  $('.move-modal-list').html('');
+  addFoldersToMoveModal(folders);
+  createMoveModalBreadCrumbsPaths();
+}
+
+// Call method for searching folders for selected app/organization
+function searchFolders(id, type) {
+  var res;
+  $('.move-modal-list').html('');
+  if (checkExistsMovingFolders(id)) {
+    res = checkExistsMovingFolders(id);
+    addFoldersToMoveModal(res);
+    createMoveModalBreadCrumbsPaths();
+  } else {
+    var filterFolders = function(folders) {
+      return true
+    };
+    var body = {};
+    if (type === "organizationId") {
+      body.organizationId = id;
+      filterFolders = function(folder) {
+        return (!(folder.appId || folder.parentFolderId) && folder.type === 'folder');
+      };
+    } else if (type === "appId") {
+      body.appId = id;
+      filterFolders = function(folder) {
+        return (!(folder.parentFolderId) && folder.type === 'folder');
+      };
+    }
+    $('.move-modal-loading').addClass('visible');
+    Fliplet.Media.Folders.search(body).then(function(response) {
+      res = response.filter(filterFolders);
+      res = createTreeFoldersArr(excludeFolders(res));
+      foldersForMoving[id] = res;
+      addFoldersToMoveModal(res);
+      createMoveModalBreadCrumbsPaths();
+      $('.move-modal-loading').removeClass('visible');
+    });
+  }
+}
+
+//Function for searching folders in array tree by id
+function searchTree(currChild, searchString) {
+  if (currChild.id == searchString){
+    return currChild;
+  } else if (currChild.children != null){
+    var i;
+    var result = null;
+    for (i = 0; result == null && i < currChild.children.length; i++){
+      result = searchTree(currChild.children[i], searchString);
+    }
+    return result;
+  }
+  return null;
+}
+
 $dropZone.on('drop', function(e) {
   e.preventDefault();
   hideDropZone();
@@ -580,7 +807,8 @@ $('html').on('dragenter', function(e) {
 
 // EVENTS //
 // Removes options popup by clicking elsewhere
-$(document).on("click", function(e) {
+$(document)
+  .on("click", function(e) {
     if ($(e.target).is(".new-menu") === false && $(e.target).is("ul") === false) {
       $('.new-menu').removeClass('active');
     }
@@ -642,8 +870,17 @@ $('.file-manager-wrapper')
   })
   .on('click', '[data-create-folder]', function(event) {
     // Creates folder
+    var isCreatingInModal = $(this).attr('data-create-folder-modal');
     var folderName = prompt('Type folder name');
-    var lastFolderSelected = navStack[navStack.length - 1];
+    var lastFolderMainNavStack = navStack[navStack.length - 1];
+    var lastFolderModalNavStack = foldersForMoving.navStack[foldersForMoving.navStack.length - 1];
+    var lastFolderSelected;
+    
+    if (!isCreatingInModal) {
+      lastFolderSelected = lastFolderMainNavStack;
+    } else {
+      lastFolderSelected = lastFolderModalNavStack;
+    }
 
     var options = {
       name: folderName,
@@ -653,7 +890,7 @@ $('.file-manager-wrapper')
     if (!folderName) {
       return;
     }
-
+    
     if (lastFolderSelected.type === "appId") {
       options.appId = lastFolderSelected.id;
     } else if (lastFolderSelected.type === "organizationId") {
@@ -667,10 +904,21 @@ $('.file-manager-wrapper')
         options.appId = lastFolderSelected.appId;
       }
     }
-
-    Fliplet.Media.Folders.create(options).then(addFolder);
-
-    $('.new-btn').click();
+    console.log('lastFolderSelected', lastFolderSelected)
+    Fliplet.Media.Folders.create(options).then( function (folder) {
+      if (!isCreatingInModal) {
+        addFolder(folder);
+      } else if (lastFolderMainNavStack.id === lastFolderModalNavStack.id) {
+        addFolder(folder);
+      }
+      if (isCreatingInModal) {
+        folder.children = [];
+        addFoldersToMoveModal(folder);
+      }
+    });
+    if (!isCreatingInModal) {
+      $('.new-btn').click();
+    }
   })
   .on('submit', '[data-upload-file]', function(event) {
     // Upload file
@@ -790,6 +1038,9 @@ $('.file-manager-wrapper')
 
     window.location.href = '/v1/media/zip?' + contextType + '=' + contextId + params;
   })
+  .on('click', '[move-action]', function() {
+    openMovePopup();
+  })
   .on('click', '[open-action]', function() {
     // Open folder or file
     var itemID = $('.file-row.active').data('id');
@@ -825,7 +1076,7 @@ $('.file-manager-wrapper')
       }
     }
   })
-  .on('click', '.header-breadcrumbs [data-breadcrumb]', function() {
+  .on('click', '.file-manager-body .header-breadcrumbs [data-breadcrumb]', function() {
     var index = $(this).data('breadcrumb');
     var position = index + 1;
 
@@ -838,6 +1089,115 @@ $('.file-manager-wrapper')
   })
   .on('hide.bs.collapse', '.panel-collapse', function() {
     $(this).siblings('.panel-heading').find('.fa').removeClass('rotate');
+  })
+  .on('hidden.bs.modal', '#move-modal', function() {
+    $(this).remove();
+    foldersForMoving = {};
+  })
+  .on('change', '#move-model-organizations-select', function() {
+    $('.move-modal-empty-state').removeClass('active');
+    $('[data-move-button]').attr('disabled');
+    foldersForMoving['navStack'] = [];
+    var type = $(this).find(":selected").attr('data-type');
+    var id = $(this).find(":selected").attr('data-id');
+    var name = $(this).find(":selected").val();
+    addPathToStack(id, name, null, null, null, type);
+    searchFolders(id, type);
+  })
+  .on('click', '[data-move-folder]', function() {
+    if (!$(this).hasClass('children')) {
+      $('[data-move-folder]').removeClass('selected');
+      $(this).toggleClass('selected');
+    } else {
+      addPathToStack(
+        $(this).attr('data-folder-id'),
+        $(this).text(),
+        $(this).attr('data-org-id'),
+        $(this).attr('data-app-id'),
+        $(this).attr('data-parent-id'),
+        'folder');
+      openChildrenFolders($(this).attr('data-folder-id'));
+    }
+    $('[data-move-button]').removeAttr('disabled');
+  })
+  .on('click', '[data-breadcrumb-item]', function() {
+    $('.move-modal-empty-state').removeClass('active');
+    var index = Number($(this).attr('data-breadcrumb-index'));
+    var id = $(this).attr('data-breadcrumb');
+    var type = $(this).attr('data-breadcrumb-type');
+    if (index !== foldersForMoving['navStack'].length - 1) {
+      $('.move-modal-list').html('');
+      foldersForMoving['navStack'].splice(index + 1, foldersForMoving['navStack'].length - 1 - index);
+      if (type === 'organizationId' || type === 'appId') {
+        addFoldersToMoveModal(foldersForMoving[id]);
+      } else {
+        openChildrenFolders(id);
+      }
+      createMoveModalBreadCrumbsPaths();
+    }
+  })
+  .on('click', '[data-move-button]', function() {
+    var $selectedPlace = $('.move-modal-list .selected');
+    var appId;
+    var orgId;
+    var folderId;
+    
+    if ($selectedPlace.length) {
+      appId = Number($selectedPlace.attr('data-app-id'));
+      orgId = Number($selectedPlace.attr('data-org-id'));
+      folderId = Number($selectedPlace.attr('data-folder-id'));
+    } else {
+      var $selectedOption = $('#move-model-organizations-select').find(':selected');
+      var type = $selectedOption.attr('data-type');
+      if (type === 'organizationId') {
+        appId = null;
+        orgId = Number($selectedOption.attr('data-id'));
+      } else {
+        appId = Number($selectedOption.attr('data-id'));
+        orgId = null;
+      }
+      folderId = null;
+    }
+    
+    appId = appId ? appId : null;
+    orgId = orgId ? orgId : null;
+    folderId = folderId ? folderId : null;
+    var updateMethod;
+    
+    $('#move-modal').modal('hide');
+    
+    $(selectedItemsForMoving).each(function(index) {
+      var $element = $(this);
+      
+      $element.addClass('moving');
+      $element.removeClass('active');
+      
+      if ($element.attr('data-file-type') === 'folder') {
+        updateMethod = Fliplet.Media.Folders.update(
+          Number($element.attr('data-id')), {
+            appId: appId,
+            parentId: folderId,
+            organizationId: orgId
+          }
+        )
+      } else {
+        updateMethod = Fliplet.Media.Files.update(
+          Number($element.attr('data-id')), {
+            appId: appId,
+            mediaFolderId: folderId,
+            organizationId: orgId
+          }
+        )
+      }
+      
+      updateMethod.then(function() {
+        checkboxStatus();
+        if (selectedItemsForMoving.length - 1 === index) {
+          $(selectedItemsForMoving).remove();
+        }
+      });
+      
+    });
   });
 /* Resize sidebar
 .on('mousedown', '.split-bar', function(e) {
