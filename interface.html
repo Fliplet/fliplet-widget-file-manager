@@ -108,7 +108,7 @@
                 </div>
 
                 <div class="empty-state">
-                  <span>&#x1F633</span>
+                  <span>&#x1F633;</span>
                   <h3>This seems to be empty.</h3>
                   <p>Use the "New" button.</p>
                 </div>
@@ -351,24 +351,22 @@
 
 <template id="template-move-modal-folders">
   \{{#if (gt children.length 0)}}
-  <li
-          class="children"
-          data-move-folder
-          data-folder-id="\{{id}}"
-          data-type="folderId"
-          data-org-id="\{{organizationId}}"
-          data-app-id="\{{appId}}"
-          data-parent-id="\{{parentId}}"
+  <li class="children"
+      data-move-folder
+      data-folder-id="\{{id}}"
+      data-type="folderId"
+      data-org-id="\{{organizationId}}"
+      data-app-id="\{{appId}}"
+      data-parent-id="\{{parentId}}"
   >
   \{{/if}}
   \{{#if (eq children.length 0)}}
-  <li
-        data-move-folder
-        data-folder-id="\{{id}}"
-        data-type="folderId"
-        data-org-id="\{{organizationId}}"
-        data-app-id="\{{appId}}"
-        data-parent-id="\{{parentId}}"
+  <li data-move-folder
+      data-folder-id="\{{id}}"
+      data-type="folderId"
+      data-org-id="\{{organizationId}}"
+      data-app-id="\{{appId}}"
+      data-parent-id="\{{parentId}}"
 >
   \{{/if}}
     <div class="move-modal-list__file-name" data-browse-folder>
@@ -413,7 +411,7 @@
           <ul class="move-modal-list">
           </ul>
           <div class="move-modal-empty-state">
-            <span>&#x1F633</span>
+            <span>&#x1F633;</span>
             <h3>This seems to be empty.</h3>
             <p>Use the "Create new folder" button.</p>
           </div>
@@ -433,4 +431,15 @@
       </div>
     </div>
   </div>
+</template>
+
+<template id="template-breadcrumbs-item">
+  <span class="bread-link">
+    <a href="#"
+       data-breadcrumb-item
+       data-breadcrumb="\{{id}}"
+       data-breadcrumb-type="\{{type}}">
+      \{{name}}
+    </a>
+  </span>
 </template>

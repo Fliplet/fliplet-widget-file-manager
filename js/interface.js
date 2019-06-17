@@ -14,7 +14,8 @@ var templates = {
   moveModal: template('move-modal'),
   organizationsSelect: template('select-organizations'),
   appsSelect: template('select-apps'),
-  moveModalFolders: template('move-modal-folders')
+  moveModalFolders: template('move-modal-folders'),
+  breadcrumbsItem: template('breadcrumbs-item')
 };
 
 // This should contain either app/org/folder of current folder
@@ -25,8 +26,7 @@ var currentAppId;
 var currentFolders;
 var currentFiles;
 var counterOrganization;
-var foldersForMoving = {};
-foldersForMoving.navStack = [];
+var foldersForMoving = { navStack: [] };
 var selectedItemsForMoving;
 
 var tetherBox;
@@ -577,7 +577,7 @@ function uploadFiles(files) {
 function excludeFolders(items) {
   var parentItemIdOfSelectedItems = navStack[navStack.length-1].id;
   var selectedIdPlaceInModal = foldersForMoving.navStack[foldersForMoving.navStack.length-1].id;
-  var searchResult = items;
+  var searchingResults = items;
   var selectedIdForMoving = [];
   
   for (var i = 0; i < selectedItemsForMoving.length; i++) {
@@ -587,38 +587,38 @@ function excludeFolders(items) {
   }
   
   if (parentItemIdOfSelectedItems === selectedIdPlaceInModal) {
-    searchResult = searchResult.filter(function (item) {
+    searchingResults = searchingResults.filter(function (item) {
       for (var i = 0; i < selectedIdForMoving.length; i++) {
         return item.id !== selectedIdForMoving[i];
       }
     })
   }
   
-  return searchResult;
-  
+  return searchingResults;
 }
 
 // Add app select item template
 function addAppsToSelect(apps) {
   var $appSelectList = $('#organization-optgroup-' + apps.organizationId);
+  
   $appSelectList.append(templates.appsSelect(apps));
 }
 
 // Create list of folders in modal
-function addFoldersToMoveModal(res) {
-  if (Array.isArray(res)) {
-    if (res.length < 1) {
+function addFoldersToMoveModal(folders) {
+  if (Array.isArray(folders)) {
+    if (folders.length < 1) {
       $('.move-modal-empty-state').addClass('active');
     } else {
-      res = _.sortBy(res, [function(o) {
+      folders = _.sortBy(folders, [function(o) {
         return o.name;
       }]);
-      res.forEach(function (folder) {
+      folders.forEach(function (folder) {
         $('.move-modal-list').append(templates.moveModalFolders(folder));
       });
     }
   } else {
-    $('.move-modal-list').append(templates.moveModalFolders(res));
+    $('.move-modal-list').append(templates.moveModalFolders(folders));
     $('.move-modal-empty-state').removeClass('active');
   }
 }
@@ -626,25 +626,24 @@ function addFoldersToMoveModal(res) {
 // Add organization select item template
 function addOrganizationsToSelect(org) {
   var $organizationsSelectList = $('#move-model-organizations-select');
+  
   $organizationsSelectList.append(templates.organizationsSelect(org));
   appsList.forEach(addAppsToSelect);
 }
 
 // Users selected folders tree (for breadcrumbs)
 function addPathToStack(id, name, orgId, appId, parentId, type) {
-  foldersForMoving['navStack'].push(
-    {
-      id: Number(id)?Number(id):null,
-      name: name,
-      organizationId: Number(orgId)?Number(orgId):null,
-      appId: Number(appId)?Number(appId):null,
-      parentId: Number(parentId)?Number(parentId):null,
-      type: type
-    }
-    );
+  foldersForMoving['navStack'].push({
+    id: Number(id) || null,
+    name: name,
+    organizationId: Number(orgId) || null,
+    appId: Number(appId) || null,
+    parentId: Number(parentId) || null,
+    type: type
+  });
 }
 
-//Check if any folders exists
+// Check if any folders exists
 function checkExistsMovingFolders(id) {
   if (foldersForMoving.hasOwnProperty(id)) {
     return foldersForMoving[id];
@@ -653,39 +652,32 @@ function checkExistsMovingFolders(id) {
   }
 }
 
-//Function for creating breadcrumbs
+// Function for creating breadcrumbs
 function createMoveModalBreadCrumbsPaths() {
+  var $breadcrumbsWrapping = $('#move-modal .current-folder-title');
+  
+  $breadcrumbsWrapping.html('');
+  
   if (foldersForMoving['navStack'].length >= 1) {
-    var breadcrumbsPath = '';
-    
     for (var i = 0; i < foldersForMoving['navStack'].length; i++) {
-      breadcrumbsPath +=
-        '<span class="bread-link">' +
-        '<a href="#" ' +
-        'data-breadcrumb-item ' +
-        'data-breadcrumb="' + foldersForMoving['navStack'][i].id + '" ' +
-        'data-breadcrumb-index="' + i + '" ' +
-        'data-breadcrumb-type="' + foldersForMoving['navStack'][i].type + '"' +
-        '>' + foldersForMoving['navStack'][i].name + '</a>' +
-        '</span>';
+      $breadcrumbsWrapping.append(templates.breadcrumbsItem(foldersForMoving['navStack'][i]));
     }
-    
-    $('#move-modal .current-folder-title').html(breadcrumbsPath);
   }
 }
 
-//Create array tree form search result
+// Create array tree form search result
 function createTreeFoldersArr(arr) {
   var currentArr = arr;
   
   function transformToTree(arr) {
     var nodes = {};
+    
     return arr.filter(function(obj) {
-      var id = obj["id"],
-        parentId = obj["parentId"];
+      var id = obj['id'];
+      var parentId = obj['parentId'];
       
       nodes[id] = _.defaults(obj, nodes[id], { children: [] });
-      parentId && (nodes[parentId] = (nodes[parentId] || { children: [] }))["children"].push(obj);
+      parentId && (nodes[parentId] = (nodes[parentId] || { children: [] }))['children'].push(obj);
       
       return !parentId;
     });
@@ -693,26 +685,33 @@ function createTreeFoldersArr(arr) {
   return transformToTree(currentArr);
 }
 
-//Create and open move modal
+// Create and open move modal
 function openMovePopup() {
   foldersForMoving['navStack'] = [];
   selectedItemsForMoving = $('.file-row.active');
+  
   var objData = {
     items: selectedItemsForMoving,
     itemsLength: selectedItemsForMoving.length
   };
+  
   $('.file-manager-wrapper').append(templates.moveModal(objData));
+  
   $('#move-modal').modal('show');
+  
   organizationsList.forEach(addOrganizationsToSelect);
+  
   var $moveSelectPlaces = $('#move-model-organizations-select').find('option').first();
   var id = $moveSelectPlaces.attr('data-id');
   var type = $moveSelectPlaces.attr('data-type');
   var name = $moveSelectPlaces.val();
+  
   addPathToStack(id, name, null, null, null, type);
-  this.searchFolders(id, type);
+  
+  searchFolders(id, type);
 }
 
-//Function for opening children folders
+// Function for opening children folders
 function openChildrenFolders(folderId) {
   var folder;
   var folders = [];
@@ -722,63 +721,74 @@ function openChildrenFolders(folderId) {
     if (!!searchTree(currChild, folderId)) {
       folder = searchTree(currChild, folderId);
     }
-    folder = searchTree(currChild, folderId);
   });
   
   folders = folder.children;
   $('.move-modal-list').html('');
+  
   addFoldersToMoveModal(folders);
+  
   createMoveModalBreadCrumbsPaths();
 }
 
 // Call method for searching folders for selected app/organization
 function searchFolders(id, type) {
-  var res;
   $('.move-modal-list').html('');
+  
   if (checkExistsMovingFolders(id)) {
-    res = checkExistsMovingFolders(id);
-    addFoldersToMoveModal(res);
+    addFoldersToMoveModal(checkExistsMovingFolders(id));
     createMoveModalBreadCrumbsPaths();
   } else {
     var filterFolders = function(folders) {
-      return true
+      return true;
     };
     var body = {};
-    if (type === "organizationId") {
+    
+    if (type === 'organizationId') {
       body.organizationId = id;
+      
       filterFolders = function(folder) {
         return (!(folder.appId || folder.parentFolderId) && folder.type === 'folder');
       };
-    } else if (type === "appId") {
+    } else if (type === 'appId') {
       body.appId = id;
+      
       filterFolders = function(folder) {
         return (!(folder.parentFolderId) && folder.type === 'folder');
       };
     }
+    
     $('.move-modal-loading').addClass('visible');
+    
     Fliplet.Media.Folders.search(body).then(function(response) {
-      res = response.filter(filterFolders);
-      res = createTreeFoldersArr(excludeFolders(res));
-      foldersForMoving[id] = res;
-      addFoldersToMoveModal(res);
+      response = response.filter(filterFolders);
+      response = createTreeFoldersArr(excludeFolders(response));
+      foldersForMoving[id] = response;
+      
+      addFoldersToMoveModal(response);
       createMoveModalBreadCrumbsPaths();
+      
       $('.move-modal-loading').removeClass('visible');
     });
   }
 }
 
-//Function for searching folders in array tree by id
+// Function for searching folders in array tree by id
 function searchTree(currChild, searchString) {
-  if (currChild.id == searchString){
+  if (currChild.id == searchString) {
     return currChild;
-  } else if (currChild.children != null){
+  }
+  
+  if (currChild.children != null) {
     var i;
     var result = null;
-    for (i = 0; result == null && i < currChild.children.length; i++){
+    for (i = 0; result == null && i < currChild.children.length; i++) {
       result = searchTree(currChild.children[i], searchString);
     }
+    
     return result;
   }
+  
   return null;
 }
 
@@ -873,15 +883,15 @@ $('.file-manager-wrapper')
     var isCreatingInModal = $(this).attr('data-create-folder-modal');
     var folderName = prompt('Type folder name');
     var lastFolderMainNavStack = navStack[navStack.length - 1];
-    var lastFolderModalNavStack = foldersForMoving.navStack[foldersForMoving.navStack.length - 1];
+    var lastFolderModalNavStack;
     var lastFolderSelected;
     
-    if (!isCreatingInModal) {
-      lastFolderSelected = lastFolderMainNavStack;
-    } else {
-      lastFolderSelected = lastFolderModalNavStack;
+    if (isCreatingInModal) {
+      lastFolderModalNavStack = foldersForMoving.navStack[foldersForMoving.navStack.length - 1];
     }
-
+  
+    lastFolderSelected = !isCreatingInModal ? lastFolderMainNavStack : lastFolderModalNavStack;
+   
     var options = {
       name: folderName,
       parentId: currentFolderId || undefined
@@ -891,9 +901,9 @@ $('.file-manager-wrapper')
       return;
     }
     
-    if (lastFolderSelected.type === "appId") {
+    if (lastFolderSelected.type === 'appId') {
       options.appId = lastFolderSelected.id;
-    } else if (lastFolderSelected.type === "organizationId") {
+    } else if (lastFolderSelected.type === 'organizationId') {
       options.organizationId = lastFolderSelected.id;
     } else {
       options.parentId = lastFolderSelected.id;
@@ -904,15 +914,14 @@ $('.file-manager-wrapper')
         options.appId = lastFolderSelected.appId;
       }
     }
-    console.log('lastFolderSelected', lastFolderSelected)
     Fliplet.Media.Folders.create(options).then( function (folder) {
-      if (!isCreatingInModal) {
-        addFolder(folder);
-      } else if (lastFolderMainNavStack.id === lastFolderModalNavStack.id) {
+      if (!isCreatingInModal || lastFolderMainNavStack.id === lastFolderModalNavStack.id) {
         addFolder(folder);
       }
+      
       if (isCreatingInModal) {
         folder.children = [];
+        
         addFoldersToMoveModal(folder);
       }
     });
@@ -1097,42 +1106,56 @@ $('.file-manager-wrapper')
   .on('change', '#move-model-organizations-select', function() {
     $('.move-modal-empty-state').removeClass('active');
     $('[data-move-button]').attr('disabled');
+    
     foldersForMoving['navStack'] = [];
-    var type = $(this).find(":selected").attr('data-type');
-    var id = $(this).find(":selected").attr('data-id');
-    var name = $(this).find(":selected").val();
+    
+    var type = $(this).find(':selected').attr('data-type');
+    var id = $(this).find(':selected').attr('data-id');
+    var name = $(this).find(':selected').val();
+    
     addPathToStack(id, name, null, null, null, type);
+    
     searchFolders(id, type);
   })
   .on('click', '[data-move-folder]', function() {
-    if (!$(this).hasClass('children')) {
-      $('[data-move-folder]').removeClass('selected');
-      $(this).toggleClass('selected');
-    } else {
+    $('[data-move-folder]').removeClass('selected');
+    $(this).toggleClass('selected');
+    $('[data-move-button]').removeAttr('disabled');
+  })
+  .on('dblclick', '[data-move-folder]', function() {
+    if ($(this).hasClass('children')) {
       addPathToStack(
         $(this).attr('data-folder-id'),
         $(this).text(),
         $(this).attr('data-org-id'),
         $(this).attr('data-app-id'),
         $(this).attr('data-parent-id'),
-        'folder');
+        'folder'
+      );
+      
       openChildrenFolders($(this).attr('data-folder-id'));
     }
-    $('[data-move-button]').removeAttr('disabled');
+    
+    $('[data-move-button]').attr('disabled');
   })
   .on('click', '[data-breadcrumb-item]', function() {
-    $('.move-modal-empty-state').removeClass('active');
-    var index = Number($(this).attr('data-breadcrumb-index'));
+    var index = Number($(this).parent().index());
     var id = $(this).attr('data-breadcrumb');
     var type = $(this).attr('data-breadcrumb-type');
+  
+    $('.move-modal-empty-state').removeClass('active');
+    
     if (index !== foldersForMoving['navStack'].length - 1) {
       $('.move-modal-list').html('');
+      
       foldersForMoving['navStack'].splice(index + 1, foldersForMoving['navStack'].length - 1 - index);
+      
       if (type === 'organizationId' || type === 'appId') {
         addFoldersToMoveModal(foldersForMoving[id]);
       } else {
         openChildrenFolders(id);
       }
+      
       createMoveModalBreadCrumbsPaths();
     }
   })
@@ -1141,28 +1164,23 @@ $('.file-manager-wrapper')
     var appId;
     var orgId;
     var folderId;
+    var updateMethod;
     
     if ($selectedPlace.length) {
       appId = Number($selectedPlace.attr('data-app-id'));
       orgId = Number($selectedPlace.attr('data-org-id'));
       folderId = Number($selectedPlace.attr('data-folder-id'));
     } else {
-      var $selectedOption = $('#move-model-organizations-select').find(':selected');
-      var type = $selectedOption.attr('data-type');
-      if (type === 'organizationId') {
-        appId = null;
-        orgId = Number($selectedOption.attr('data-id'));
-      } else {
-        appId = Number($selectedOption.attr('data-id'));
-        orgId = null;
-      }
-      folderId = null;
+      var selectedPath = foldersForMoving.navStack[foldersForMoving.navStack.length - 1];
+  
+      appId = selectedPath.appId;
+      orgId = selectedPath.organizationId;
+      folderId = selectedPath.id;
     }
     
-    appId = appId ? appId : null;
-    orgId = orgId ? orgId : null;
-    folderId = folderId ? folderId : null;
-    var updateMethod;
+    appId = appId || null;
+    orgId = orgId || null;
+    folderId = folderId || null;
     
     $('#move-modal').modal('hide');
     
@@ -1174,7 +1192,8 @@ $('.file-manager-wrapper')
       
       if ($element.attr('data-file-type') === 'folder') {
         updateMethod = Fliplet.Media.Folders.update(
-          Number($element.attr('data-id')), {
+          Number($element.attr('data-id')),
+          {
             appId: appId,
             parentId: folderId,
             organizationId: orgId
@@ -1182,7 +1201,8 @@ $('.file-manager-wrapper')
         )
       } else {
         updateMethod = Fliplet.Media.Files.update(
-          Number($element.attr('data-id')), {
+          Number($element.attr('data-id')),
+          {
             appId: appId,
             mediaFolderId: folderId,
             organizationId: orgId
@@ -1192,11 +1212,11 @@ $('.file-manager-wrapper')
       
       updateMethod.then(function() {
         checkboxStatus();
+        
         if (selectedItemsForMoving.length - 1 === index) {
           $(selectedItemsForMoving).remove();
         }
       });
-      
     });
   });
 /* Resize sidebar
