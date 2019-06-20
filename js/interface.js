@@ -6,6 +6,14 @@ var $organizationList = $('.dropdown-menu-holder .panel-group');
 var $progress = $('.progress');
 var $progressBar = $progress.find('.progress-bar');
 var $dropZone = $('#drop-zone');
+var $fileManagerBlock = $('.file-manager-wrapper');
+var $moveModal;
+var $modalSelect;
+var $emptyStateBlock;
+var $foldersList;
+var $loadingBlock;
+var $moveButton;
+var $folderForMoving;
 var templates = {
   file: template('file'),
   folder: template('folder'),
@@ -573,30 +581,6 @@ function uploadFiles(files) {
 
 // FUNCTIONS FOR MOVING FILES/FOLDERS IN MODAL
 
-// Check if folder that has selected items to move has a subfolder and filter it
-function excludeFolders(items) {
-  var parentItemIdOfSelectedItems = navStack[navStack.length-1].id;
-  var selectedIdPlaceInModal = foldersForMoving.navStack[foldersForMoving.navStack.length-1].id;
-  var searchingResults = items;
-  var selectedIdForMoving = [];
-  
-  for (var i = 0; i < selectedItemsForMoving.length; i++) {
-    if ($(selectedItemsForMoving[i]).attr('data-file-type') === 'folder') {
-      selectedIdForMoving.push(Number($(selectedItemsForMoving[i]).attr('data-id')));
-    }
-  }
-  
-  if (parentItemIdOfSelectedItems === selectedIdPlaceInModal) {
-    searchingResults = searchingResults.filter(function (item) {
-      for (var i = 0; i < selectedIdForMoving.length; i++) {
-        return item.id !== selectedIdForMoving[i];
-      }
-    })
-  }
-  
-  return searchingResults;
-}
-
 // Add app select item template
 function addAppsToSelect(apps) {
   var $appSelectList = $('#organization-optgroup-' + apps.organizationId);
@@ -606,9 +590,6 @@ function addAppsToSelect(apps) {
 
 // Create list of folders in modal
 function addFoldersToMoveModal(folders) {
-  var $emptyStateBlock = $('.move-modal-empty-state');
-  var $foldersList = $('.move-modal-list');
-  
   if (Array.isArray(folders)) {
     if (folders.length < 1) {
       $emptyStateBlock.addClass('active');
@@ -629,9 +610,7 @@ function addFoldersToMoveModal(folders) {
 
 // Add organization select item template
 function addOrganizationsToSelect(org) {
-  var $organizationsSelectList = $('#move-model-organizations-select');
-  
-  $organizationsSelectList.append(templates.organizationsSelect(org));
+  $modalSelect.append(templates.organizationsSelect(org));
   appsList.forEach(addAppsToSelect);
 }
 
@@ -658,7 +637,7 @@ function checkExistsMovingFolders(id) {
 
 // Function for creating breadcrumbs
 function createMoveModalBreadCrumbsPaths() {
-  var $breadcrumbsWrapping = $('#move-modal .current-folder-title');
+  var $breadcrumbsWrapping = $moveModal.find('.current-folder-title');
   
   $breadcrumbsWrapping.html('');
   
@@ -689,10 +668,43 @@ function createTreeFoldersArr(arr) {
   return transformToTree(currentArr);
 }
 
+// Redefinition of dynamic elements after open modal
+function declareVariablesForMoveModal() {
+  $moveModal = $('#move-modal');
+  $modalSelect = $('#move-model-organizations-select');
+  $emptyStateBlock = $('.move-modal-empty-state');
+  $foldersList = $('.move-modal-list');
+  $loadingBlock = $('.move-modal-loading');
+  $moveButton = $('[data-move-button]');
+  $folderForMoving = $('[data-move-folder]');
+}
+
+// Check if folder that has selected items to move has a subfolder and filter it
+function excludeFolders(items) {
+  var parentItemIdOfSelectedItems = navStack[navStack.length-1].id;
+  var selectedIdPlaceInModal = foldersForMoving.navStack[foldersForMoving.navStack.length-1].id;
+  var searchingResults = items;
+  var selectedIdForMoving = [];
+  
+  for (var i = 0; i < selectedItemsForMoving.length; i++) {
+    if ($(selectedItemsForMoving[i]).attr('data-file-type') === 'folder') {
+      selectedIdForMoving.push(Number($(selectedItemsForMoving[i]).attr('data-id')));
+    }
+  }
+  
+  if (parentItemIdOfSelectedItems === selectedIdPlaceInModal) {
+    searchingResults = searchingResults.filter(function (item) {
+      for (var i = 0; i < selectedIdForMoving.length; i++) {
+        return item.id !== selectedIdForMoving[i];
+      }
+    });
+  }
+  
+  return searchingResults;
+}
+
 // Create and open move modal
 function openMovePopup() {
-  var $fileManagerBlock = $('.file-manager-wrapper');
-  
   foldersForMoving.navStack = [];
   selectedItemsForMoving = $('.file-row.active');
   
@@ -703,9 +715,8 @@ function openMovePopup() {
   
   $fileManagerBlock.append(templates.moveModal(objData));
   
-  var $moveModal = $('#move-modal');
-  var $modalSelect = $('#move-model-organizations-select');
-  
+  declareVariablesForMoveModal();
+ 
   $moveModal.modal('show');
   
   organizationsList.forEach(addOrganizationsToSelect);
@@ -722,8 +733,7 @@ function openMovePopup() {
 
 // Function for opening children folders
 function openChildrenFolders(folderId) {
-  var $foldersList = $('.move-modal-list');
-  var id = $('#move-model-organizations-select :selected').attr('data-id');
+  var id = $modalSelect.find(':selected').attr('data-id');
   var folders = [];
   var folder;
   
@@ -745,9 +755,6 @@ function openChildrenFolders(folderId) {
 
 // Call method for searching folders for selected app/organization
 function searchFolders(id, type) {
-  var $foldersList = $('.move-modal-list');
-  var $loadingBlock = $('.move-modal-loading');
-  
   $foldersList.html('');
   
   if (checkExistsMovingFolders(id)) {
@@ -1120,9 +1127,6 @@ $('.file-manager-wrapper')
     foldersForMoving = {};
   })
   .on('change', '#move-model-organizations-select', function() {
-    var $emptyStateBlock = $('.move-modal-empty-state');
-    var $loadingBlock = $('.move-modal-loading');
-    var $moveButton = $('[data-move-button]');
     var type = $(this).find(':selected').attr('data-type');
     var id = $(this).find(':selected').attr('data-id');
     var name = $(this).find(':selected').val();
@@ -1138,16 +1142,11 @@ $('.file-manager-wrapper')
     searchFolders(id, type);
   })
   .on('click', '[data-move-folder]', function() {
-    var $selectedFolderForMoving = $('[data-move-folder]');
-    var $moveButton = $('[data-move-button]');
-  
     $moveButton.removeAttr('disabled');
-    $selectedFolderForMoving.removeClass('selected');
-    $(this).toggleClass('selected');
+    $folderForMoving.removeClass('selected');
+    $(this).addClass('selected');
   })
   .on('dblclick', '[data-move-folder]', function() {
-    var $moveButton = $('[data-move-button]');
-    
     if ($(this).hasClass('children')) {
       addPathToStack(
         $(this).attr('data-folder-id'),
@@ -1164,8 +1163,6 @@ $('.file-manager-wrapper')
     $moveButton.attr('disabled');
   })
   .on('click', '[data-breadcrumb-item]', function() {
-    var $emptyStateBlock = $('.move-modal-empty-state');
-    var $foldersList = $('.move-modal-list');
     var index = Number($(this).parent().index());
     var id = $(this).attr('data-breadcrumb');
     var type = $(this).attr('data-breadcrumb-type');
@@ -1187,8 +1184,7 @@ $('.file-manager-wrapper')
     }
   })
   .on('click', '[data-move-button]', function() {
-    var $moveModal = $('#move-modal');
-    var $selectedPlace = $('.move-modal-list .selected');
+    var $selectedPlace = $foldersList.find('.selected');
     var appId;
     var orgId;
     var folderId;
@@ -1201,9 +1197,16 @@ $('.file-manager-wrapper')
     } else {
       var selectedPath = foldersForMoving.navStack[foldersForMoving.navStack.length - 1];
   
-      appId = selectedPath.appId;
-      orgId = selectedPath.organizationId;
-      folderId = selectedPath.id;
+      if (selectedPath.type === 'appId') {
+        appId = selectedPath.id;
+      } else if (selectedPath.type === 'organizationId') {
+        orgId = selectedPath.id;
+      } else {
+        appId = selectedPath.appId;
+        orgId = selectedPath.organizationId;
+      }
+    
+      folderId = selectedPath.parentId;
     }
     
     appId = appId || null;
@@ -1238,13 +1241,18 @@ $('.file-manager-wrapper')
         )
       }
       
-      updateMethod.then(function() {
-        checkboxStatus();
-        
-        if (selectedItemsForMoving.length - 1 === index) {
-          $(selectedItemsForMoving).remove();
-        }
-      });
+      updateMethod
+        .then(function() {
+          checkboxStatus();
+          
+          if (selectedItemsForMoving.length - 1 === index) {
+            $(selectedItemsForMoving).remove();
+          }
+        })
+        .catch(function () {
+          $element.removeClass('moving');
+          alert('Error while moving an item!');
+        });
     });
   });
 /* Resize sidebar
