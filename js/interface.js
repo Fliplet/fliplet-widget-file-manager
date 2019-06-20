@@ -86,13 +86,17 @@ function navigateToDefaultFolder() {
   } else {
     $listHolder = $el.find('.list-holder');
   }
-
+  
   $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
   $listHolder.first().addClass('active');
 
   // Set first folder of breadcrumbs
   resetUpTo($el);
-
+  
+  if (data.appId) {
+    getFolderContents($el, true);
+    return;
+  }
   if (data.navStack && data.folder) {
     // Updates navStack with folders before the selected one
     var newNavStack = data.navStack.upTo.slice(1);
@@ -113,11 +117,7 @@ function navigateToDefaultFolder() {
     folderId = data.folder.id;
     type = 'folder';
     updatePaths();
-  } else {
-    folderId = data.appId;
-    type = 'app';
   }
-
   getFolderContentsById(folderId, type);
 }
 
