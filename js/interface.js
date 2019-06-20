@@ -12,15 +12,21 @@ var templates = {
   organizations: template('organizations'),
   apps: template('apps')
 };
+var $searchType = $('.search-type');
+var $searchTerm = $('.search-term');
+var $fileTable = $('.file-table');
+var $pagination = $('.pagination');
 
 // This should contain either app/org/folder of current folder
 var currentSelection;
 
+var currentOrganizationId;
 var currentFolderId;
 var currentAppId;
 var currentFolders;
 var currentFiles;
 var counterOrganization;
+var currentSearchResult;
 
 var tetherBox;
 
@@ -28,9 +34,12 @@ var folders = [];
 var apps;
 var organizations;
 var navStack = [];
+var beforeSearchNavStack = [];
 
 var sideBarMinWidth = 240;
 var sideBarMaxWidth = 395;
+
+var searchDebounceTime = 500;
 
 // Keep it as false because people copy this URL and use it into their apps,
 // therefore we want this to be an clean direct link to the API with no token.
@@ -129,7 +138,7 @@ function getAppsList() {
   });
 }
 
-function getFolderContentsById(id, type) {
+function getFolderContentsById(id, type, isSearchNav) {
   var options = {
     cdn: useCdn
   };
@@ -142,8 +151,7 @@ function getFolderContentsById(id, type) {
   };
 
   if (type === "app") {
-    options.appId = id
-    currentAppId = id
+    options.appId = currentAppId = id;
     currentFolderId = null;
 
     // Filter functions
@@ -153,9 +161,20 @@ function getFolderContentsById(id, type) {
     filterFolders = function(folder) {
       return !folder.parentFolderId;
     };
+  } else if(type  === "organization"){
+    options.organizationId = currentOrganizationId = id;
+    currentAppId = null;
+    currentFolderId = null;
+
+    // Filter functions
+    filterFiles = function(file) {
+      return !(file.appId || file.mediaFolderId);
+    };
+    filterFolders = function(folder) {
+      return !(folder.appId || folder.parentFolderId);
+    };
   } else {
-    options.folderId = id;
-    currentFolderId = id;
+    options.folderId = currentFolderId = id;
   }
 
   currentFolders = [];
@@ -163,29 +182,30 @@ function getFolderContentsById(id, type) {
   $folderContents.empty();
 
   Fliplet.Media.Folders.get(options).then(function(response) {
-    var navItem = navStack[navStack.length-1];
-    switch (navItem.type) {
-      case 'organizationId':
+    if(!isSearchNav) {
+      var navItem = navStack[navStack.length - 1];
+      switch (navItem.type) {
+        case 'organizationId':
+          return;
+        case 'appId':
+          // User is no longer browsing the app folder
+          if (!options.hasOwnProperty('appId') || parseInt(options.appId, 10) !== navItem.id) {
+            return;
+          }
+          break;
+        case 'folderId':
+          // User is no longer browsing folder
+          if (!options.hasOwnProperty('folderId') || parseInt(options.folderId, 10) !== navItem.id) {
+            return;
+          }
+          break;
+      }
+
+      if (!$folderContents.is(':empty')) {
+        // Content already rendered from a recent request. Do nothing.
         return;
-      case 'appId':
-        // User is no longer browsing the app folder
-        if (!options.hasOwnProperty('appId') || parseInt(options.appId, 10) !== navItem.id) {
-          return;
-        }
-        break;
-      case 'folderId':
-        // User is no longer browsing folder
-        if (!options.hasOwnProperty('folderId') || parseInt(options.folderId, 10) !== navItem.id) {
-          return;
-        }
-        break;
+      }
     }
-
-    if (!$folderContents.is(':empty')) {
-      // Content already rendered from a recent request. Do nothing.
-      return;
-    }
-
     if (response.files.length === 0 && response.folders.length === 0) {
       $('.empty-state').addClass('active');
     } else {
@@ -247,7 +267,7 @@ function getFolderContents(el, isRootFolder) {
       return !folder.parentFolderId;
     };
   } else if (el.attr('data-type') === "organization") {
-    options.organizationId = el.attr('data-org-id');
+    options.organizationId = currentOrganizationId = el.attr('data-org-id');
     currentAppId = null;
     currentFolderId = null;
 
@@ -268,7 +288,7 @@ function getFolderContents(el, isRootFolder) {
   $folderContents.empty();
 
   Fliplet.Media.Folders.get(options).then(function(response) {
-    var navItem = navStack[navStack.length-1];
+    var navItem = navStack[navStack.length - 1];
     switch (navItem.type) {
       case 'organizationId':
         // User is no longer browsing the organization folder
@@ -355,9 +375,7 @@ function addApps(apps) {
 
 // Adds folder item template
 function addFolder(folder) {
-  // Converts to readable date format
-  var readableDate = moment(folder.updatedAt).format("Do MMM YYYY");
-  folder.updatedAt = readableDate;
+  folder.formattedDate = formatDate(folder.createdAt);
 
   currentFolders.push(folder);
   folders.push(folder);
@@ -367,9 +385,7 @@ function addFolder(folder) {
 
 // Adds file item template
 function addFile(file) {
-  // Converts to readable date format
-  var readableDate = moment(file.updatedAt).format("Do MMM YYYY");
-  file.updatedAt = readableDate;
+  file.formattedDate = formatDate(file.createdAt);
 
   currentFiles.push(file);
   $folderContents.append(templates.file(file));
@@ -513,6 +529,12 @@ function resetUpTo(element) {
   updatePaths();
 }
 
+// Resets navigation to first item
+function resetToTop(){
+  navStack = [navStack[0]];
+  updatePaths();
+}
+
 function showDropZone() {
   $('.drop-zone-folder-name').html(navStack[navStack.length - 1].name);
   $dropZone.addClass('active');
@@ -553,6 +575,208 @@ function uploadFiles(files) {
 
     $progress.addClass('hidden');
   });
+}
+
+function search(type, term) {
+  var query = {
+    name: term
+  };
+
+  if (type == 'all') {
+    if (currentAppId) {
+      query.appId = currentAppId;
+    } else {
+      query.organizationId = currentOrganizationId;
+    }
+  } else {
+    if (currentFolderId) {
+      query.folderId = currentFolderId;
+    } else if (currentAppId) {
+      query.appId = currentAppId;
+    } else {
+      query.organizationId = currentOrganizationId;
+    }
+  }
+
+  return Fliplet.Media.Folders.search(query).then(function (result) {
+    currentSearchResult = result;
+    renderSearchResult(result, type);
+  });
+}
+
+function renderSearchResult(result, searchType) {
+  enableSearchState();
+
+  if (!result || !result.length) {
+    showNothingFoundAlert(true);
+    return;
+  }
+
+  if (searchType == 'all') {
+    resetToTop();
+  }
+
+  result = result
+    .filter(function (item) {
+      return !item.deletedAt;
+    })
+    .map(function (item) {
+      item.relativePath = calculatePath(item);
+
+      if (item.parentId) {
+        item.parentItemType = 'folder';
+        item.parentItemId = item.parentId;
+      } else if (item.appId) {
+        item.parentItemType = 'app';
+        item.parentItemId = item.appId;
+      } else {
+        item.parentItemType = 'organization';
+        item.parentItemId = item.organizationId;
+      }
+
+      if (item.type !== 'folder') {
+        item.dimensions = item.size ? item.size.join('x') : null;
+      }
+
+      return item;
+    });
+
+  $pagination.pagination({
+    dataSource: result,
+    pageSize: 10,
+    callback: function (data) {
+      $folderContents.empty();
+
+      data.forEach(function (item) {
+        if (item.type === 'folder') {
+          addFolder(item)
+        } else {
+          item.dimensions = item.size ? item.size.join('x') : null;
+          addFile(item);
+        }
+      });
+    }
+  });
+}
+
+// Builds a relative path to folder or file
+function calculatePath(item) {
+  var path = [];
+  var separator = '/';
+  var isLast = false;
+
+  var getNames = function (item) {
+    if (!item) {
+      return;
+    }
+    if (item.parentFolder) {
+      getNames(item.parentFolder);
+    } else {
+      isLast = true;
+    }
+
+    if (isLast && item.id === +currentFolderId) {
+      return;
+    }
+
+    path.push(item.name);
+  };
+
+  getNames(item.parentFolder);
+  return separator + path.join(separator);
+}
+
+// Converts date to readable date format
+function formatDate(date) {
+  return moment(date).format("Do MMM YYYY");
+}
+
+// Remove any selected field
+function removeSelection() {
+  $('.file-row input[type="checkbox"]').each(function () {
+    var $item = $(this);
+    $item.prop('checked', false);
+    $item.parents('.file-row').removeClass('active');
+    $('.file-cell.selectable').removeClass('active');
+    $('.file-row').removeClass('passive');
+  });
+}
+
+// Hide side action menu
+function hideSideActions() {
+  $('.side-actions').removeClass('active');
+  $('.side-actions .item').removeClass('show');
+  $('.help-tips').removeClass('hidden');
+}
+
+function updateBreadcrumbsBySearchItem(item) {
+  if (!item) {
+    return;
+  }
+
+  var tempNav = [];
+  var isLast = false;
+
+  var getParents = function (parent) {
+    if (parent.parentFolder) {
+      getParents(parent.parentFolder);
+    } else {
+      isLast = true;
+    }
+
+    if (isLast && parent.id === +currentFolderId) {
+      return;
+    }
+
+    tempNav.push({
+      id: parent.id,
+      name: parent.name,
+      type: 'folderId',
+      back: function () {
+        getFolderContentsById(parent.id, 'folder');
+      }
+    });
+  };
+
+  getParents(item);
+
+  navStack = navStack.concat(tempNav);
+  updatePaths();
+}
+
+function enableSearchState() {
+  $folderContents.empty();
+  $fileTable.addClass('search-result');
+  $('.new-btn').addClass('hide');
+  showNothingFoundAlert(false);
+  beforeSearchNavStack = navStack;
+}
+
+function disableSearchState() {
+  $fileTable.removeClass('search-result');
+  $searchTerm.val('');
+  $searchType.val('this-folder');
+  $('.new-btn').removeClass('hide');
+  showNothingFoundAlert(false);
+  if (!$pagination.is(':empty')) {
+    $pagination.pagination('destroy');
+  }
+}
+
+// Shows content of the last folder before run search
+function backToLastFolderBeforeSearch() {
+  var navItem = _.last(beforeSearchNavStack);
+  navItem.back();
+  navStack = beforeSearchNavStack;
+  updatePaths();
+}
+
+function showNothingFoundAlert(isShow){
+  if(isShow){
+    $('.search-empty-state').addClass('active');
+  }else{
+    $('.search-empty-state').removeClass('active');
+  }
 }
 
 $dropZone.on('drop', function(e) {
@@ -603,17 +827,9 @@ $('.file-manager-wrapper')
     var id = $el.parents('.file-row').data('id');
     var backItem;
 
-    // Remove any selected field
-    $('.file-row input[type="checkbox"]').each(function() {
-      $(this).prop('checked', false);
-      $(this).parents('.file-row').removeClass('active');
-      $('.file-cell.selectable').removeClass('active');
-      $('.file-row').removeClass('passive');
-    });
-    // Hide side actions
-    $('.side-actions').removeClass('active');
-    $('.side-actions .item').removeClass('show');
-    $('.help-tips').removeClass('hidden');
+    removeSelection();
+    hideSideActions();
+    disableSearchState();
 
     if ($parent.data('file-type') === 'folder') {
       // Store to nav stack
@@ -637,6 +853,7 @@ $('.file-manager-wrapper')
     }
   })
   .on('click', '.dropdown-menu-holder [data-browse-folder]', function(event) {
+    disableSearchState();
     resetUpTo($(this));
     getFolderContents($(this), true);
   })
@@ -838,6 +1055,55 @@ $('.file-manager-wrapper')
   })
   .on('hide.bs.collapse', '.panel-collapse', function() {
     $(this).siblings('.panel-heading').find('.fa').removeClass('rotate');
+  })
+  .on('keyup', '.search-term', _.debounce(function(){
+    var term = $searchTerm.val();
+
+    if (!term) {
+      disableSearchState();
+      backToLastFolderBeforeSearch();
+      return;
+    }
+
+    removeSelection();
+    hideSideActions();
+
+    var type = $searchType.val();
+    search(type, term)
+      .catch(function () {
+        alert('Error on search files');
+      });
+
+  }, searchDebounceTime))
+  .on('click', '.path-link', function () {
+    var $el = $(this);
+    var type = $el.data('type');
+    var id = $el.data('id');
+
+    if (type === 'app' || type === 'organization') {
+      resetToTop();
+    } else {
+      var item = _.find(currentSearchResult, ['id', id]);
+      updateBreadcrumbsBySearchItem(item);
+    }
+
+    getFolderContentsById(id, type, true);
+
+    removeSelection();
+    hideSideActions();
+    disableSearchState();
+  })
+  .on('change', '.search-type', function(){
+    if(!$searchTerm.val()){
+      return;
+    }
+
+    var type = $searchType.val();
+    if(type === 'all'){
+      currentFolderId = null;
+    }
+
+    $searchTerm.keyup();
   });
 /* Resize sidebar
 .on('mousedown', '.split-bar', function(e) {
