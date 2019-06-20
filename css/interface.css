@@ -588,8 +588,6 @@
 }
 
 .file-select {
-  opacity: 0;
-  visibility: hidden;
   width: 40px;
   height: 100%;
   text-align: center;
@@ -600,6 +598,11 @@
 .file-row:hover .file-select {
   opacity: 1;
   visibility: visible;
+}
+
+.file-table-header .selectable .file-select {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .file-table-header .selectable.active .file-select {
