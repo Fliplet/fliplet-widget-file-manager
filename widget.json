@@ -17,6 +17,8 @@
       "vendor/handlebars.js",
       "vendor/tether.min.js",
       "vendor/moment.js",
+      "vendor/paginationjs/pagination.css",
+      "vendor/paginationjs/pagination.min.js",
       "js/interface.js",
       "css/interface.css"
     ]
