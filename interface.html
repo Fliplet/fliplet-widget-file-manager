@@ -125,7 +125,7 @@
                 </div>
 
                 <div class="empty-state">
-                  <span>&#x1F633</span>
+                  <span>&#x1F633;</span>
                   <h3>This seems to be empty.</h3>
                   <p>Use the "New" button.</p>
                 </div>
@@ -194,6 +194,9 @@
                   <li>
                     <a href="#" download-action>Download</a>
                   </li>
+                  <li>
+                    <a href="#" move-action>Move</a>
+                  </li>
                   <li role="separator" class="divider"></li>
                   <li>
                     <a href="#" class="text-danger" delete-action>Delete</a>
@@ -209,6 +212,9 @@
                 <ul class="dropdown-menu">
                   <li>
                     <a href="#" download-action>Download</a>
+                  </li>
+                  <li>
+                    <a href="#" move-action>Move</a>
                   </li>
                   <li role="separator" class="divider"></li>
                   <li>
@@ -377,4 +383,107 @@
       </div>
     </div>
   </div>
+</template>
+
+<template id="template-select-organizations">
+  <option data-type="organizationId" data-select-option data-id="\{{id}}">\{{name}}</option>
+  <optgroup label="Apps in \{{name}}" id="organization-optgroup-\{{id}}">
+  </optgroup>
+</template>
+
+<template id="template-select-apps">
+  <option data-type="appId" data-select-option data-id="\{{id}}">\{{name}}</option>
+</template>
+
+<template id="template-move-modal-folders">
+  \{{#if (gt children.length 0)}}
+  <li class="children"
+      data-move-folder
+      data-folder-id="\{{id}}"
+      data-type="folderId"
+      data-org-id="\{{organizationId}}"
+      data-app-id="\{{appId}}"
+      data-parent-id="\{{parentId}}">
+  \{{/if}}
+  \{{#if (eq children.length 0)}}
+  <li data-move-folder
+      data-folder-id="\{{id}}"
+      data-type="folderId"
+      data-org-id="\{{organizationId}}"
+      data-app-id="\{{appId}}"
+      data-parent-id="\{{parentId}}">
+  \{{/if}}
+    <div class="move-modal-list__file-name" data-browse-folder>
+      <span>\{{name}}</span>
+    </div>
+  </li>
+</template>
+
+<template id="template-move-modal">
+  <div class="modal fade" id="move-modal" tabindex="-1" role="dialog" aria-labelledby="moveModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="row align-items-center">
+            <div class="col-xs-6">
+              <h5 class="modal-title">
+                Move
+                \{{itemsLength}}
+                \{{#if (eq itemsLength 1)}}
+                item
+                \{{/if}}
+                \{{#if (gt itemsLength 1)}}
+                items
+                \{{/if}}
+                to...
+              </h5>
+            </div>
+            <div class="col-xs-6">
+              <select id="move-model-organizations-select" class="form-control"></select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-xs-12">
+              <div class="header-breadcrumbs">
+                <div class="current-folder-title">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <ul class="move-modal-list">
+          </ul>
+          <div class="move-modal-empty-state">
+            <span>&#x1F633;</span>
+            <h3>This seems to be empty.</h3>
+            <p>Use the "Create new folder" button.</p>
+          </div>
+          <div class="move-modal-loading">
+            <div><div></div><div></div><div></div><div></div></div>
+          </div>
+        </div>
+        <div class="modal-footer row align-items-center">
+          <div class="col-xs-6 text-left">
+            <button type="button" data-create-folder data-create-folder-modal="true" class="btn btn-link">Create new folder</button>
+          </div>
+          <div class="col-xs-6">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="button" data-move-button class="btn btn-primary" disabled>Move</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="template-breadcrumbs-item">
+  <span class="bread-link">
+    <a href="#"
+       data-breadcrumb-item
+       data-breadcrumb="\{{id}}"
+       data-breadcrumb-type="\{{type}}">
+      \{{name}}
+    </a>
+  </span>
 </template>
