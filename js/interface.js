@@ -503,23 +503,28 @@ function updatePaths() {
     var dataType = '';
 
     for (var i = 0; i < navStack.length; i++) {
-      if (navStack[i].type === 'organizationId') {
-        type = 'organization';
-        idType = 'data-org-id=';
-        dataType = 'data-type=';
-      } else if (navStack[i].type === 'folderId') {
-        type = 'folder';
-        idType = 'data-id=';
-        dataType = 'data-file-type=';
-      } else if (navStack[i].type === 'appId') {
-        type = 'app';
-        idType = 'data-app-id=';
-        dataType = 'data-type=';
+      switch (navStack[i].type) {
+        case 'organizationId':
+          type = 'organization';
+          idType = 'data-org-id=';
+          dataType = 'data-type=';
+          break;
+        case 'appId':
+          type = 'app';
+          idType = 'data-app-id=';
+          dataType = 'data-type=';
+          break;
+        case 'folderId':
+          type = 'folder';
+          idType = 'data-id=';
+          dataType = 'data-file-type=';
+          break;
+        default:
+          break;
       }
 
-      breadcrumbsPath +=
-        '<span class="bread-link" data-folder data-browse-folder ' + dataType + '"' + type + '" ' + idType + '"' + navStack[i].id + '"><a href="#" data-breadcrumb="' +
-        i + '">' + navStack[i].name + '</a></span>';
+      breadcrumbsPath += '<span class="bread-link"' + dataType + '"' + type + '" ' + idType + '"'
+        + navStack[i].id + '"><a href="#" data-breadcrumb="' + i + '">' + navStack[i].name + '</a></span>';
     }
 
     $('.header-breadcrumbs .current-folder-title').html(breadcrumbsPath);
@@ -903,10 +908,10 @@ function showAlertWithButtonGoToFolder(item, area) {
     goToButton.attr('data-id', area.id);
   }
 
-  $('.alert-action').css({ display: 'block' });
+  $('.alert-action').addClass('active');
   $('.alert-message').text(item.length + ' item(s) moved');
   setTimeout(function() {
-    $('.alert-wrapper').css({ display: 'none' });
+    hideAlertWrapper();
   }, 5000);
 }
 
@@ -916,12 +921,12 @@ function checkDraggedFileIfSelected(draggedItem, selectedItems) {
   if (!selectedItems.length) {
     return false;
   }
-  $(selectedItems).each(function() {
-    var $element = $(this);
-    if ($element.attr('data-id') == draggedItem.id) {
+  for (var i = 0; i <= selectedItems.length; i++) {
+    if($(selectedItems[i]).attr('data-id') == draggedItem.id) {
       res = true;
+      break;
     }
-  });
+  }
   return res;
 }
 
@@ -930,55 +935,89 @@ function setOpacityWhenMovingItems(item) {
   $(item).css({ opacity: '0.3' }).removeClass('active');
 }
 
-// Create object for moving folders
-function moveFolder(dropZone) {
+// Create object for moving Items
+function moveItem(dropZone, isFolder) {
   var movedPlace = {};
+  var parent = isFolder ? 'parentId' : 'mediaFolderId';
   if (dropZone.type === 'organization') {
     movedPlace.appId = null;
-    movedPlace.parentId = null;
+    movedPlace[parent] = null;
     movedPlace.organizationId = dropZone.orgId;
   } else if (dropZone.type === 'app') {
     movedPlace.appId = dropZone.appId;
-    movedPlace.parentId = null;
+    movedPlace[parent] = null;
   } else if (dropZone.fileType === 'folder') {
-    movedPlace.parentId = dropZone.id;
+    movedPlace[parent] = dropZone.id;
   } else {
     return false;
   }
   return movedPlace;
 }
 
-// Create object for moving files
-function moveFile(dropZone) {
-  var movedPlace = {};
-  if (dropZone.type === 'organization') {
-    movedPlace.appId = null;
-    movedPlace.mediaFolderId = null;
-    movedPlace.organizationId = dropZone.orgId;
-  } else if (dropZone.type === 'app') {
-    movedPlace.appId = dropZone.appId;
-    movedPlace.mediaFolderId = null;
-  } else if (dropZone.fileType === 'folder') {
-    movedPlace.mediaFolderId = dropZone.id;
+function moveSingleItemToAPI(isFolder, id, dropArea, element) {
+  if (isFolder === 'folder') {
+    Fliplet.Media.Folders.update(id, moveItem(dropArea, true)).then(function(response) {
+        if (response.folder) {
+          element.remove();
+          showAlertWithButtonGoToFolder(element, dropArea);
+          hideSideActions();
+        }
+      }
+    );
   } else {
-    return false;
+    Fliplet.Media.Files.update(id, moveItem(dropArea, false)).then(function(response) {
+        if (response.file) {
+          element.remove();
+          showAlertWithButtonGoToFolder(element, dropArea);
+          hideSideActions();
+        }
+      }
+    );
   }
-  return movedPlace;
+}
+
+function moveCheckedItemsToAPI(isFolder, id, dropArea, element, items) {
+  if (isFolder === 'folder') {
+    Fliplet.Media.Folders.update(id, moveItem(dropArea, true)).then(function(response) {
+      if (response.folder) {
+        element.remove();
+        showAlertWithButtonGoToFolder(items, dropArea);
+        hideSideActions();
+
+      }
+    });
+  } else {
+    Fliplet.Media.Files.update(id, moveItem(dropArea, false)).then(function(response) {
+      if (response.file) {
+        element.remove();
+        showAlertWithButtonGoToFolder(items, dropArea);
+        hideSideActions();
+      }
+    });
+  }
+}
+
+// hide alertWrapper
+function hideAlertWrapper() {
+  $('.alert-wrapper').removeClass('active');
+  $('#alert-btn-action').removeAttr('data-type');
 }
 
 // Go to folder where dropped items
 $('#alert-btn-action').on('click', function() {
-  if ($(this).attr('data-type') == 'organization') {
-    $('.list-holder[data-org-id="' + $(this).attr('data-id') + '"]').click();
-    $('.alert-wrapper').css({ display: 'none' });
-  } else if ($(this).attr('data-type') == 'app') {
-    $('.app-holder[data-app-id="' + $(this).attr('data-id') + '"]').click();
-    $('.alert-wrapper').css({ display: 'none' });
+  var dataType = $(this).attr('data-type');
+  var dataIdAttribute = $(this).attr('data-id');
+
+  if (dataType == 'organization') {
+    $('.list-holder[data-org-id="' + dataIdAttribute + '"]').click();
+    hideAlertWrapper();
+  } else if (dataType == 'app') {
+    $('.app-holder[data-app-id="' + dataIdAttribute + '"]').click();
+    hideAlertWrapper();
   } else {
-    $('.file-row[data-id="' + $(this).attr('data-id') + '"]')
-      .find('.file-name')
-      .dblclick();
-    $('.alert-wrapper').css({ display: 'none' });
+    $('.file-row[data-id="' + dataIdAttribute + '"]').find('.file-name').dblclick();
+    $('.header-breadcrumbs  [data-id="' + dataIdAttribute + '"] [data-breadcrumb]').click();
+    hideAlertWrapper();
   }
 });
 
@@ -1002,7 +1041,10 @@ $dropZone.on('dragleave', function(e) {
 
 $('html').on('dragenter', function(e) {
   e.preventDefault();
-  if(e.originalEvent.dataTransfer.files.length === 0) return hideDropZone();
+  if(e.originalEvent.dataTransfer.files.length === 0) {
+    hideDropZone();
+    return;
+  }
   showDropZone();
 });
 
@@ -1339,9 +1381,9 @@ $('.file-manager-wrapper')
   .on('dragstart', '.file-row', function(e) {
     var dragingItem = $(e.target).data();
     e.originalEvent.dataTransfer.setData('text', JSON.stringify(dragingItem));
-    $('[data-type="organization"]').addClass('drop-area');
-    $('[data-type="app"]').addClass('drop-area');
-    $('[data-file-type="folder"]').each(function() {
+    $('.panel-title.list-holder').addClass('drop-area');
+    $('.app-holder').addClass('drop-area');
+    $('.file-row[data-file-type="folder"]').each(function() {
       var item = $(this);
       if (dragingItem.id != item[0].dataset.id && !$(item).hasClass('active')) {
         $(item).addClass('drop-area');
@@ -1350,9 +1392,9 @@ $('.file-manager-wrapper')
     $('.bread-link').addClass('drop-area').last().removeClass('drop-area');
   })
   .on('dragend', function(e) {
-    $('[data-type="organization"]').removeClass('drop-area');
-    $('[data-type="app"]').removeClass('drop-area');
-    $('[data-file-type="folder"]').removeClass('drop-area');
+    $('.panel-title.list-holder').removeClass('drop-area');
+    $('.app-holder').removeClass('drop-area');
+    $('.file-row[data-file-type="folder"]').removeClass('drop-area');
     $('.bread-link').removeClass('drop-area');
   })
   .on('drop', '.drop-area', function(e) {
@@ -1369,50 +1411,21 @@ $('.file-manager-wrapper')
       setOpacityWhenMovingItems($element);
 
       // Show alert when moving item(s)
-      $('.alert-wrapper').css({ display: 'flex' });
-      $('.alert-action').css({ display: 'none' });
+      $('.alert-action').removeClass('active');
+      $('.alert-wrapper').addClass('active');
 
       if (checkDraggedItems) {
         $('.alert-message').text('Moving ' + items.length + ' items...');
         $(items).each(function() {
           var $element = $(this);
+          var isFolder = $element.attr('data-file-type');
+          var itemId = $element.attr('data-id');
           setOpacityWhenMovingItems($element);
-
-          if ($element.attr('data-file-type') === 'folder') {
-            Fliplet.Media.Folders.update($element.attr('data-id'), moveFolder(dropArea)).then(function(response) {
-              if (response.folder) {
-                $element.remove();
-                showAlertWithButtonGoToFolder(items, dropArea);
-              }
-            });
-          } else {
-            Fliplet.Media.Files.update($element.attr('data-id'), moveFile(dropArea)).then(function(response) {
-              if (response.file) {
-                $element.remove();
-                showAlertWithButtonGoToFolder(items, dropArea);
-              }
-            });
-          }
+          moveCheckedItemsToAPI(isFolder, itemId, dropArea, $element, items);
         });
       } else {
         $('.alert-message').text('Moving ' + $element.length + ' items...');
-        if (itemType.fileType === 'folder') {
-          Fliplet.Media.Folders.update(itemType.id, moveFolder(dropArea)).then(function(response) {
-              if (response.folder) {
-                $element.remove();
-                showAlertWithButtonGoToFolder($element, dropArea);
-              }
-            }
-          );
-        } else {
-          Fliplet.Media.Files.update(itemType.id, moveFile(dropArea)).then(function(response) {
-              if (response.file) {
-                $element.remove();
-                showAlertWithButtonGoToFolder($element, dropArea);
-              }
-            }
-          );
-        }
+        moveSingleItemToAPI(itemType.fileType, itemType.id, dropArea, $element);
       }
     }
   })

@@ -936,16 +936,25 @@ html {
   padding: 10px 15px;
 }
 
+.alert-wrapper.active {
+    display: flex;
+}
+
 .alert-message {
   color: #fff;
 }
 
 .alert-action button {
+  display: none;
   color: #6c9de7;
   border: none;
   outline: none;
   margin-left: 25px;
   background-color: transparent;
+}
+
+.alert-action.active button {
+    display: block;
 }
 
 .search-holder {
