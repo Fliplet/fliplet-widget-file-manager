@@ -16,6 +16,7 @@ var $searchType = $('.search-type');
 var $searchTerm = $('.search-term');
 var $fileTable = $('.file-table');
 var $pagination = $('.pagination');
+var $timeoutAlertWithButton = 5000;
 
 // This should contain either app/org/folder of current folder
 var currentSelection;
@@ -520,7 +521,7 @@ function updatePaths() {
           dataType = 'data-file-type=';
           break;
         default:
-          throw new Error('Not supported type ');
+          throw new Error('Not supported type');
       }
 
       breadcrumbsPath += '<span class="bread-link"' + dataType + '"' + type + '" ' + idType + '"'
@@ -912,7 +913,7 @@ function showAlertWithButtonGoToFolder(item, area) {
   $('.alert-message').text(item.length + ' item(s) moved');
   setTimeout(function() {
     setAlertVisibilityWhenMovingItems(false);
-  }, 5000);
+  }, $timeoutAlertWithButton);
 }
 
 // Check items if they are checked before moving
@@ -959,24 +960,15 @@ function moveItems(folderType, id, dropArea, element, items) {
     Fliplet.Media.Folders.update(id, moveItem(dropArea, true)).then(function(response) {
       if (response.folder) {
         element.remove();
-        if(items) {
-          showAlertWithButtonGoToFolder(items, dropArea);
-        } else {
-          showAlertWithButtonGoToFolder(element, dropArea);
-        }
+        showAlertWithButtonGoToFolder(items || element, dropArea);
         hideSideActions();
-
       }
     });
   } else {
     Fliplet.Media.Files.update(id, moveItem(dropArea, false)).then(function(response) {
       if (response.file) {
         element.remove();
-        if(items) {
-          showAlertWithButtonGoToFolder(items, dropArea);
-        } else {
-          showAlertWithButtonGoToFolder(element, dropArea);
-        }
+        showAlertWithButtonGoToFolder(items || element, dropArea);
         hideSideActions();
       }
     });
@@ -1398,7 +1390,7 @@ $('.file-manager-wrapper')
     var checkDraggedItems = checkDraggedFileIfSelected(itemType, items);
     var alertConfirmationMovingItem = confirm('Are you sure you want to move item(s)?');
 
-    if (alertConfirmationMovingItem === true) {
+    if (alertConfirmationMovingItem) {
       setOpacityWhenMovingItems($element);
 
       // Show alert when moving item(s)
