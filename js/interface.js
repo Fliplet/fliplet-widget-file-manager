@@ -520,7 +520,7 @@ function updatePaths() {
           dataType = 'data-file-type=';
           break;
         default:
-          break;
+          throw new Error('Not supported type ');
       }
 
       breadcrumbsPath += '<span class="bread-link"' + dataType + '"' + type + '" ' + idType + '"'
@@ -911,7 +911,7 @@ function showAlertWithButtonGoToFolder(item, area) {
   $('.alert-action').addClass('active');
   $('.alert-message').text(item.length + ' item(s) moved');
   setTimeout(function() {
-    hideAlertWrapper();
+    setAlertVisibilityWhenMovingItems(false);
   }, 5000);
 }
 
@@ -954,34 +954,16 @@ function moveItem(dropZone, isFolder) {
   return movedPlace;
 }
 
-function moveSingleItemToAPI(isFolder, id, dropArea, element) {
-  if (isFolder === 'folder') {
-    Fliplet.Media.Folders.update(id, moveItem(dropArea, true)).then(function(response) {
-        if (response.folder) {
-          element.remove();
-          showAlertWithButtonGoToFolder(element, dropArea);
-          hideSideActions();
-        }
-      }
-    );
-  } else {
-    Fliplet.Media.Files.update(id, moveItem(dropArea, false)).then(function(response) {
-        if (response.file) {
-          element.remove();
-          showAlertWithButtonGoToFolder(element, dropArea);
-          hideSideActions();
-        }
-      }
-    );
-  }
-}
-
-function moveCheckedItemsToAPI(isFolder, id, dropArea, element, items) {
-  if (isFolder === 'folder') {
+function moveItems(folderType, id, dropArea, element, items) {
+  if (folderType === 'folder') {
     Fliplet.Media.Folders.update(id, moveItem(dropArea, true)).then(function(response) {
       if (response.folder) {
         element.remove();
-        showAlertWithButtonGoToFolder(items, dropArea);
+        if(items) {
+          showAlertWithButtonGoToFolder(items, dropArea);
+        } else {
+          showAlertWithButtonGoToFolder(element, dropArea);
+        }
         hideSideActions();
 
       }
@@ -990,34 +972,43 @@ function moveCheckedItemsToAPI(isFolder, id, dropArea, element, items) {
     Fliplet.Media.Files.update(id, moveItem(dropArea, false)).then(function(response) {
       if (response.file) {
         element.remove();
-        showAlertWithButtonGoToFolder(items, dropArea);
+        if(items) {
+          showAlertWithButtonGoToFolder(items, dropArea);
+        } else {
+          showAlertWithButtonGoToFolder(element, dropArea);
+        }
         hideSideActions();
       }
     });
   }
 }
 
-// hide alertWrapper
-function hideAlertWrapper() {
-  $('.alert-wrapper').removeClass('active');
-  $('#alert-btn-action').removeAttr('data-type');
+function setAlertVisibilityWhenMovingItems(isShow) {
+  if (isShow) {
+    $('.alert-action').removeClass('active');
+    $('.alert-wrapper').addClass('active');
+  } else {
+    $('.alert-wrapper').removeClass('active');
+    $('#alert-btn-action').removeAttr('data-type');
+  }
 }
 
 // Go to folder where dropped items
 $('#alert-btn-action').on('click', function() {
-  var dataType = $(this).attr('data-type');
-  var dataIdAttribute = $(this).attr('data-id');
+  var $button = $(this);
+  var dataType = $button.attr('data-type');
+  var dataIdAttribute = $button.attr('data-id');
 
   if (dataType == 'organization') {
     $('.list-holder[data-org-id="' + dataIdAttribute + '"]').click();
-    hideAlertWrapper();
+    setAlertVisibilityWhenMovingItems(false);
   } else if (dataType == 'app') {
     $('.app-holder[data-app-id="' + dataIdAttribute + '"]').click();
-    hideAlertWrapper();
+    setAlertVisibilityWhenMovingItems(false);
   } else {
     $('.file-row[data-id="' + dataIdAttribute + '"]').find('.file-name').dblclick();
     $('.header-breadcrumbs  [data-id="' + dataIdAttribute + '"] [data-breadcrumb]').click();
-    hideAlertWrapper();
+    setAlertVisibilityWhenMovingItems(false);
   }
 });
 
@@ -1405,27 +1396,26 @@ $('.file-manager-wrapper')
     var itemType = JSON.parse(e.originalEvent.dataTransfer.getData('text'));
     var $element = $('.file-row[data-id=' + itemType.id + ']');
     var checkDraggedItems = checkDraggedFileIfSelected(itemType, items);
-    var alertConfirm = confirm('Are you sure you want to move item(s)?');
+    var alertConfirmationMovingItem = confirm('Are you sure you want to move item(s)?');
 
-    if (alertConfirm === true) {
+    if (alertConfirmationMovingItem === true) {
       setOpacityWhenMovingItems($element);
 
       // Show alert when moving item(s)
-      $('.alert-action').removeClass('active');
-      $('.alert-wrapper').addClass('active');
+      setAlertVisibilityWhenMovingItems(true);
 
       if (checkDraggedItems) {
         $('.alert-message').text('Moving ' + items.length + ' items...');
         $(items).each(function() {
           var $element = $(this);
-          var isFolder = $element.attr('data-file-type');
+          var folderType = $element.attr('data-file-type');
           var itemId = $element.attr('data-id');
           setOpacityWhenMovingItems($element);
-          moveCheckedItemsToAPI(isFolder, itemId, dropArea, $element, items);
+          moveItems(folderType, itemId, dropArea, $element, items);
         });
       } else {
         $('.alert-message').text('Moving ' + $element.length + ' items...');
-        moveSingleItemToAPI(itemType.fileType, itemType.id, dropArea, $element);
+        moveItems(itemType.fileType, itemType.id, dropArea, $element);
       }
     }
   })

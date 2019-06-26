@@ -937,7 +937,7 @@ html {
 }
 
 .alert-wrapper.active {
-    display: flex;
+  display: flex;
 }
 
 .alert-message {
@@ -954,7 +954,7 @@ html {
 }
 
 .alert-action.active button {
-    display: block;
+  display: block;
 }
 
 .search-holder {
