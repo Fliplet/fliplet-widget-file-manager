@@ -16,7 +16,7 @@ var $searchType = $('.search-type');
 var $searchTerm = $('.search-term');
 var $fileTable = $('.file-table');
 var $pagination = $('.pagination');
-var $timeoutAlertWithButton = 5000;
+var $goToFolderAlertTimeout = 5000;
 
 // This should contain either app/org/folder of current folder
 var currentSelection;
@@ -913,7 +913,7 @@ function showAlertWithButtonGoToFolder(item, area) {
   $('.alert-message').text(item.length + ' item(s) moved');
   setTimeout(function() {
     setAlertVisibilityWhenMovingItems(false);
-  }, $timeoutAlertWithButton);
+  }, $goToFolderAlertTimeout);
 }
 
 // Check items if they are checked before moving
