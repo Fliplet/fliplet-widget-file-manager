@@ -91,7 +91,7 @@ html {
 
 .header-breadcrumbs {
   display: flex;
-  width: 80%;
+  width: 70%;
   margin-right: 20px;
   overflow: auto;
 }
@@ -720,6 +720,10 @@ html {
   white-space: nowrap;
 }
 
+.active .file-path a{
+  color: white;
+}
+
 
 .file-table-body .file-ID {
   color: #bbbbbb;
@@ -960,6 +964,7 @@ html {
 .search-holder {
   display: flex;
   width: 30%;
+  z-index: 1;
 }
 
 .search-holder .search-term {
@@ -981,6 +986,24 @@ html {
 
 .search-result .folder-result-cell {
   display: none;
+}
+
+.spinner-holder {
+  margin-right: 10px;
+  width: 35px;
+  display: block;
+  position: relative;
+}
+
+.spinner-overlay {
+  margin: 8px 0px;
+  font-size: 3px;
+  position: absolute;
+  display: none;
+}
+
+.spinner-holder.animated .spinner-overlay {
+  display: block;
 }
 
 @media (min-width: 1440px) and (max-width: 1600px) {

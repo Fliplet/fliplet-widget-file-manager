@@ -17,6 +17,8 @@ var $searchTerm = $('.search-term');
 var $fileTable = $('.file-table');
 var $pagination = $('.pagination');
 var $goToFolderAlertTimeout = 5000;
+var $spinner = $('.spinner-holder');
+var $newBtn = $('.new-btn');
 
 // This should contain either app/org/folder of current folder
 var currentSelection;
@@ -41,6 +43,7 @@ var sideBarMinWidth = 240;
 var sideBarMaxWidth = 395;
 
 var searchDebounceTime = 500;
+var isActiveSearch = false;
 
 // Keep it as false because people copy this URL and use it into their apps,
 // therefore we want this to be an clean direct link to the API with no token.
@@ -50,6 +53,9 @@ var useCdn = false;
 // Get organizations and apps list for left side menu
 function getOrganizationsList() {
   counterOrganization = 0;
+
+  showSpinner(true);
+
   Fliplet.Organizations.get().then(function(organizations) {
     // Sort alphabetically
     organizations = _.sortBy(organizations, [function(o) {
@@ -60,6 +66,8 @@ function getOrganizationsList() {
   }).then(function() {
     getAppsList();
     $('.file-cell.selectable').addClass('active');
+  }).finally(function () {
+    showSpinner(false);
   });
 }
 
@@ -124,6 +132,8 @@ function navigateToDefaultFolder() {
 }
 
 function getAppsList() {
+  showSpinner(true);
+
   Fliplet.Apps.get().then(function(apps) {
     // Remove V1 apps
     apps.filter(function(app) {
@@ -137,6 +147,8 @@ function getAppsList() {
     apps.forEach(addApps);
 
     navigateToDefaultFolder();
+  }).finally(function () {
+    showSpinner(false);
   });
 }
 
@@ -183,6 +195,8 @@ function getFolderContentsById(id, type, isSearchNav) {
   currentFiles = [];
   $folderContents.empty();
 
+  showSpinner(true);
+
   Fliplet.Media.Folders.get(options).then(function(response) {
     if(!isSearchNav) {
       var navItem = navStack[navStack.length - 1];
@@ -227,6 +241,8 @@ function getFolderContentsById(id, type, isSearchNav) {
     }
   }, function() {
     $('.empty-state').addClass('active');
+  }).finally(function () {
+    showSpinner(false);
   });
 }
 
@@ -292,6 +308,8 @@ function getFolderContents(el, isRootFolder) {
   currentFiles = [];
   $folderContents.empty();
 
+  showSpinner(true);
+
   Fliplet.Media.Folders.get(options).then(function(response) {
     var navItem = navStack[navStack.length - 1];
     switch (navItem.type) {
@@ -339,6 +357,8 @@ function getFolderContents(el, isRootFolder) {
     }
   }, function() {
     $('.empty-state').addClass('active');
+  }).finally(function () {
+    showSpinner(false);
   });
 }
 
@@ -717,9 +737,13 @@ function search(type, term) {
     }
   }
 
+  isActiveSearch = true;
+
   return Fliplet.Media.Folders.search(query).then(function (result) {
-    currentSearchResult = result;
-    renderSearchResult(result, type);
+    if (isActiveSearch) {
+      currentSearchResult = result;
+      renderSearchResult(result, type);
+    }
   });
 }
 
@@ -764,7 +788,10 @@ function renderSearchResult(result, searchType) {
     dataSource: result,
     pageSize: 10,
     callback: function (data) {
+
       $folderContents.empty();
+      currentFolders = [];
+      currentFiles = [];
 
       data.forEach(function (item) {
         if (item.type === 'folder') {
@@ -774,6 +801,8 @@ function renderSearchResult(result, searchType) {
           addFile(item);
         }
       });
+
+      renderList();
     }
   });
 }
@@ -833,7 +862,7 @@ function updateBreadcrumbsBySearchItem(item) {
     return;
   }
 
-  var tempNav = [];
+  var nav = [];
   var isLast = false;
 
   var getParents = function (parent) {
@@ -847,7 +876,7 @@ function updateBreadcrumbsBySearchItem(item) {
       return;
     }
 
-    tempNav.push({
+    nav.push({
       id: parent.id,
       name: parent.name,
       type: 'folderId',
@@ -859,23 +888,24 @@ function updateBreadcrumbsBySearchItem(item) {
 
   getParents(item);
 
-  navStack = navStack.concat(tempNav);
+  navStack = navStack.concat(nav);
   updatePaths();
 }
 
 function enableSearchState() {
   $folderContents.empty();
   $fileTable.addClass('search-result');
-  $('.new-btn').addClass('hide');
+  $newBtn.prop('disabled', true);
   showNothingFoundAlert(false);
   beforeSearchNavStack = navStack;
 }
 
 function disableSearchState() {
+  isActiveSearch = false;
   $fileTable.removeClass('search-result');
   $searchTerm.val('');
   $searchType.val('this-folder');
-  $('.new-btn').removeClass('hide');
+  $newBtn.prop('disabled', false);
   showNothingFoundAlert(false);
   if (!$pagination.is(':empty')) {
     $pagination.pagination('destroy');
@@ -890,10 +920,10 @@ function backToLastFolderBeforeSearch() {
   updatePaths();
 }
 
-function showNothingFoundAlert(isShow){
-  if(isShow){
+function showNothingFoundAlert(isShow) {
+  if (isShow) {
     $('.search-empty-state').addClass('active');
-  }else{
+  } else {
     $('.search-empty-state').removeClass('active');
   }
 }
@@ -1004,6 +1034,14 @@ $('#alert-btn-action').on('click', function() {
   }
 });
 
+function showSpinner(isShow) {
+  if (isShow) {
+    $spinner.addClass('animated');
+  } else {
+    $spinner.removeClass('animated');
+  }
+}
+
 $dropZone.on('drop', function(e) {
   e.preventDefault();
   hideDropZone();
@@ -1048,7 +1086,7 @@ $('.file-manager-wrapper')
 
     $form.submit();
 
-    $('.new-btn').click();
+    $newBtn.click();
   })
   .on('dblclick', '.file-table-body [data-browse-folder], .file-table-body [data-open-file]', function(event) {
     var $el = $(this);
@@ -1114,12 +1152,16 @@ $('.file-manager-wrapper')
       }
     }
 
+    showSpinner(true);
+
     Fliplet.Media.Folders.create(options).then(function (folder) {
       addFolder(folder);
       insertItem(folder, true);
+    }).finally(function () {
+      showSpinner(false);
     });
 
-    $('.new-btn').click();
+    $newBtn.click();
   })
   .on('submit', '[data-upload-file]', function(event) {
     // Upload file
@@ -1191,10 +1233,13 @@ $('.file-manager-wrapper')
     if (alertConfirmation === true) {
       $(items).each(function() {
         var $element = $(this);
-
         var itemID = $element.attr('data-id');
+        var deletePromise;
+
+        showSpinner(true);
+
         if ($element.attr('data-file-type') === 'folder') {
-          Fliplet.Media.Folders.delete(itemID).then(function() {
+          deletePromise = Fliplet.Media.Folders.delete(itemID).then(function() {
             $element.remove();
             checkboxStatus();
 
@@ -1207,7 +1252,7 @@ $('.file-manager-wrapper')
             $('.file-cell.selectable').css({'opacity': '0', 'visibility': 'hidden'});
           });
         } else {
-          Fliplet.Media.Files.delete(itemID).then(function() {
+          deletePromise = Fliplet.Media.Files.delete(itemID).then(function() {
             $element.remove();
             checkboxStatus();
 
@@ -1220,6 +1265,10 @@ $('.file-manager-wrapper')
             $('.file-cell.selectable').css({'opacity': '0', 'visibility': 'hidden'});
           });
         }
+
+        deletePromise.finally(function () {
+          showSpinner(false);
+        })
       });
     }
   })
@@ -1277,8 +1326,12 @@ $('.file-manager-wrapper')
     var changedName = prompt("Please enter the file name", fileName);
 
     if (changedName !== null) {
+      var updatePromise;
+
+      showSpinner(true);
+
       if (itemType === "folder") {
-        Fliplet.Media.Folders.update(itemID, {
+        updatePromise = Fliplet.Media.Folders.update(itemID, {
           name: changedName
         }).then(function() {
           $('.file-row[data-id="' + itemID + '"]').find('.file-name span').html(changedName);
@@ -1287,7 +1340,7 @@ $('.file-manager-wrapper')
           folder.name = changedName;
         });
       } else {
-        Fliplet.Media.Files.update(itemID, {
+        updatePromise = Fliplet.Media.Files.update(itemID, {
           name: changedName
         }).then(function() {
           $('.file-row[data-id="' + itemID + '"]').find('.file-name span').html(changedName);
@@ -1296,6 +1349,10 @@ $('.file-manager-wrapper')
           file.name = changedName;
         });
       }
+
+      updatePromise.finally(function () {
+        showSpinner(false);
+      })
     }
   })
   .on('click', '.header-breadcrumbs [data-breadcrumb]', function() {
@@ -1325,9 +1382,15 @@ $('.file-manager-wrapper')
     hideSideActions();
 
     var type = $searchType.val();
+
+    showSpinner(true);
+
     search(type, term)
       .catch(function () {
         alert('Error on search files');
+      })
+      .finally(function () {
+        showSpinner(false);
       });
 
   }, searchDebounceTime))
