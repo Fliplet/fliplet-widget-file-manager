@@ -19,7 +19,6 @@ var $pagination = $('.pagination');
 var $goToFolderAlertTimeout = 5000;
 var $spinner = $('.spinner-holder');
 var $newBtn = $('.new-btn');
-var $goToFolderAlertTimeout = 5000;
 
 // This should contain either app/org/folder of current folder
 var currentSelection;
