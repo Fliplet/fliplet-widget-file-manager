@@ -16,7 +16,7 @@ var $searchType = $('.search-type');
 var $searchTerm = $('.search-term');
 var $fileTable = $('.file-table');
 var $pagination = $('.pagination');
-var $goToFolderAlertTimeout = 5000;
+var goToFolderAlertTimeout = 5000;
 var $spinner = $('.spinner-holder');
 var $newBtn = $('.new-btn');
 
@@ -527,24 +527,24 @@ function updatePaths() {
       switch (navStack[i].type) {
         case 'organizationId':
           type = 'organization';
-          idType = 'data-org-id=';
-          dataType = 'data-type=';
+          idType = 'data-org-id';
+          dataType = 'data-type';
           break;
         case 'appId':
           type = 'app';
-          idType = 'data-app-id=';
-          dataType = 'data-type=';
+          idType = 'data-app-id';
+          dataType = 'data-type';
           break;
         case 'folderId':
           type = 'folder';
-          idType = 'data-id=';
-          dataType = 'data-file-type=';
+          idType = 'data-id';
+          dataType = 'data-file-type';
           break;
         default:
           throw new Error('Not supported type');
       }
 
-      breadcrumbsPath += '<span class="bread-link"' + dataType + '"' + type + '" ' + idType + '"'
+      breadcrumbsPath += '<span class="bread-link"' + dataType + '="' + type + '" ' + idType + '="'
         + navStack[i].id + '"><a href="#" data-breadcrumb="' + i + '">' + navStack[i].name + '</a></span>';
     }
 
@@ -928,12 +928,12 @@ function showNothingFoundAlert(isShow) {
   }
 }
 
-function showAlertWithButtonGoToFolder(item, area) {
+function showGoToFolderAlert(item, area) {
   var goToButton = $('#alert-btn-action').attr('data-type', area.type);
 
-  if (area.type == 'organization') {
+  if (area.type === 'organization') {
     goToButton.attr('data-id', area.orgId);
-  } else if (area.type == 'app') {
+  } else if (area.type === 'app') {
     goToButton.attr('data-id', area.appId);
   } else {
     goToButton.attr('data-id', area.id);
@@ -943,7 +943,7 @@ function showAlertWithButtonGoToFolder(item, area) {
   $('.alert-message').text(item.length + ' item(s) moved');
   setTimeout(function() {
     setAlertVisibilityWhenMovingItems(false);
-  }, $goToFolderAlertTimeout);
+  }, goToFolderAlertTimeout);
 }
 
 // Check items if they are checked before moving
@@ -953,7 +953,7 @@ function checkDraggedFileIfSelected(draggedItem, selectedItems) {
     return false;
   }
   for (var i = 0; i <= selectedItems.length; i++) {
-    if($(selectedItems[i]).attr('data-id') == draggedItem.id) {
+    if($(selectedItems[i]).attr('data-id') === draggedItem.id.toString()) {
       res = true;
       break;
     }
@@ -990,18 +990,24 @@ function moveItems(folderType, id, dropArea, element, items) {
     Fliplet.Media.Folders.update(id, moveItem(dropArea, true)).then(function(response) {
       if (response.folder) {
         element.remove();
-        showAlertWithButtonGoToFolder(items || element, dropArea);
+        showGoToFolderAlert(items || element, dropArea);
         hideSideActions();
       }
-    });
+    })
+      .catch(function() {
+        alert('Folder could not be moved');
+      });
   } else {
     Fliplet.Media.Files.update(id, moveItem(dropArea, false)).then(function(response) {
       if (response.file) {
         element.remove();
-        showAlertWithButtonGoToFolder(items || element, dropArea);
+        showGoToFolderAlert(items || element, dropArea);
         hideSideActions();
       }
-    });
+    })
+      .catch(function() {
+        alert('File could not be moved');
+      });
   }
 }
 
@@ -1021,17 +1027,15 @@ $('#alert-btn-action').on('click', function() {
   var dataType = $button.attr('data-type');
   var dataIdAttribute = $button.attr('data-id');
 
-  if (dataType == 'organization') {
+  if (dataType === 'organization') {
     $('.list-holder[data-org-id="' + dataIdAttribute + '"]').click();
-    setAlertVisibilityWhenMovingItems(false);
-  } else if (dataType == 'app') {
+  } else if (dataType === 'app') {
     $('.app-holder[data-app-id="' + dataIdAttribute + '"]').click();
-    setAlertVisibilityWhenMovingItems(false);
   } else {
     $('.file-row[data-id="' + dataIdAttribute + '"]').find('.file-name').dblclick();
     $('.header-breadcrumbs  [data-id="' + dataIdAttribute + '"] [data-breadcrumb]').click();
-    setAlertVisibilityWhenMovingItems(false);
   }
+  setAlertVisibilityWhenMovingItems(false);
 });
 
 function showSpinner(isShow) {
@@ -1062,7 +1066,7 @@ $dropZone.on('dragleave', function(e) {
 
 $('html').on('dragenter', function(e) {
   e.preventDefault();
-  if(e.originalEvent.dataTransfer.files.length === 0) {
+  if (e.originalEvent.dataTransfer.files.length === 0) {
     hideDropZone();
     return;
   }
@@ -1451,7 +1455,7 @@ $('.file-manager-wrapper')
     var itemType = JSON.parse(e.originalEvent.dataTransfer.getData('text'));
     var $element = $('.file-row[data-id=' + itemType.id + ']');
     var checkDraggedItems = checkDraggedFileIfSelected(itemType, items);
-    var alertConfirmationMovingItem = confirm('Are you sure you want to move item(s)?');
+    var alertConfirmationMovingItem = confirm('Are you sure you want to move these item(s)?');
 
     if (alertConfirmationMovingItem) {
       setOpacityWhenMovingItems($element);
@@ -1460,7 +1464,7 @@ $('.file-manager-wrapper')
       setAlertVisibilityWhenMovingItems(true);
 
       if (checkDraggedItems) {
-        $('.alert-message').text('Moving ' + items.length + ' items...');
+        $('.alert-message').text('Moving ' + items.length + ' item(s)...');
         $(items).each(function() {
           var $element = $(this);
           var folderType = $element.attr('data-file-type');
@@ -1469,7 +1473,7 @@ $('.file-manager-wrapper')
           moveItems(folderType, itemId, dropArea, $element, items);
         });
       } else {
-        $('.alert-message').text('Moving ' + $element.length + ' items...');
+        $('.alert-message').text('Moving ' + $element.length + ' item(s)...');
         moveItems(itemType.fileType, itemType.id, dropArea, $element);
       }
     }
