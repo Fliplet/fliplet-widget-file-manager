@@ -1461,6 +1461,8 @@ $('.file-manager-wrapper')
     var checkDraggedItems = checkDraggedFileIfSelected(itemType, items);
     var alertConfirmationMovingItem = confirm('Are you sure you want to move these item(s)?');
 
+    $('.drop-area').removeClass('highlight');
+
     if (alertConfirmationMovingItem) {
       setOpacityWhenMovingItems($element);
 
@@ -1484,10 +1486,10 @@ $('.file-manager-wrapper')
   })
   .on('dragover', '.drop-area', function (e) {
     e.preventDefault();
-    $(this).addClass('active');
+    $(this).addClass('highlight');
   })
   .on('dragleave', '.drop-area', function () {
-    $(this).removeClass('active');
+    $(this).removeClass('highlight');
   });
 
 /* Resize sidebar
