@@ -550,7 +550,7 @@ html {
 }
 
 .file-cell.selectable {
-  width: 40px;
+  width: 50px;
   padding-right: 10px;
 }
 
@@ -558,6 +558,8 @@ html {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: block;
+  padding-right: 10px;
 }
 
 .file-select {
@@ -604,10 +606,6 @@ html {
   position: absolute;
   top: 12px;
   left: 12px;
-}
-
-.file-cell.file-name-cell {
-  width: 500px;
 }
 
 .file-cell.file-name-cell > div {
@@ -841,6 +839,10 @@ html {
   background-color: rgba(174, 199, 218, .2) !important;
 }
 
+.drop-area.active {
+  background-color: rgba(0, 171, 209, 0.42) !important;
+}
+
 .alert-wrapper {
   display: none;
   align-items: center;
@@ -926,30 +928,18 @@ html {
 }
 
 @media (min-width: 1440px) and (max-width: 1600px) {
-  .file-cell.file-name-cell {
-    width: 400px;
-  }
-
   .file-cell.file-path-cell {
     width: 200px;
   }
 }
 
 @media (min-width: 1280px) and (max-width: 1440px) {
-  .file-cell.file-name-cell {
-    width: 300px;
-  }
-
   .file-cell.file-path-cell {
     width: 150px;
   }
 }
 
 @media (max-width: 1280px) {
-  .file-cell.file-name-cell {
-    width: 150px;
-  }
-
   .file-cell.file-path-cell {
     width: 100px;
   }
