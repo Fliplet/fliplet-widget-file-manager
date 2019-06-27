@@ -19,6 +19,7 @@ var $pagination = $('.pagination');
 var goToFolderAlertTimeout = 5000;
 var $spinner = $('.spinner-holder');
 var $newBtn = $('.new-btn');
+var $selectAllCheckbox =  $('.file-cell.selectable');
 
 // This should contain either app/org/folder of current folder
 var currentSelection;
@@ -65,7 +66,7 @@ function getOrganizationsList() {
     organizations.forEach(addOrganizations);
   }).then(function() {
     getAppsList();
-    $('.file-cell.selectable').addClass('active');
+    $selectAllCheckbox.addClass('active');
   }).finally(function () {
     showSpinner(false);
   });
@@ -224,7 +225,7 @@ function getFolderContentsById(id, type, isSearchNav) {
     }
     if (response.files.length === 0 && response.folders.length === 0) {
       $('.empty-state').addClass('active');
-      $('.file-cell.selectable').addClass('active');
+      $selectAllCheckbox.addClass('active');
     } else {
       folders = response.folders;
 
@@ -339,7 +340,7 @@ function getFolderContents(el, isRootFolder) {
     }
 
     if (response.files.length === 0 && response.folders.length === 0) {
-      $('.file-cell.selectable').addClass('active');
+      $selectAllCheckbox.addClass('active');
       $('.empty-state').addClass('active');
     } else {
       folders = response.folders;
@@ -411,7 +412,7 @@ function addFolder(folder) {
   $('.empty-state').removeClass('active');
   // Toggle checkbox header to false
   $('.file-table-header input[type="checkbox"]').prop('checked', false);
-  $('.file-cell.selectable').css({'opacity': '1', 'visibility': 'visible'});
+  $selectAllCheckbox.css({'opacity': '1', 'visibility': 'visible'});
 }
 
 // Adds file item template
@@ -425,7 +426,7 @@ function addFile(file) {
 
   // Toggle checkbox header to false
   $('.file-table-header input[type="checkbox"]').prop('checked', false);
-  $('.file-cell.selectable').css({'opacity': '1', 'visibility': 'visible'});
+  $selectAllCheckbox.css({'opacity': '1', 'visibility': 'visible'});
 }
 
 // Templating
@@ -441,12 +442,12 @@ function checkboxStatus() {
 
   if (numberOfRows === 0) {
     $('.empty-state').addClass('active');
-    $('.file-cell.selectable').removeClass('active');
+    $selectAllCheckbox.removeClass('active');
   }
 
   if ($('.file-row').hasClass('active')) {
     $('.side-actions').addClass('active');
-    $('.file-cell.selectable').addClass('active');
+    $selectAllCheckbox.addClass('active');
     $('.file-row').not(this).addClass('passive');
     $('.help-tips').addClass('hidden');
   } else {
@@ -675,6 +676,8 @@ function renderList() {
   files.forEach(function (file) {
     renderItem(file, false);
   });
+
+  $selectAllCheckbox.addClass('active');
 }
 
 //Finds insert index for a new item
@@ -845,7 +848,7 @@ function removeSelection() {
     var $item = $(this);
     $item.prop('checked', false);
     $item.parents('.file-row').removeClass('active');
-    $('.file-cell.selectable').removeClass('active');
+    $selectAllCheckbox.removeClass('active');
     $('.file-row').removeClass('passive');
   });
 }
@@ -1254,7 +1257,7 @@ $('.file-manager-wrapper')
 
             // Toggle checkbox header to false
             $('.file-table-header input[type="checkbox"]').prop('checked', false);
-            $('.file-cell.selectable').css({'opacity': '0', 'visibility': 'hidden'});
+            $selectAllCheckbox.css({'opacity': '0', 'visibility': 'hidden'});
           });
         } else {
           deletePromise = Fliplet.Media.Files.delete(itemID).then(function() {
@@ -1267,7 +1270,7 @@ $('.file-manager-wrapper')
 
             // Toggle checkbox header to false
             $('.file-table-header input[type="checkbox"]').prop('checked', false);
-            $('.file-cell.selectable').css({'opacity': '0', 'visibility': 'hidden'});
+            $selectAllCheckbox.css({'opacity': '0', 'visibility': 'hidden'});
           });
         }
 
@@ -1479,8 +1482,12 @@ $('.file-manager-wrapper')
       }
     }
   })
-  .on('dragover', '.drop-area', function(e) {
+  .on('dragover', '.drop-area', function (e) {
     e.preventDefault();
+    $(this).addClass('active');
+  })
+  .on('dragleave', '.drop-area', function () {
+    $(this).removeClass('active');
   });
 
 /* Resize sidebar
