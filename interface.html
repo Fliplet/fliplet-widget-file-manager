@@ -201,10 +201,16 @@
       </div>
     </div>
   </div>
+  <div class="alert-wrapper">
+    <div class="alert-message"></div>
+    <div class="alert-action">
+      <button type="button" id="alert-btn-action">Go to folder</button>
+    </div>
+  </div>
 </div>
 
 <template id="template-folder">
-  <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}" data-file-type="folder">
+  <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}" data-file-type="folder" draggable="true">
     <div class="file-cell selectable">
       <div class="file-select">
         <div class="checkbox checkbox-icon">
@@ -252,7 +258,7 @@
 </template>
 
 <template id="template-file">
-  <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}" data-file-type="\{{#if thumbnail}}image\{{else}}document\{{/if}}" data-file-url="\{{url}}">
+  <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}" data-file-type="\{{#if thumbnail}}image\{{else}}document\{{/if}}" data-file-url="\{{url}}" draggable="true">
     <div class="file-cell selectable">
       <div class="file-select">
         <div class="checkbox checkbox-icon">

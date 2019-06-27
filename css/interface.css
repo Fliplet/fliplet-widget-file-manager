@@ -80,7 +80,7 @@ html {
 }
 
 .header-breadcrumbs .current-folder-title {
-  padding: 0 16px 0 0;
+  padding: 0 16px 0 10px;
   position: relative;
   display: inline-block;
   white-space: nowrap;
@@ -120,6 +120,7 @@ html {
 
 .bread-link a {
   padding: 5px;
+  margin: 5px;
   color: #333333;
   text-decoration: none;
 }
@@ -317,7 +318,6 @@ html {
   border: 0;
   border-radius: 0;
   position: relative;
-  padding-left: 10px;
 }
 
 .dropdown-menu-holder .panel-heading > .arrow-holder {
@@ -372,7 +372,7 @@ html {
   content: "";
   display: block;
   position: absolute;
-  right: 0;
+  right: -15px;
   top: 0;
   bottom: 0;
   width: 5px;
@@ -438,7 +438,6 @@ html {
 
 .dropdown-menu-holder .panel-default > .panel-heading + .panel-collapse > .panel-body {
   border: none;
-  padding: 10px 0 10px 10px;
 }
 
 .dropdown-menu-holder .panel-body .app-holder {
@@ -447,6 +446,7 @@ html {
 
 .dropdown-menu-holder .panel-body .list-holder {
   padding: 5px 0 5px 25px;
+  margin: 5px;
   cursor: pointer;
   word-break: break-all;
 }
@@ -833,6 +833,46 @@ html {
 
 .drop-zone-icon i.fa {
   text-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
+}
+
+.drop-area {
+  height: auto;
+  width: auto;
+  background-color: rgba(174, 199, 218, .2) !important;
+}
+
+.alert-wrapper {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #434343;
+  position: absolute;
+  bottom: 5%;
+  left: calc(50% - 125px);
+  height: auto;
+  min-width: 150px;
+  padding: 10px 15px;
+}
+
+.alert-wrapper.active {
+  display: flex;
+}
+
+.alert-message {
+  color: #fff;
+}
+
+.alert-action button {
+  display: none;
+  color: #6c9de7;
+  border: none;
+  outline: none;
+  margin-left: 25px;
+  background-color: transparent;
+}
+
+.alert-action.active button {
+  display: block;
 }
 
 .search-holder {

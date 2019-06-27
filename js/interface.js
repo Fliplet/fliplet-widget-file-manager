@@ -16,6 +16,7 @@ var $searchType = $('.search-type');
 var $searchTerm = $('.search-term');
 var $fileTable = $('.file-table');
 var $pagination = $('.pagination');
+var goToFolderAlertTimeout = 5000;
 var $spinner = $('.spinner-holder');
 var $newBtn = $('.new-btn');
 
@@ -518,9 +519,33 @@ function toggleAll(el) {
 function updatePaths() {
   if (navStack.length > 1) {
     var breadcrumbsPath = '';
+    var type = '';
+    var idType = '';
+    var dataType = '';
 
     for (var i = 0; i < navStack.length; i++) {
-      breadcrumbsPath += '<span class="bread-link"><a href="#" data-breadcrumb="' + i + '">' + navStack[i].name + '</a></span>';
+      switch (navStack[i].type) {
+        case 'organizationId':
+          type = 'organization';
+          idType = 'data-org-id';
+          dataType = 'data-type';
+          break;
+        case 'appId':
+          type = 'app';
+          idType = 'data-app-id';
+          dataType = 'data-type';
+          break;
+        case 'folderId':
+          type = 'folder';
+          idType = 'data-id';
+          dataType = 'data-file-type';
+          break;
+        default:
+          throw new Error('Not supported type');
+      }
+
+      breadcrumbsPath += '<span class="bread-link"' + dataType + '="' + type + '" ' + idType + '="'
+        + navStack[i].id + '"><a href="#" data-breadcrumb="' + i + '">' + navStack[i].name + '</a></span>';
     }
 
     $('.header-breadcrumbs .current-folder-title').html(breadcrumbsPath);
@@ -904,6 +929,116 @@ function showNothingFoundAlert(isShow) {
   }
 }
 
+function showGoToFolderAlert(item, area) {
+  var goToButton = $('#alert-btn-action').attr('data-type', area.type);
+
+  if (area.type === 'organization') {
+    goToButton.attr('data-id', area.orgId);
+  } else if (area.type === 'app') {
+    goToButton.attr('data-id', area.appId);
+  } else {
+    goToButton.attr('data-id', area.id);
+  }
+
+  $('.alert-action').addClass('active');
+  $('.alert-message').text(item.length + ' item(s) moved');
+  setTimeout(function() {
+    setAlertVisibilityWhenMovingItems(false);
+  }, goToFolderAlertTimeout);
+}
+
+// Check items if they are checked before moving
+function checkDraggedFileIfSelected(draggedItem, selectedItems) {
+  var res = false;
+  if (!selectedItems.length) {
+    return false;
+  }
+  for (var i = 0; i <= selectedItems.length; i++) {
+    if($(selectedItems[i]).attr('data-id') === draggedItem.id.toString()) {
+      res = true;
+      break;
+    }
+  }
+  return res;
+}
+
+// Change opacity when moving folders or files
+function setOpacityWhenMovingItems(item) {
+  $(item).css({ opacity: '0.3' }).removeClass('active');
+}
+
+// Create object for moving Items
+function moveItem(dropZone, isFolder) {
+  var movedPlace = {};
+  var parent = isFolder ? 'parentId' : 'mediaFolderId';
+  if (dropZone.type === 'organization') {
+    movedPlace.appId = null;
+    movedPlace[parent] = null;
+    movedPlace.organizationId = dropZone.orgId;
+  } else if (dropZone.type === 'app') {
+    movedPlace.appId = dropZone.appId;
+    movedPlace[parent] = null;
+  } else if (dropZone.fileType === 'folder') {
+    movedPlace[parent] = dropZone.id;
+  } else {
+    return false;
+  }
+  return movedPlace;
+}
+
+function moveItems(folderType, id, dropArea, element, items) {
+  if (folderType === 'folder') {
+    Fliplet.Media.Folders.update(id, moveItem(dropArea, true)).then(function(response) {
+      if (response.folder) {
+        element.remove();
+        showGoToFolderAlert(items || element, dropArea);
+        hideSideActions();
+      }
+    })
+      .catch(function() {
+        alert('Folder could not be moved');
+      });
+  } else {
+    Fliplet.Media.Files.update(id, moveItem(dropArea, false)).then(function(response) {
+      if (response.file) {
+        element.remove();
+        showGoToFolderAlert(items || element, dropArea);
+        hideSideActions();
+      }
+    })
+      .catch(function() {
+        alert('File could not be moved');
+      });
+  }
+}
+
+function setAlertVisibilityWhenMovingItems(isShow) {
+  if (isShow) {
+    $('.alert-action').removeClass('active');
+    $('.alert-wrapper').addClass('active');
+  } else {
+    $('.alert-wrapper').removeClass('active');
+    $('#alert-btn-action').removeAttr('data-type');
+  }
+}
+
+// Go to folder where dropped items
+$('#alert-btn-action').on('click', function() {
+  var $button = $(this);
+  var dataType = $button.attr('data-type');
+  var dataIdAttribute = $button.attr('data-id');
+
+  if (dataType === 'organization') {
+    $('.list-holder[data-org-id="' + dataIdAttribute + '"]').click();
+  } else if (dataType === 'app') {
+    $('.app-holder[data-app-id="' + dataIdAttribute + '"]').click();
+  } else {
+    $('.file-row[data-id="' + dataIdAttribute + '"]').find('.file-name').dblclick();
+    $('.header-breadcrumbs  [data-id="' + dataIdAttribute + '"] [data-breadcrumb]').click();
+  }
+  setAlertVisibilityWhenMovingItems(false);
+});
+
 function showSpinner(isShow) {
   if (isShow) {
     $spinner.addClass('animated');
@@ -932,6 +1067,10 @@ $dropZone.on('dragleave', function(e) {
 
 $('html').on('dragenter', function(e) {
   e.preventDefault();
+  if (e.originalEvent.dataTransfer.files.length === 0) {
+    hideDropZone();
+    return;
+  }
   showDropZone();
 });
 
@@ -1289,7 +1428,61 @@ $('.file-manager-wrapper')
     }
 
     $searchTerm.keyup();
+  })
+  .on('dragstart', '.file-row', function(e) {
+    var dragingItem = $(e.target).data();
+    e.originalEvent.dataTransfer.setData('text', JSON.stringify(dragingItem));
+    $('.panel-title.list-holder').addClass('drop-area');
+    $('.app-holder').addClass('drop-area');
+    $('.file-row[data-file-type="folder"]').each(function() {
+      var item = $(this);
+      if (dragingItem.id != item[0].dataset.id && !$(item).hasClass('active')) {
+        $(item).addClass('drop-area');
+      }
+    });
+    $('.bread-link').addClass('drop-area').last().removeClass('drop-area');
+  })
+  .on('dragend', function(e) {
+    $('.panel-title.list-holder').removeClass('drop-area');
+    $('.app-holder').removeClass('drop-area');
+    $('.file-row[data-file-type="folder"]').removeClass('drop-area');
+    $('.bread-link').removeClass('drop-area');
+  })
+  .on('drop', '.drop-area', function(e) {
+    e.preventDefault();
+    var area = $(this);
+    var dropArea = area.data();
+    var items = $('.file-row.active');
+    var itemType = JSON.parse(e.originalEvent.dataTransfer.getData('text'));
+    var $element = $('.file-row[data-id=' + itemType.id + ']');
+    var checkDraggedItems = checkDraggedFileIfSelected(itemType, items);
+    var alertConfirmationMovingItem = confirm('Are you sure you want to move these item(s)?');
+
+    if (alertConfirmationMovingItem) {
+      setOpacityWhenMovingItems($element);
+
+      // Show alert when moving item(s)
+      setAlertVisibilityWhenMovingItems(true);
+
+      if (checkDraggedItems) {
+        $('.alert-message').text('Moving ' + items.length + ' item(s)...');
+        $(items).each(function() {
+          var $element = $(this);
+          var folderType = $element.attr('data-file-type');
+          var itemId = $element.attr('data-id');
+          setOpacityWhenMovingItems($element);
+          moveItems(folderType, itemId, dropArea, $element, items);
+        });
+      } else {
+        $('.alert-message').text('Moving ' + $element.length + ' item(s)...');
+        moveItems(itemType.fileType, itemType.id, dropArea, $element);
+      }
+    }
+  })
+  .on('dragover', '.drop-area', function(e) {
+    e.preventDefault();
   });
+
 /* Resize sidebar
 .on('mousedown', '.split-bar', function(e) {
   e.preventDefault();
