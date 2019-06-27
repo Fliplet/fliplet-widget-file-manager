@@ -55,169 +55,145 @@
         </div>
       -->
       </div>
-      <div class="file-manager-filelist">
-        <div class="f-a">
-          <div class="f-b">
-            <div class="f-c">
-              <div class="file-table">
+      <div class="file-manager-content">
+        <div class="file-manager-filelist">
+          <div class="file-table">
+            <div class="file-table-header">
 
-                <div class="file-table-placeholder">
-                  <div class="file-col"></div>
-                  <!-- HIDE<div class="file-col file-owner"></div>-->
-                  <div class="file-col file-date"></div>
-                  <!-- HIDE<div class="file-col file-size"></div>-->
-                  <div class="file-col file-options"></div>
-                </div>
-
-                <div class="file-table-header">
-                  <div>
-                    <div class="file-cell selectable">
-                      <div class="file-select">
-                        <div class="checkbox checkbox-icon">
-                          <input type="checkbox" id="select_all" name="select_all" value="">
-                          <label for="select_all">
-                            <span class="check"><i class="fa fa-check"></i></span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="file-cell">
-                      <div class="file-name">
-                        Name
-                      </div>
-                    </div>
-                    <!-- HIDE
-                    <div class="file-cell">
-                      <div class="file-owner">
-                        Owner
-                      </div>
-                    </div>
-                    -->
-                    <div class="file-cell">
-                      <div class="file-date">
-                        Created
-                      </div>
-                    </div>
-                    <!-- HIDE
-                    <div class="file-cell">
-                      <div class="file-size">
-                        File size
-                      </div>
-                    </div>
-                    -->
-                    <div class="file-cell search-result-cell">
-                      <div class="file-path">
-                        Path
-                      </div>
-                    </div>
-                    <div class="file-cell search-result-cell">
-                      <div class="file-size">
-                        Dimensions
-                      </div>
-                    </div>
-                    <div class="file-cell folder-result-cell">
-                      <div class="file-ID">
-                        ID
-                      </div>
+                <div class="file-cell selectable">
+                  <div class="file-select">
+                    <div class="checkbox checkbox-icon">
+                      <input type="checkbox" id="select_all" name="select_all" value="">
+                      <label for="select_all">
+                        <span class="check"><i class="fa fa-check"></i></span>
+                      </label>
                     </div>
                   </div>
                 </div>
-
-                <div class="file-table-body">
-                  <!-- FOLDER CONTENT WILL BE HERE -->
+                <div class="file-cell file-name-cell">
+                  <div>
+                    Name
+                  </div>
+                </div>
+                <!-- HIDE
+                <div class="file-cell">
+                  <div class="file-owner">
+                    Owner
+                  </div>
+                </div>
+                -->
+                <div class="file-cell file-date-cell">
+                    Created
+                </div>
+                <!-- HIDE
+                <div class="file-cell">
+                  <div class="file-size">
+                    File size
+                  </div>
+                </div>
+                -->
+                <div class="file-cell search-result-cell file-path-cell">
+                    Path
+                </div>
+                <div class="file-cell search-result-cell file-size-cell">
+                    Dimensions
+                </div>
+                <div class="file-cell folder-result-cell file-id-cell">
+                    ID
                 </div>
 
-                <div class="empty-state">
-                  <span>&#x1F633</span>
-                  <h3>This seems to be empty.</h3>
-                  <p>Use the "New" button.</p>
+            </div>
+            <div class="file-table-body">
+              <!-- FOLDER CONTENT WILL BE HERE -->
+            </div>
+          </div>
+          <div class="empty-state">
+            <span>&#x1F633</span>
+            <h3>This seems to be empty.</h3>
+            <p>Use the "New" button.</p>
+          </div>
+          <div class="search-empty-state">
+            <span>&#x1F633</span>
+            <h3>Nothing found.</h3>
+          </div>
+          <div class="pagination pull-right"></div>
+          <div class="drop-zone-wrapper">
+            <div class="drop-zone transparent" id="drop-zone">
+              <div class="drop-zone-info">
+                <div class="drop-zone-icon animated pulse infinite">
+                  <i class="fa fa-cloud-upload"></i>
                 </div>
-
-                <div class="search-empty-state">
-                  <span>&#x1F633</span>
-                  <h3>Nothing found.</h3>
+                <div class="drop-zone-box">
+                  <p>Drop files to upload them instantly to:</p>
+                  <p><i class="fa fa-folder-open"></i> <strong><span class="drop-zone-folder-name"></span></strong></p>
                 </div>
               </div>
-              <div class="pagination pull-right"></div>
+              <div>
+                <input type="file" id="upload-file" style="display: none;" multiple/>
+              </div>
             </div>
           </div>
         </div>
-        <div class="drop-zone-wrapper">
-          <div class="drop-zone transparent" id="drop-zone">
-            <div class="drop-zone-info">
-              <div class="drop-zone-icon animated pulse infinite">
-                <i class="fa fa-cloud-upload"></i>
-              </div>
-              <div class="drop-zone-box">
-                <p>Drop files to upload them instantly to:</p>
-                <p><i class="fa fa-folder-open"></i> <strong><span class="drop-zone-folder-name"></span></strong></p>
-              </div>
-            </div>
-            <div>
-              <input type="file" id="upload-file" style="display: none;" multiple/>
-            </div>
+        <div class="file-manager-rightside">
+          <div class="help-tips">
+            <h2>Did you know?</h2>
+            <p>All users from an organization can access <strong>Organization</strong> folders and edit its content.</p>
+            <p>You can make files only accessible to specific apps. Use the menu on the left to browse app specific files.</p>
           </div>
-        </div>
-      </div>
-      <div class="file-manager-rightside">
-        <div class="help-tips">
-          <h2>Did you know?</h2>
-          <p>All users from an organization can access <strong>Organization</strong> folders and edit its content.</p>
-          <p>You can make files only accessible to specific apps. Use the menu on the left to browse app specific files.</p>
-        </div>
-        <div class="side-actions">
-          <div class="shared-info">
-            <div class="item multiple">
-              <i class="fa fa-files-o"></i>
-            </div>
-            <div class="item file">
-              <i class="fa fa-file"></i>
-            </div>
-            <div class="item folder">
-              <i class="fa fa-folder-open"></i>
-            </div>
-            <div class="item image">
-              <img />
-            </div>
-            <p>You have selected <span class="items-selected"></span></p>
-          </div>
-          <div class="item-actions">
-            <div class="single-item">
-              <div class="btn-group">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  Action <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a href="#" open-action>Open</a>
-                  </li>
-                  <li>
-                    <a href="#" rename-action>Rename</a>
-                  </li>
-                  <li>
-                    <a href="#" download-action>Download</a>
-                  </li>
-                  <li role="separator" class="divider"></li>
-                  <li>
-                    <a href="#" class="text-danger" delete-action>Delete</a>
-                  </li>
-                </ul>
+          <div class="side-actions">
+            <div class="shared-info">
+              <div class="item multiple">
+                <i class="fa fa-files-o"></i>
               </div>
+              <div class="item file">
+                <i class="fa fa-file"></i>
+              </div>
+              <div class="item folder">
+                <i class="fa fa-folder-open"></i>
+              </div>
+              <div class="item image">
+                <img />
+              </div>
+              <p>You have selected <span class="items-selected"></span></p>
             </div>
-            <div class="multiple-item">
-              <div class="btn-group">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  Action <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a href="#" download-action>Download</a>
-                  </li>
-                  <li role="separator" class="divider"></li>
-                  <li>
-                    <a href="#" class="text-danger" delete-action>Delete</a>
-                  </li>
-                </ul>
+            <div class="item-actions">
+              <div class="single-item">
+                <div class="btn-group">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Action <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a href="#" open-action>Open</a>
+                    </li>
+                    <li>
+                      <a href="#" rename-action>Rename</a>
+                    </li>
+                    <li>
+                      <a href="#" download-action>Download</a>
+                    </li>
+                    <li role="separator" class="divider"></li>
+                    <li>
+                      <a href="#" class="text-danger" delete-action>Delete</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <div class="multiple-item">
+                <div class="btn-group">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Action <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a href="#" download-action>Download</a>
+                    </li>
+                    <li role="separator" class="divider"></li>
+                    <li>
+                      <a href="#" class="text-danger" delete-action>Delete</a>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
@@ -225,10 +201,16 @@
       </div>
     </div>
   </div>
+  <div class="alert-wrapper">
+    <div class="alert-message"></div>
+    <div class="alert-action">
+      <button type="button" id="alert-btn-action">Go to folder</button>
+    </div>
+  </div>
 </div>
 
 <template id="template-folder">
-  <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}" data-file-type="folder">
+  <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}" data-file-type="folder" draggable="true">
     <div class="file-cell selectable">
       <div class="file-select">
         <div class="checkbox checkbox-icon">
@@ -239,7 +221,7 @@
         </div>
       </div>
     </div>
-    <div class="file-cell">
+    <div class="file-cell file-name-cell">
       <div class="file-name" data-browse-folder>
         <span>\{{name}}</span>
       </div>
@@ -251,10 +233,8 @@
       </div>
     </div>
     -->
-    <div class="file-cell">
-      <div class="file-date">
-        <span>\{{formattedDate}}</span>
-      </div>
+    <div class="file-cell file-date-cell">
+      <span>\{{formattedDate}}</span>
     </div>
     <!-- HIDE
     <div class="file-cell">
@@ -263,28 +243,22 @@
       </div>
     </div>
     -->
-    <div class="file-cell search-result-cell">
-      <div class="file-path">
-        <span>
-          <a href="javascript:;" class="path-link" data-folder data-id="\{{parentItemId}}" data-type="\{{parentItemType}}" title="\{{relativePath}}">\{{relativePath}}</a>
-        </span>
-      </div>
+    <div class="file-cell search-result-cell file-path-cell">
+      <span>
+        <a href="javascript:;" class="path-link" data-folder data-id="\{{parentItemId}}" data-type="\{{parentItemType}}" title="\{{relativePath}}">\{{relativePath}}</a>
+      </span>
     </div>
-    <div class="file-cell search-result-cell">
-      <div class="file-size">
+    <div class="file-cell search-result-cell file-size-cell">
         <span></span>
-      </div>
     </div>
-    <div class="file-cell folder-result-cell">
-      <div class="file-ID">
-        <span>\{{id}}</span>
-      </div>
+    <div class="file-cell folder-result-cell file-id-cell">
+      <span>\{{id}}</span>
     </div>
   </div>
 </template>
 
 <template id="template-file">
-  <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}" data-file-type="\{{#if thumbnail}}image\{{else}}document\{{/if}}" data-file-url="\{{url}}">
+  <div class="file-row" data-folder="\{{mediaFolderId}}" data-id="\{{id}}" data-file-type="\{{#if thumbnail}}image\{{else}}document\{{/if}}" data-file-url="\{{url}}" draggable="true">
     <div class="file-cell selectable">
       <div class="file-select">
         <div class="checkbox checkbox-icon">
@@ -295,7 +269,7 @@
         </div>
       </div>
     </div>
-    <div class="file-cell">
+    <div class="file-cell file-name-cell">
       <div class="file-name" data-open-file>
         \{{#if thumbnail}}<img src="\{{thumbnail}}"/>\{{/if}}
         <span>\{{name}}</span>
@@ -308,10 +282,8 @@
       </div>
     </div>
     -->
-    <div class="file-cell">
-      <div class="file-date">
-        <span>\{{formattedDate}}</span>
-      </div>
+    <div class="file-cell file-date-cell">
+      <span>\{{formattedDate}}</span>
     </div>
     <!-- HIDE
     <div class="file-cell">
@@ -320,22 +292,16 @@
       </div>
     </div>
     -->
-    <div class="file-cell search-result-cell">
-      <div class="file-path">
-        <span>
-          <a href="javascript:;" class="path-link" data-folder data-id="\{{parentItemId}}" data-type="\{{parentItemType}}" title="\{{relativePath}}">\{{relativePath}}</a>
-        </span>
-      </div>
+    <div class="file-cell search-result-cell file-path-cell">
+      <span>
+        <a href="javascript:;" class="path-link" data-folder data-id="\{{parentItemId}}" data-type="\{{parentItemType}}" title="\{{relativePath}}">\{{relativePath}}</a>
+      </span>
     </div>
-    <div class="file-cell search-result-cell">
-      <div class="file-size">
-        <span>\{{dimensions}}</span>
-      </div>
+    <div class="file-cell search-result-cell file-size-cell">
+       <span>\{{dimensions}}</span>
     </div>
-    <div class="file-cell folder-result-cell">
-      <div class="file-ID">
+    <div class="file-cell folder-result-cell file-id-cell">
         <span>\{{id}}</span>
-      </div>
     </div>
   </div>
 </template>
