@@ -1,6 +1,6 @@
 {
   "name": "File Manager",
-  "package": "com.fliplet.file-manager.upplabs-864",
+  "package": "com.fliplet.file-manager",
   "version": "1.0.0",
   "icon": "img/icon.png",
   "tags": ["type:component", "category:general"],
