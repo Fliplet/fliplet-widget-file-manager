@@ -897,6 +897,7 @@ function backToLastFolderBeforeSearch() {
 
 function showNothingFoundAlert(isShow) {
   if (isShow) {
+    $('.empty-state').removeClass('active');
     $('.search-empty-state').addClass('active');
   } else {
     $('.search-empty-state').removeClass('active');
