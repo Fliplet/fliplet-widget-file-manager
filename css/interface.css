@@ -839,7 +839,7 @@ html {
   background-color: rgba(174, 199, 218, .2) !important;
 }
 
-.drop-area.active {
+.drop-area.highlight {
   background-color: rgba(0, 171, 209, 0.42) !important;
 }
 
