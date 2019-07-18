@@ -1257,7 +1257,6 @@ $('.file-manager-wrapper')
 
             // Toggle checkbox header to false
             $('.file-table-header input[type="checkbox"]').prop('checked', false);
-            $selectAllCheckbox.css({'opacity': '0', 'visibility': 'hidden'});
           });
         } else {
           deletePromise = Fliplet.Media.Files.delete(itemID).then(function() {
@@ -1270,7 +1269,6 @@ $('.file-manager-wrapper')
 
             // Toggle checkbox header to false
             $('.file-table-header input[type="checkbox"]').prop('checked', false);
-            $selectAllCheckbox.css({'opacity': '0', 'visibility': 'hidden'});
           });
         }
 
