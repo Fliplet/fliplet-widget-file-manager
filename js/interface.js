@@ -14,7 +14,7 @@ var templates = {
 };
 var $searchType = $('.search-type');
 var $searchTerm = $('.search-term');
-var $searchTermCleanBtn = $('#search-term-clean');
+var $searchTermClearBtn = $('#search-term-clear');
 var $fileTable = $('.file-table');
 var $pagination = $('.pagination');
 var goToFolderAlertTimeout = 5000;
@@ -901,7 +901,7 @@ function enableSearchState() {
   $folderContents.empty();
   $fileTable.addClass('search-result');
   $newBtn.prop('disabled', true);
-  $searchTermCleanBtn.removeClass('hide');
+  $searchTermClearBtn.removeClass('hide');
   showNothingFoundAlert(false);
   beforeSearchNavStack = navStack;
 }
@@ -912,7 +912,7 @@ function disableSearchState() {
   $searchTerm.val('');
   $searchType.val('this-folder');
   $newBtn.prop('disabled', false);
-  $searchTermCleanBtn.addClass('hide');
+  $searchTermClearBtn.addClass('hide');
   showNothingFoundAlert(false);
   removePagination();
 }
@@ -1418,9 +1418,9 @@ $('.file-manager-wrapper')
       });
 
   }, searchDebounceTime))
-  .on('click', '#search-term-clean', function () {
+  .on('click', '#search-term-clear', function () {
     $searchTerm.val('').keyup();
-    $searchTermCleanBtn.addClass('hide');
+    $searchTermClearBtn.addClass('hide');
   })
   .on('click', '.path-link', function () {
     var $el = $(this);

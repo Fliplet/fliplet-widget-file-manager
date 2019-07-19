@@ -893,7 +893,7 @@ html {
   width: 190px;
 }
 
-.search-holder .search-term-clean {
+.search-holder .search-term-clear {
   position: absolute;
   right: 20px;
   top: 12px;
@@ -903,7 +903,7 @@ html {
   color: white;
   line-height: 20px;
   border-radius: 2px;
-  padding: 0 2px;
+  padding: 0 4px;
   cursor: pointer;
 }
 
