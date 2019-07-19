@@ -14,6 +14,7 @@ var templates = {
 };
 var $searchType = $('.search-type');
 var $searchTerm = $('.search-term');
+var $searchTermCleanBtn = $('#search-term-clean');
 var $fileTable = $('.file-table');
 var $pagination = $('.pagination');
 var goToFolderAlertTimeout = 5000;
@@ -755,6 +756,7 @@ function renderSearchResult(result, searchType) {
 
   if (!result || !result.length) {
     showNothingFoundAlert(true);
+    removePagination();
     return;
   }
 
@@ -899,6 +901,7 @@ function enableSearchState() {
   $folderContents.empty();
   $fileTable.addClass('search-result');
   $newBtn.prop('disabled', true);
+  $searchTermCleanBtn.removeClass('hide');
   showNothingFoundAlert(false);
   beforeSearchNavStack = navStack;
 }
@@ -909,10 +912,24 @@ function disableSearchState() {
   $searchTerm.val('');
   $searchType.val('this-folder');
   $newBtn.prop('disabled', false);
+  $searchTermCleanBtn.addClass('hide');
   showNothingFoundAlert(false);
+  removePagination();
+}
+
+function removePagination() {
   if (!$pagination.is(':empty')) {
     $pagination.pagination('destroy');
   }
+}
+
+function updateSearchTypeOptions(type) {
+  var optionName = 'This organization';
+  if (type === 'app') {
+    optionName = 'This app';
+  }
+
+  $searchType.find('option:first').text(optionName);
 }
 
 // Shows content of the last folder before run search
@@ -1131,6 +1148,7 @@ $('.file-manager-wrapper')
     disableSearchState();
     resetUpTo($(this));
     getFolderContents($(this), true);
+    updateSearchTypeOptions($(this).data('type'));
   })
   .on('click', '[data-create-folder]', function(event) {
     // Creates folder
@@ -1400,6 +1418,10 @@ $('.file-manager-wrapper')
       });
 
   }, searchDebounceTime))
+  .on('click', '#search-term-clean', function () {
+    $searchTerm.val('').keyup();
+    $searchTermCleanBtn.addClass('hide');
+  })
   .on('click', '.path-link', function () {
     var $el = $(this);
     var type = $el.data('type');

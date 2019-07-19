@@ -881,6 +881,7 @@ html {
   display: flex;
   width: 30%;
   z-index: 1;
+  position: relative;
 }
 
 .search-holder .search-term {
@@ -890,6 +891,20 @@ html {
 
 .search-holder .search-type {
   width: 190px;
+}
+
+.search-holder .search-term-clean {
+  position: absolute;
+  right: 20px;
+  top: 12px;
+  width: 40px;
+  height: 20px;
+  background-color: #00abd2;
+  color: white;
+  line-height: 20px;
+  border-radius: 2px;
+  padding: 0 2px;
+  cursor: pointer;
 }
 
 .search-result-cell {
