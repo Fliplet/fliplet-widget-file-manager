@@ -6,6 +6,7 @@ var $organizationList = $('.dropdown-menu-holder .panel-group');
 var $progress = $('.progress');
 var $progressBar = $progress.find('.progress-bar');
 var $dropZone = $('#drop-zone');
+var $dropZoneWrapper = $('.drop-zone-wrapper');
 var templates = {
   file: template('file'),
   folder: template('folder'),
@@ -621,6 +622,7 @@ function uploadFiles(files) {
   $progress.removeClass('hidden');
 
   Fliplet.Media.Files.upload({
+    organizationId: currentOrganizationId,
     folderId: currentFolderId,
     appId: currentAppId,
     name: file.name,
@@ -1067,6 +1069,16 @@ function showSpinner(isShow) {
   }
 }
 
+// Hide Global drop zone for moving files in the app and activate Global drop zone for moving files from desktop
+function changeGlobalDropZoneState (enableGlobalDropZone) {
+  if (enableGlobalDropZone) {
+    $dropZoneWrapper.addClass('hide');
+  } else {
+    $dropZoneWrapper.removeClass('hide');
+    hideDropZone();
+  }
+}
+
 $dropZone.on('drop', function(e) {
   e.preventDefault();
   hideDropZone();
@@ -1087,10 +1099,6 @@ $dropZone.on('dragleave', function(e) {
 
 $('html').on('dragenter', function(e) {
   e.preventDefault();
-  if (e.originalEvent.dataTransfer.files.length === 0) {
-    hideDropZone();
-    return;
-  }
   showDropZone();
 });
 
@@ -1211,6 +1219,7 @@ $('.file-manager-wrapper')
     $progress.removeClass('hidden');
 
     Fliplet.Media.Files.upload({
+      organizationId: currentOrganizationId,
       folderId: currentFolderId,
       appId: currentAppId,
       name: file.name,
@@ -1453,6 +1462,7 @@ $('.file-manager-wrapper')
     $searchTerm.keyup();
   })
   .on('dragstart', '.file-row', function(e) {
+    changeGlobalDropZoneState(true);
     var dragingItem = $(e.target).data();
     e.originalEvent.dataTransfer.setData('text', JSON.stringify(dragingItem));
     $('.panel-title.list-holder').addClass('drop-area');
@@ -1470,6 +1480,7 @@ $('.file-manager-wrapper')
     $('.app-holder').removeClass('drop-area');
     $('.file-row[data-file-type="folder"]').removeClass('drop-area');
     $('.bread-link').removeClass('drop-area');
+    changeGlobalDropZoneState(false);
   })
   .on('drop', '.drop-area', function(e) {
     e.preventDefault();
