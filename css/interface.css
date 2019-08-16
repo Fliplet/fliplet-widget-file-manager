@@ -887,6 +887,7 @@ html {
 .search-holder .search-term {
   margin-left: 10px;
   margin-right: 10px;
+  min-width: 0px;
 }
 
 .search-holder .search-type {
@@ -957,5 +958,11 @@ html {
 @media (max-width: 1280px) {
   .file-cell.file-path-cell {
     width: 100px;
+  }
+}
+
+@supports (-ms-ime-align: auto) {
+  .search-holder .search-type {
+    width: 120px;
   }
 }
