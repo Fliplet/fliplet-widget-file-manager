@@ -887,6 +887,7 @@ html {
 .search-holder .search-term {
   margin-left: 10px;
   margin-right: 10px;
+  min-width: 65px;
 }
 
 .search-holder .search-type {
