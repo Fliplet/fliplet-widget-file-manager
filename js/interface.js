@@ -1139,9 +1139,10 @@ $('.file-manager-wrapper')
 
     removeSelection();
     hideSideActions();
-    disableSearchState();
 
     if ($parent.data('file-type') === 'folder') {
+      disableSearchState();
+
       // Store to nav stack
       backItem = _.find(folders, ['id', id]);
       backItem.tempElement = $('.file-row[data-id="' + id + '"]');
