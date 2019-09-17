@@ -898,10 +898,8 @@ html {
   position: absolute;
   right: 20px;
   top: 12px;
-  width: 40px;
   height: 20px;
-  background-color: #00abd2;
-  color: white;
+  color: #c2c1c2;
   line-height: 20px;
   border-radius: 2px;
   padding: 0 4px;
