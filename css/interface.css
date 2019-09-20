@@ -890,6 +890,10 @@ html {
   min-width: 65px;
 }
 
+.search-term::-ms-clear {
+  display: none;
+}
+
 .search-holder .search-type {
   width: 190px;
 }
