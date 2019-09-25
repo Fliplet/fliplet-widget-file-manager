@@ -890,10 +890,6 @@ html {
   min-width: 65px;
 }
 
-.search-term::-ms-clear {
-  display: none;
-}
-
 .search-holder .search-type {
   width: 190px;
 }
@@ -961,4 +957,8 @@ html {
   .file-cell.file-path-cell {
     width: 100px;
   }
+}
+
+.search-term::-ms-clear {
+  display: none;
 }
