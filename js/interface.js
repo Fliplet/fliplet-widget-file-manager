@@ -103,13 +103,13 @@ function navigateToDefaultFolder() {
   } else {
     $listHolder = $el.find('.list-holder');
   }
-  
+
   $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
   $listHolder.first().addClass('active');
 
   // Set first folder of breadcrumbs
   resetUpTo($el);
-  
+
   if (data.appId) {
     getFolderContents($el, true);
     return;
@@ -861,7 +861,7 @@ function calculatePath(item) {
 
 // Converts date to readable date format
 function formatDate(date) {
-  return moment(date).format("Do MMM YYYY");
+  return moment(date).format("MMM D, YYYY");
 }
 
 // Remove any selected field
