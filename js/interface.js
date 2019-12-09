@@ -628,10 +628,26 @@ function hideDropZone() {
 function uploadFiles(files) {
   var formData = new FormData();
   var file;
+  var hasFiles;
+
   for (var i = 0; i < files.length; i++) {
+
     file = files.item(i);
+
+    if (!file.type) {
+      continue;
+    }
+
+    hasFiles = true;
+
     formData.append('name[' + i + ']', file.name);
     formData.append('files[' + i + ']', file);
+  }
+
+  if (!hasFiles) {
+    return Fliplet.Modal.alert({
+      message: 'Please upload one or more files to continue.'
+    });
   }
 
   $progressBar.css({
@@ -1215,7 +1231,7 @@ $('.file-manager-wrapper')
       showSpinner(false);
       Fliplet.Modal.alert({
         message: Fliplet.parseError(err)
-      })
+      });
     });
 
     $newBtn.click();
