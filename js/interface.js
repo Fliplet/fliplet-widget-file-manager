@@ -628,8 +628,18 @@ function hideDropZone() {
 function uploadFiles(files) {
   var formData = new FormData();
   var file;
+
   for (var i = 0; i < files.length; i++) {
+
     file = files.item(i);
+
+    // Folders have no extension and are less than 1KB in size
+    if (!file.type && file.size <= 1024) {
+      return Fliplet.Modal.alert({
+        message: 'Uploading folders is not supported. Please create a folder and upload files into the folder.'
+      });
+    }
+
     formData.append('name[' + i + ']', file.name);
     formData.append('files[' + i + ']', file);
   }
@@ -1215,7 +1225,7 @@ $('.file-manager-wrapper')
       showSpinner(false);
       Fliplet.Modal.alert({
         message: Fliplet.parseError(err)
-      })
+      });
     });
 
     $newBtn.click();
