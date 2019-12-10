@@ -633,7 +633,8 @@ function uploadFiles(files) {
 
     file = files.item(i);
 
-    if (!file.type) {
+    // Folders have no extension and are less than 1KB in size
+    if (!file.type && file.size <= 1024) {
       return Fliplet.Modal.alert({
         message: 'Uploading folders is not supported. Please create a folder and upload files into the folder.'
       });
