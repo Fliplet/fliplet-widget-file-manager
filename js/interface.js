@@ -755,6 +755,11 @@ function search(type, term) {
     name: term
   };
 
+  // If the user put anything except a numbers _.toNumber function will return a NaN result
+  if (_.toNumber(term)) {
+    query.id = term
+  }
+
   if (type == 'all') {
     if (currentAppId) {
       query.appId = currentAppId;
