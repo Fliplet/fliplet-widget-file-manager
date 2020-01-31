@@ -1194,46 +1194,49 @@ $('.file-manager-wrapper')
   })
   .on('click', '[data-create-folder]', function(event) {
     // Creates folder
-    var folderName = prompt('Type folder name');
-    var lastFolderSelected = navStack[navStack.length - 1];
-
-    var options = {
-      name: folderName,
-      parentId: currentFolderId || undefined
-    };
-
-    if (!folderName) {
-      return;
-    }
-
-    if (lastFolderSelected.type === "appId") {
-      options.appId = lastFolderSelected.id;
-    } else if (lastFolderSelected.type === "organizationId") {
-      options.organizationId = lastFolderSelected.id;
-    } else {
-      options.parentId = lastFolderSelected.id;
-
-      if (lastFolderSelected.organizationId !== null) {
-        options.organizationId = lastFolderSelected.organizationId;
-      } else if (lastFolderSelected.appId !== null) {
-        options.appId = lastFolderSelected.appId;
+    Fliplet.Modal.prompt({
+      title: 'Type folder name'
+    }).then(function(result) {
+      if (result === null) {
+        return;
       }
-    }
 
-    showSpinner(true);
+      var dataSourceName = result.trim();
+      var lastFolderSelected = navStack[navStack.length - 1];
+      var options = {
+        name: dataSourceName,
+        parentId: currentFolderId || undefined
+      };
 
-    Fliplet.Media.Folders.create(options).then(function (folder) {
-      addFolder(folder);
-      insertItem(folder, true);
-      showSpinner(false);
-    }).catch(function (err) {
-      showSpinner(false);
-      Fliplet.Modal.alert({
-        message: Fliplet.parseError(err)
+      if (lastFolderSelected.type === "appId") {
+        options.appId = lastFolderSelected.id;
+      } else if (lastFolderSelected.type === "organizationId") {
+        options.organizationId = lastFolderSelected.id;
+      } else {
+        options.parentId = lastFolderSelected.id;
+
+        if (lastFolderSelected.organizationId !== null) {
+          options.organizationId = lastFolderSelected.organizationId;
+        } else if (lastFolderSelected.appId !== null) {
+          options.appId = lastFolderSelected.appId;
+        }
+      }
+
+      showSpinner(true);
+
+      Fliplet.Media.Folders.create(options).then(function(folder) {
+        addFolder(folder);
+        insertItem(folder, true);
+        showSpinner(false);
+      }).catch(function(err) {
+        showSpinner(false);
+        Fliplet.Modal.alert({
+          message: Fliplet.parseError(err)
+        });
       });
-    });
 
-    $newBtn.click();
+      $newBtn.click();
+    });
   })
   .on('submit', '[data-upload-file]', function(event) {
     // Upload file
@@ -1300,10 +1303,13 @@ $('.file-manager-wrapper')
   })
   .on('click', '[delete-action]', function() {
     var items = $('.file-row.active');
+    Fliplet.Modal.confirm({
+      message: 'Are you sure you want to delete all selected items?\nAll the content inside a folder will be deleted?'
+    }).then(function(result) {
+      if (!result) {
+        return;
+      }
 
-    var alertConfirmation = confirm("Are you sure you want to delete all selected items?\nAll the content inside a folder will be deleted too.");
-
-    if (alertConfirmation === true) {
       $(items).each(function() {
         var $element = $(this);
         var itemID = $element.attr('data-id');
@@ -1343,10 +1349,10 @@ $('.file-manager-wrapper')
           showSpinner(false);
           Fliplet.Modal.alert({
             message: Fliplet.parseError(err)
-          })
+          });
         });
       });
-    }
+    });
   })
   .on('click', '[download-action]', function() {
     var items = $('.file-row.active'),
@@ -1539,11 +1545,16 @@ $('.file-manager-wrapper')
     var itemType = JSON.parse(e.originalEvent.dataTransfer.getData('text'));
     var $element = $('.file-row[data-id=' + itemType.id + ']');
     var checkDraggedItems = checkDraggedFileIfSelected(itemType, items);
-    var alertConfirmationMovingItem = confirm('Are you sure you want to move these item(s)?');
 
-    $('.drop-area').removeClass('highlight');
+    Fliplet.Modal.confirm({
+      message: 'Are you sure you want to move these item(s)?'
+    }).then(function(result) {
+      if (!result) {
+        return;
+      }
 
-    if (alertConfirmationMovingItem) {
+      $('.drop-area').removeClass('highlight');
+
       setOpacityWhenMovingItems($element);
 
       // Show alert when moving item(s)
@@ -1562,7 +1573,7 @@ $('.file-manager-wrapper')
         $('.alert-message').text('Moving ' + $element.length + ' item(s)...');
         moveItems(itemType.fileType, itemType.id, dropArea, $element);
       }
-    }
+    });
   })
   .on('dragover', '.drop-area', function (e) {
     e.preventDefault();
