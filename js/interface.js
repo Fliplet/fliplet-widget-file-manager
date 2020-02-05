@@ -1405,9 +1405,15 @@ $('.file-manager-wrapper')
     var itemType = $('.file-row.active').data('file-type');
     var fileName = $('.file-row[data-id="' + itemID + '"]').find('.file-name span').text();
 
-    var changedName = prompt("Please enter the file name", fileName);
+    Fliplet.Modal.prompt({
+      title: 'Please enter the file name',
+      value: fileName
+    }).then(function(result) {
+      if (result === null) {
+        return;
+      }
 
-    if (changedName !== null) {
+      var changedName = result.trim();
       var updatePromise;
 
       showSpinner(true);
@@ -1438,9 +1444,9 @@ $('.file-manager-wrapper')
         showSpinner(false);
         Fliplet.Modal.alert({
           message: Fliplet.parseError(err)
-        })
+        });
       });
-    }
+    });
   })
   .on('click', '.header-breadcrumbs [data-breadcrumb]', function() {
     var index = $(this).data('breadcrumb');
