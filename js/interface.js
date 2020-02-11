@@ -1187,6 +1187,9 @@ $('.file-manager-wrapper')
     }
   })
   .on('click', '.dropdown-menu-holder [data-browse-folder]', function(event) {
+    // Deselection of  all active files when user switches folder
+    $(this).parents('.file-manager-body').find('.file-row.active input[type="checkbox"]').click();
+
     disableSearchState();
     resetUpTo($(this));
     getFolderContents($(this), true);
