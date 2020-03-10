@@ -801,7 +801,11 @@ function renderSearchResult(result, searchType) {
 
   result = result
     .filter(function (item) {
-      return !item.deletedAt;
+      if (currentAppId || currentFolderId || searchType === 'all') {
+        return !item.deletedAt;
+      } else {
+        return !item.deletedAt && !item.mediaFolderId && !item.appId;
+      }
     })
     .map(function (item) {
       item.relativePath = calculatePath(item);
