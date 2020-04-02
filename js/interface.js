@@ -949,7 +949,6 @@ function disableSearchState() {
   isActiveSearch = false;
   $fileTable.removeClass('search-result');
   $searchTerm.val('');
-  $searchType.val('this-folder');
   $newBtn.prop('disabled', false);
   $searchTermClearBtn.addClass('hide');
   showNothingFoundAlert(false);
