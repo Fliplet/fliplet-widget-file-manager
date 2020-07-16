@@ -80,6 +80,7 @@ function getOrganizationsList() {
 
 function parseThumbnail(file) {
   if (file.thumbnail) {
+    file.thumbnail = Fliplet.Media.authenticate(file.thumbnail);
     return;
   }
 
