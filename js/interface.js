@@ -269,8 +269,10 @@ function getFolderContents(el, isRootFolder) {
     // Restart breadcrumbs
     var $el = el;
     var $listHolder;
-
+    
     if ($el.data('type') === 'organization') {
+      $listHolder = $el;
+    } else if($el.data('type') === 'trash') {
       $listHolder = $el;
     } else {
       $listHolder = $el.find('.list-holder');
@@ -282,14 +284,6 @@ function getFolderContents(el, isRootFolder) {
 
   var options = {
     cdn: useCdn
-  };
-
-  // Default filter functions
-  var filterFiles = function(files) {
-    return true
-  };
-  var filterFolders = function(folders) {
-    return true
   };
 
   if (el.attr('data-type') === "app") {
@@ -316,6 +310,8 @@ function getFolderContents(el, isRootFolder) {
     filterFolders = function(folder) {
       return !(folder.appId || folder.parentFolderId);
     };
+  } else if(el.attr('data-type') === 'trash') {
+    currentFolderId = null;
   } else {
     options.folderId = el.attr('data-id');
     currentFolderId = el.attr('data-id');
@@ -327,61 +323,19 @@ function getFolderContents(el, isRootFolder) {
 
   showSpinner(true);
 
-  Fliplet.Media.Folders.get(options).then(function(response) {
-    var navItem = navStack[navStack.length - 1];
-    switch (navItem.type) {
-      case 'organizationId':
-        // User is no longer browsing the organization folder
-        if (options.hasOwnProperty('folderId') || !options.hasOwnProperty('organizationId') || parseInt(options.organizationId, 10) !== navItem.id) {
-          return;
-        }
-        break;
-      case 'appId':
-        // User is no longer browsing the app folder
-        if (!options.hasOwnProperty('appId') || parseInt(options.appId, 10) !== navItem.id) {
-          return;
-        }
-        break;
-      case 'folderId':
-        // User is no longer browsing the folder
-        if (!options.hasOwnProperty('folderId') || parseInt(options.folderId, 10) !== navItem.id) {
-          return;
-        }
-        break;
-    }
+  // Default filter functions
+  var filterFiles = function() {
+    return true
+  };
+  var filterFolders = function() {
+    return true
+  };
 
-    if (!$folderContents.is(':empty')) {
-      // Content already rendered from a recent request. Do nothing.
-      return;
-    }
-
-    if (response.files.length === 0 && response.folders.length === 0) {
-      $selectAllCheckbox.addClass('active');
-      $('.empty-state').addClass('active');
-    } else {
-      folders = response.folders;
-
-      // Filter only the files from that request app/org/folder
-      var mediaFiles = response.files.filter(filterFiles);
-      var mediaFolders = response.folders.filter(filterFolders);
-
-      mediaFolders.forEach(addFolder);
-      mediaFiles.forEach(addFile);
-
-      mediaFiles.forEach(parseThumbnail);
-
-      renderList();
-    }
-  }, function() {
-    $('.empty-state').addClass('active');
-  }).then(function () {
-    showSpinner(false);
-  }).catch(function (err) {
-    showSpinner(false);
-    Fliplet.Modal.alert({
-      message: Fliplet.parseError(err)
-    })
-  });
+  if(el.attr('data-type') === 'trash') {
+    getTrashFilesData(filterFiles, filterFolders);
+  } else {
+    getFoldersData(options, filterFiles, filterFolders);
+  }
 }
 
 // Adds organization item template
@@ -617,6 +571,87 @@ function resetToTop(){
   updatePaths();
 }
 
+function getFoldersData(options, filterFiles, filterFolders) {
+  Fliplet.Media.Folders.get(options).then(function(response) {
+    var navItem = navStack[navStack.length - 1];
+    switch (navItem.type) {
+      case 'organizationId':
+        // User is no longer browsing the organization folder
+        if (options.hasOwnProperty('folderId') || !options.hasOwnProperty('organizationId') || parseInt(options.organizationId, 10) !== navItem.id) {
+          return;
+        }
+        break;
+      case 'appId':
+        // User is no longer browsing the app folder
+        if (!options.hasOwnProperty('appId') || parseInt(options.appId, 10) !== navItem.id) {
+          return;
+        }
+        break;
+      case 'folderId':
+        // User is no longer browsing the folder
+        if (!options.hasOwnProperty('folderId') || parseInt(options.folderId, 10) !== navItem.id) {
+          return;
+        }
+        break;
+    }
+
+    if (!$folderContents.is(':empty')) {
+      // Content already rendered from a recent request. Do nothing.
+      return;
+    }
+
+    if (response.files.length === 0 && response.folders.length === 0) {
+      $selectAllCheckbox.addClass('active');
+      $('.empty-state').addClass('active');
+    } else {
+      folders = response.folders;
+
+      // Filter only the files from that request app/org/folder
+      var mediaFiles = response.files.filter(filterFiles);
+      var mediaFolders = response.folders.filter(filterFolders);
+
+      mediaFolders.forEach(addFolder);
+      mediaFiles.forEach(addFile);
+
+      mediaFiles.forEach(parseThumbnail);
+
+      renderList();
+    }
+  }, function() {
+    $('.empty-state').addClass('active');
+  }).then(function () {
+    showSpinner(false);
+  }).catch(function (err) {
+    showSpinner(false);
+    Fliplet.Modal.alert({
+      message: Fliplet.parseError(err)
+    })
+  });
+}
+
+function getTrashFilesData(filterFiles, filterFolders) {  
+  Fliplet.API.request('v1/media/deleted').then(function(result) {
+    if (result.files.length === 0 && result.folders.length === 0) {
+      $selectAllCheckbox.addClass('active');
+      $('.empty-state').addClass('active');
+    } else {
+      folders = result.folders;
+
+      // Filter only the files from that request app/org/folder
+      var mediaFiles = result.files.filter(filterFiles);
+      var mediaFolders = result.folders.filter(filterFolders);
+
+      mediaFolders.forEach(addFolder);
+      mediaFiles.forEach(addFile);
+
+      mediaFiles.forEach(parseThumbnail);
+
+      renderList();
+      showSpinner(false);
+    }
+  })
+}
+
 function showDropZone() {
   $('.drop-zone-folder-name').html(navStack[navStack.length - 1].name);
   $dropZone.addClass('active');
@@ -684,6 +719,7 @@ function sortItems(items) {
 
 // Adds single item to DOM
 function renderItem(item, isFolder, insertIndex) {
+  debugger;
   var template = isFolder ? templates.folder(item) : templates.file(item);
 
   if (insertIndex >= 0) {
@@ -1189,6 +1225,13 @@ $('.file-manager-wrapper')
         window.open(fileURL, '_blank');
       }
     }
+  })
+  .on('click', '[data-browse-trash]', function() {
+    $('[data-browse-trash] span').addClass('active-trash');
+    disableSearchState();
+    resetUpTo($(this));
+    getFolderContents($(this), true);
+    updateSearchTypeOptions($(this).data('type'));
   })
   .on('click', '.dropdown-menu-holder [data-browse-folder]', function(event) {
     // Deselection of  all active files when user switches folder
