@@ -1554,7 +1554,7 @@ $('.file-manager-wrapper')
         }
       }
     }).then(function(result) {
-      if(result) {
+      if (result) {
         $(items).each(function() {
           var $element = $(this);
           var itemID = $element.attr('data-id');
