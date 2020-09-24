@@ -302,7 +302,7 @@ html {
 .dropdown-menu-holder .panel-group {
   margin: 0 -15px;
   max-height: 89vh;
-  overflow: scroll;
+  overflow-y: auto;
 }
 
 .dropdown-menu-holder .panel-group .panel {
@@ -612,6 +612,11 @@ html {
   white-space: nowrap;
   display: block;
   padding-right: 10px;
+}
+
+.restore-fade {
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 .file-select {
