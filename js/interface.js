@@ -13,7 +13,6 @@ var templates = {
   organizations: template('organizations'),
   apps: template('apps')
 };
-var $appList;
 var $searchType = $('.search-type');
 var $searchTerm = $('.search-term');
 var $searchTermClearBtn = $('#search-term-clear');
@@ -23,8 +22,8 @@ var goToFolderAlertTimeout = 5000;
 var $spinner = $('.spinner-holder');
 var $newBtn = $('.new-btn');
 var $selectAllCheckbox =  $('.file-cell.selectable');
-var $completedItems = 0;
 
+var appList;
 // This should contain either app/org/folder of current folder
 var currentSelection;
 
@@ -33,6 +32,7 @@ var currentFolderId;
 var currentAppId;
 var currentFolders;
 var currentFiles;
+var completedItems = 0;
 var counterOrganization;
 var currentSearchResult;
 
@@ -93,11 +93,11 @@ function parseThumbnail(file) {
 }
 
 function navigateToFolder(item) {
-  if(!item.data('app-id')) {
+  if (!item.data('app-id')) {
    $('[data-org-id="' + item.data('org-id') +'"][data-browse-folder]').click();
   } else {
-    $appList.forEach(function(item) {
-      if(item.id === item.data('app-id')) {
+    appList.forEach(function(item) {
+      if (item.id === item.data('app-id')) {
         $('[data-app-id="' + item.data('app-id') + '"][data-browse-folder]').click();
       }
     })
@@ -171,7 +171,7 @@ function getAppsList() {
     }]);
     // Add apps to HTML
     apps.forEach(addApps);
-    $appList = apps;
+    appList = apps;
 
     navigateToDefaultFolder();
     showSpinner(false);
@@ -206,7 +206,7 @@ function getFolderContentsById(id, type, isSearchNav) {
     filterFolders = function(folder) {
       return !folder.parentFolderId;
     };
-  } else if(type  === "organization"){
+  } else if (type  === "organization"){
     options.organizationId = currentOrganizationId = id;
     currentAppId = null;
     currentFolderId = null;
@@ -229,7 +229,7 @@ function getFolderContentsById(id, type, isSearchNav) {
   showSpinner(true);
 
   Fliplet.Media.Folders.get(options).then(function(response) {
-    if(!isSearchNav) {
+    if (!isSearchNav) {
       var navItem = navStack[navStack.length - 1];
       switch (navItem.type) {
         case 'organizationId':
@@ -283,7 +283,7 @@ function getFolderContentsById(id, type, isSearchNav) {
 }
 
 function restoreTrashItems(items) {
-  $completedItems = 0;
+  completedItems = 0;
 
   $(items).each(function() {
     var $element = $(this);
@@ -294,14 +294,15 @@ function restoreTrashItems(items) {
     showSpinner(true);
 
     $element.addClass('restore-fade');
-    if($element.attr('data-file-type') === 'folder') {
+
+    if ($element.attr('data-file-type') === 'folder') {
       restorePromise = Fliplet.API.request({
         url: 'v1/media/folders/' + itemID + '/restore',
         method: 'POST',
       }).then(function() {
         $element.remove();
         checkboxStatus();
-        $completedItems++;
+        completedItems++;
 
         currentFolders = currentFolders.filter(function(folder){
           return folder.id != itemID;
@@ -315,7 +316,7 @@ function restoreTrashItems(items) {
       }).then(function() {
         $element.remove();
         checkboxStatus();
-        $completedItems++;
+        completedItems++;
 
         currentFiles = currentFiles.filter(function(file){
           return file.id != itemID;
@@ -326,12 +327,12 @@ function restoreTrashItems(items) {
     }
     restorePromise.then(function(result) {
       showSpinner(false);
-      if($completedItems === items.length && $completedItems !== 1) {
+      if (completedItems === items.length && completedItems !== 1) {
         Fliplet.Modal.alert({
           title: 'Restore complete',
           message: items.length + ' items restored'
         })
-      } else if ($completedItems === items.length && $completedItems === 1) {
+      } else if (completedItems === items.length && completedItems === 1) {
         Fliplet.Modal.confirm({
           title: 'Restore complete',
           message: itemName + ' restored',
@@ -346,7 +347,7 @@ function restoreTrashItems(items) {
             },
           },
         }).then(function(result) {
-          if(!result) {
+          if (!result) {
             navigateToFolder($element);
           }
         })
@@ -362,7 +363,7 @@ function restoreTrashItems(items) {
 }
 
 function removeTrashItems(items) {
-  $completedItems = 0;
+  completedItems = 0;
 
   $(items).each(function() {
     var $element = $(this);
@@ -372,14 +373,14 @@ function removeTrashItems(items) {
 
     showSpinner(true);
 
-    if($element.attr('data-file-type') === 'folder') {
+    if ($element.attr('data-file-type') === 'folder') {
       deletePromise = Fliplet.API.request({
         url: 'v1/media/deleted/folders/' + itemID,
         method: 'DELETE',
       }).then(function() {
         $element.remove();
         checkboxStatus();
-        $completedItems++;
+        completedItems++;
 
         currentFolders = currentFolders.filter(function(folder){
           return folder.id != itemID;
@@ -393,7 +394,7 @@ function removeTrashItems(items) {
       }).then(function() {
         $element.remove();
         checkboxStatus();
-        $completedItems++;
+        completedItems++;
 
         currentFiles = currentFiles.filter(function(file){
           return file.id != itemID;
@@ -404,12 +405,12 @@ function removeTrashItems(items) {
     }
     deletePromise.then(function(result) {
       showSpinner(false);
-      if($completedItems === items.length && $completedItems !== 1) {
+      if (completedItems === items.length && completedItems !== 1) {
         Fliplet.Modal.alert({
           title: 'Deletion complete',
           message: items.length + ' items deleted',
         })
-      } else if ($completedItems === items.length && $completedItems === 1) {
+      } else if (completedItems === items.length && completedItems === 1) {
         Fliplet.Modal.alert({
           title: 'Deletion complete',
           message: itemName + ' deleted',
@@ -434,16 +435,16 @@ function getFolderContents(el, isRootFolder) {
     
     if ($el.data('type') === 'organization') {
       $listHolder = $el;
-    } else if($el.data('type') === 'trash') {
+    } else if ($el.data('type') === 'trash') {
       $listHolder = $el;
     } else {
       $listHolder = $el.find('.list-holder');
     }
 
     $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
-    if($el.data('type') === 'trash') {
+    if ($el.data('type') === 'trash') {
       $('[data-browse-trash] span').addClass('active-trash');
-    } else if($el.data('type') === 'organization') {
+    } else if ($el.data('type') === 'organization') {
       $('[data-browse-trash] span').removeClass('active-trash');
       $listHolder.first().addClass('active');
     } else {
@@ -479,7 +480,7 @@ function getFolderContents(el, isRootFolder) {
     filterFolders = function(folder) {
       return !(folder.appId || folder.parentFolderId);
     };
-  } else if(el.attr('data-type') === 'trash') {
+  } else if (el.attr('data-type') === 'trash') {
     currentFolderId = null;
   } else {
     options.folderId = el.attr('data-id');
@@ -500,7 +501,7 @@ function getFolderContents(el, isRootFolder) {
     return true
   };
 
-  if(el.attr('data-type') === 'trash') {
+  if (el.attr('data-type') === 'trash') {
     getTrashFilesData(filterFiles, filterFolders);
   } else {
     getFoldersData(options, filterFiles, filterFolders);
@@ -1422,13 +1423,13 @@ $('.file-manager-wrapper')
   .on('click', '[restore-action]', function(event) {
     event.preventDefault();
 
-    var items = $('.file-row.active');
-    restoreTrashItems(items);
+    var $items = $('.file-row.active');
+    restoreTrashItems($items);
   })
   .on('click', '[file-remove-trash]', function(event) {
     event.preventDefault();
 
-    var items = $('.file-row.active');
+    var $items = $('.file-row.active');
     Fliplet.Modal.confirm({
       message: 'The action will delete the file forever and it can not be undone.',
       buttons: {
@@ -1442,8 +1443,8 @@ $('.file-manager-wrapper')
         }
       }
     }).then(function(confirmAlert) {
-      if(confirmAlert){
-        removeTrashItems(items)
+      if (confirmAlert){
+        removeTrashItems($items)
       }
     })
   })
@@ -1780,12 +1781,12 @@ $('.file-manager-wrapper')
     disableSearchState();
   })
   .on('change', '.search-type', function(){
-    if(!$searchTerm.val()){
+    if (!$searchTerm.val()){
       return;
     }
 
     var type = $searchType.val();
-    if(type === 'all'){
+    if (type === 'all'){
       currentFolderId = null;
     }
 
