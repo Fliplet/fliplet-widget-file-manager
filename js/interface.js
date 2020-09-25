@@ -102,7 +102,6 @@ function navigateToFolder(item) {
       }
     })
   }
-
 }
 
 function navigateToDefaultFolder() {
@@ -206,7 +205,7 @@ function getFolderContentsById(id, type, isSearchNav) {
     filterFolders = function(folder) {
       return !folder.parentFolderId;
     };
-  } else if (type  === "organization"){
+  } else if (type  === "organization") {
     options.organizationId = currentOrganizationId = id;
     currentAppId = null;
     currentFolderId = null;
@@ -327,6 +326,7 @@ function restoreTrashItems(items) {
     }
     restorePromise.then(function(result) {
       showSpinner(false);
+
       if (completedItems === items.length && completedItems !== 1) {
         Fliplet.Modal.alert({
           title: 'Restore complete',
@@ -376,7 +376,7 @@ function removeTrashItems(items) {
     if ($element.attr('data-file-type') === 'folder') {
       deletePromise = Fliplet.API.request({
         url: 'v1/media/deleted/folders/' + itemID,
-        method: 'DELETE',
+        method: 'DELETE'
       }).then(function() {
         $element.remove();
         checkboxStatus();
@@ -390,7 +390,7 @@ function removeTrashItems(items) {
     } else {
       deletePromise = Fliplet.API.request({
         url: 'v1/media/deleted/files/' + itemID,
-        method: 'DELETE',
+        method: 'DELETE'
       }).then(function() {
         $element.remove();
         checkboxStatus();
@@ -403,17 +403,15 @@ function removeTrashItems(items) {
         $('.file-table-header input[type="checkbox"]').prop('checked', false);
       })
     }
+
     deletePromise.then(function(result) {
       showSpinner(false);
-      if (completedItems === items.length && completedItems !== 1) {
+
+      if (completedItems === items.length) {
+        var title = 'Deletion complete'
         Fliplet.Modal.alert({
-          title: 'Deletion complete',
-          message: items.length + ' items deleted',
-        })
-      } else if (completedItems === items.length && completedItems === 1) {
-        Fliplet.Modal.alert({
-          title: 'Deletion complete',
-          message: itemName + ' deleted',
+          title: title,
+          message: completedItems !== 1 ? items.length + ' items deleted' : itemName + ' deleted',
         })
       }
     }).catch(function(error) {
