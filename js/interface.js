@@ -303,7 +303,7 @@ function restoreTrashItems(items) {
         checkboxStatus();
         completedItems++;
 
-        currentFolders = currentFolders.filter(function(folder){
+        currentFolders = currentFolders.filter(function(folder) {
           return folder.id != itemID;
         });
         $('.file-table-header input[type="checkbox"]').prop('checked', false);
@@ -324,6 +324,7 @@ function restoreTrashItems(items) {
         $('.file-table-header input[type="checkbox"]').prop('checked', false);
       })
     }
+
     restorePromise.then(function(result) {
       showSpinner(false);
 
