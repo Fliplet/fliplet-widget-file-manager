@@ -77,7 +77,7 @@ function getOrganizationsList() {
     showSpinner(false);
 
     if(data.context === 'app-overlay' || data.appId) {
-      $('[data-show-help-link]').addClass('hidden');
+      $('[data-help-link]').addClass('hidden');
     }
   }).catch(function (err) {
     showSpinner(false);
