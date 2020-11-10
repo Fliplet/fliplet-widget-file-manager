@@ -75,6 +75,10 @@ function getOrganizationsList() {
     getAppsList();
     $selectAllCheckbox.addClass('active');
     showSpinner(false);
+
+    if(data.context === 'app-overlay' || data.appId) {
+      $('[data-help-link]').addClass('hidden');
+    }
   }).catch(function (err) {
     showSpinner(false);
     Fliplet.Modal.alert({
