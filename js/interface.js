@@ -285,18 +285,88 @@ function getFolderContentsById(id, type, isSearchNav) {
   });
 }
 
+function restoreParentFolder(options) {
+  Fliplet.API.request(options)
+    .then(function(result) {
+      if (result) {
+        showSpinner(false);
+  
+        $('[data-browse-trash]').click();
+
+        Fliplet.Modal.confirm({
+          title: 'Restore complete',
+          message: options.parentFolderName + ' restored',
+          buttons: {
+            cancel: {
+              label: 'Go to folder',
+              className: 'btn-default nav-folder'
+            },
+            confirm: {
+              label: 'OK',
+              className: 'btn-primary'
+            },
+          },
+        }).then(function(result) {
+          if (!result) {
+            navigateToFolder(options.element);
+          }
+        })
+      }
+    }).catch(function(error) {
+      showSpinner(false);
+      
+      Fliplet.Modal.alert({
+        title: 'Restore failed',
+        message: Fliplet.parseError(error),
+      })
+
+      $('.file-table-body .file-row').removeClass('restore-fade')
+    })
+}
+
 function restoreTrashItems(items) {
   completedItems = 0;
 
   $(items).each(function() {
+    var restorePromise;
     var $element = $(this);
     var itemID = $element.attr('data-id');
     var itemName = $element.attr('data-name');
-    var restorePromise;
+    var parentFolderId = $element.attr('data-folder');
 
     showSpinner(true);
 
     $element.addClass('restore-fade');
+
+    if (parentFolderId) {
+      var parentFolderName = navStack[navStack.length - 1].name;
+
+      Fliplet.Modal.confirm({
+        title: 'Restoration failed',
+        message: '<span style="font-weight: bold;">' + itemName + '</span> cannot be restored. To restore this file, you`ll need to restore the <span style="font-weight: bold;">' + parentFolderName + '</span> folder',
+        buttons: {
+          cancel: {
+            label: 'Cancel',
+            className: 'btn-default nav-folder'
+          },
+          confirm: {
+            label: 'Restore',
+            className: 'btn-primary'
+          },
+        },
+      }).then(function(result) {
+        if (result) {
+          restoreParentFolder({
+            url: 'v1/media/folders/' + parentFolderId + '/restore',
+            method: 'POST',
+            parentFolderName: parentFolderName,
+            element: $element,
+          })
+        }
+      })
+
+      return false;
+    }
 
     if ($element.attr('data-file-type') === 'folder') {
       restorePromise = Fliplet.API.request({
@@ -447,7 +517,7 @@ function getFolderContents(el, isRootFolder) {
     $('.dropdown-menu-holder').find('.list-holder.active').removeClass('active');
     if ($el.data('type') === 'trash') {
       $('[data-browse-trash] span').addClass('active-trash');
-    } else if ($el.data('type') === 'organization') {
+    } else if ($el.data('type') === 'organization' || $el.data('type') === 'app') {
       $('[data-browse-trash] span').removeClass('active-trash');
       $listHolder.first().addClass('active');
     } else {
