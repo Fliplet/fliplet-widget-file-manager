@@ -286,7 +286,7 @@ function getFolderContentsById(id, type, isSearchNav) {
 }
 
 function restoreParentFolder(options) {
-  Fliplet.API.request(options)
+  Fliplet.API.request(options.request)
     .then(function(result) {
       if (result) {
         showSpinner(false);
@@ -357,8 +357,10 @@ function restoreTrashItems(items) {
       }).then(function(result) {
         if (result) {
           restoreParentFolder({
-            url: 'v1/media/folders/' + parentFolderId + '/restore',
-            method: 'POST',
+            request: {
+              url: 'v1/media/folders/' + parentFolderId + '/restore',
+              method: 'POST',
+            },
             parentFolderName: parentFolderName,
             element: $element,
           })
