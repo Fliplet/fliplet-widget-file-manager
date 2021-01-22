@@ -1,6 +1,6 @@
 {
-  "name": "File Manager",
-  "package": "com.fliplet.file-manager",
+  "name": "File Manager-andrey",
+  "package": "com.fliplet.file-manager-andrey",
   "version": "1.0.0",
   "icon": "img/icon.png",
   "tags": ["type:component", "category:general"],
