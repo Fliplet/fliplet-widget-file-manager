@@ -318,23 +318,23 @@ function restoreParentFolder(options) {
           confirm: {
             label: 'OK',
             className: 'btn-primary'
-          },
-        },
+          }
+        }
       }).then(function(result) {
         if (!result) {
           navigateToFolder(options.element);
         }
-      })
+      });
     }).catch(function(error) {
       showSpinner(false);
       
       Fliplet.Modal.alert({
         title: 'Restore failed',
-        message: Fliplet.parseError(error),
-      })
+        message: Fliplet.parseError(error)
+      });
 
       $('.file-table-body .file-row').removeClass('restore-fade');
-    })
+    });
 }
 
 function restoreTrashItems(items) {
@@ -372,13 +372,13 @@ function restoreTrashItems(items) {
           restoreParentFolder({
             request: {
               url: 'v1/media/folders/' + parentFolderId + '/restore',
-              method: 'POST',
+              method: 'POST'
             },
             parentFolderName: parentFolderName,
-            element: $element,
-          })
+            element: $element
+          });
         }
-      })
+      });
 
       return false;
     }
