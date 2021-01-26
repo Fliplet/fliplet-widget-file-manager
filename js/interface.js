@@ -285,33 +285,46 @@ function getFolderContentsById(id, type, isSearchNav) {
   });
 }
 
+function loadTrashFolder(element) {
+  $('[data-browse-trash] span').addClass('active-trash');
+  $('[restore-action]').show(); 
+  $('[file-remove-trash]').show();
+
+  $('[rename-action]').hide();
+  $('[delete-action]').hide();
+
+  disableSearchState();
+  resetUpTo(element);
+  getFolderContents(element, true);
+  updateSearchTypeOptions(element.data('type'));
+}
+
 function restoreParentFolder(options) {
   Fliplet.API.request(options.request)
     .then(function(result) {
-      if (result) {
-        showSpinner(false);
-  
-        $('[data-browse-trash]').click();
+      if (!result) { return; }
 
-        Fliplet.Modal.confirm({
-          title: 'Restore complete',
-          message: options.parentFolderName + ' restored',
-          buttons: {
-            cancel: {
-              label: 'Go to folder',
-              className: 'btn-default nav-folder'
-            },
-            confirm: {
-              label: 'OK',
-              className: 'btn-primary'
-            },
+      showSpinner(false);
+      loadTrashFolder($('[data-browse-trash]'));
+
+      Fliplet.Modal.confirm({
+        title: 'Restore complete',
+        message: options.parentFolderName + ' restored',
+        buttons: {
+          cancel: {
+            label: 'Go to folder',
+            className: 'btn-default'
           },
-        }).then(function(result) {
-          if (!result) {
-            navigateToFolder(options.element);
-          }
-        })
-      }
+          confirm: {
+            label: 'OK',
+            className: 'btn-primary'
+          },
+        },
+      }).then(function(result) {
+        if (!result) {
+          navigateToFolder(options.element);
+        }
+      })
     }).catch(function(error) {
       showSpinner(false);
       
@@ -320,7 +333,7 @@ function restoreParentFolder(options) {
         message: Fliplet.parseError(error),
       })
 
-      $('.file-table-body .file-row').removeClass('restore-fade')
+      $('.file-table-body .file-row').removeClass('restore-fade');
     })
 }
 
@@ -347,7 +360,7 @@ function restoreTrashItems(items) {
         buttons: {
           cancel: {
             label: 'Cancel',
-            className: 'btn-default nav-folder'
+            className: 'btn-default'
           },
           confirm: {
             label: 'Restore',
@@ -416,7 +429,7 @@ function restoreTrashItems(items) {
           buttons: {
             cancel: {
               label: 'Go to folder',
-              className: 'btn-default nav-folder'
+              className: 'btn-default'
             },
             confirm: {
               label: 'OK',
@@ -1483,17 +1496,7 @@ $('.file-manager-wrapper')
     }
   })
   .on('click', '[data-browse-trash]', function() {
-    $('[data-browse-trash] span').addClass('active-trash');
-    $('[restore-action]').show(); 
-    $('[file-remove-trash]').show();
-
-    $('[rename-action]').hide();
-    $('[delete-action]').hide();
-
-    disableSearchState();
-    resetUpTo($(this));
-    getFolderContents($(this), true);
-    updateSearchTypeOptions($(this).data('type'));
+    loadTrashFolder($(this));
   })
   .on('click', '[restore-action]', function(event) {
     event.preventDefault();
