@@ -1496,7 +1496,7 @@ $('.file-manager-wrapper')
     }
   })
   .on('click', '[data-browse-trash]', function() {
-    loadTrashFolder($(this));
+    loadTrashFolder($('[data-browse-trash]'));
   })
   .on('click', '[restore-action]', function(event) {
     event.preventDefault();
