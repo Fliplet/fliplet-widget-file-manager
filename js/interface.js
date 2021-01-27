@@ -285,18 +285,19 @@ function getFolderContentsById(id, type, isSearchNav) {
   });
 }
 
-function loadTrashFolder(element) {
+function loadTrashFolder() {
   $('[data-browse-trash] span').addClass('active-trash');
   $('[restore-action]').show(); 
-  $('[file-remove-trash]').show();
-
+  $('[file-remove-trash]').show();  
   $('[rename-action]').hide();
   $('[delete-action]').hide();
 
+  var $element = $('[data-browse-trash]');
+
   disableSearchState();
-  resetUpTo(element);
-  getFolderContents(element, true);
-  updateSearchTypeOptions(element.data('type'));
+  resetUpTo($element);
+  getFolderContents($element, true);
+  updateSearchTypeOptions($element.data('type'));
 }
 
 function restoreParentFolder(options) {
@@ -305,7 +306,7 @@ function restoreParentFolder(options) {
       if (!result) { return; }
 
       showSpinner(false);
-      loadTrashFolder($('[data-browse-trash]'));
+      loadTrashFolder();
 
       Fliplet.Modal.confirm({
         title: 'Restore complete',
@@ -1496,7 +1497,7 @@ $('.file-manager-wrapper')
     }
   })
   .on('click', '[data-browse-trash]', function() {
-    loadTrashFolder($('[data-browse-trash]'));
+    loadTrashFolder();
   })
   .on('click', '[restore-action]', function(event) {
     event.preventDefault();
