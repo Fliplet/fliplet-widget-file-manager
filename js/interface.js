@@ -98,13 +98,9 @@ function parseThumbnail(file) {
 
 function navigateToFolder(item) {
   if (!item.data('app-id')) {
-   $('[data-org-id="' + item.data('org-id') +'"][data-browse-folder]').click();
+    $('[data-org-id="' + item.data('org-id') +'"][data-browse-folder]').click();
   } else {
-    appList.forEach(function(item) {
-      if (item.id === item.data('app-id')) {
-        $('[data-app-id="' + item.data('app-id') + '"][data-browse-folder]').click();
-      }
-    })
+    $('[data-app-id="' + item.data('app-id') + '"][data-browse-folder]').click();
   }
 }
 
@@ -352,7 +348,7 @@ function restoreTrashItems(items) {
 
     $element.addClass('restore-fade');
 
-    if (parentFolderId) {
+    if (navStack.length > 1 && parentFolderId) {
       var parentFolderName = navStack[navStack.length - 1].name;
 
       Fliplet.Modal.confirm({
