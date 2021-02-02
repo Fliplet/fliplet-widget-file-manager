@@ -1451,8 +1451,11 @@ function generateDeleteMessage(items) {
   var filesCount = 0;
 
   $(items).each(function() {
-    var itemFileType = $(this).data('file-type');
-    itemFileType === 'folder' ? foldersCount++ : filesCount++;
+    if ($(this).data('file-type') === 'folder') {
+      foldersCount++;
+    } else {
+      filesCount++;
+    }
   });
 
   if (foldersCount === 0 && filesCount === 1) {
