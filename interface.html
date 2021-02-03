@@ -284,7 +284,7 @@
 </template>
 
 <template id="template-file">
-  <div class="file-row" data-org-id="\{{organizationId}}" data-folder="\{{mediaFolderId}}" data-name="\{{name}}" data-id="\{{id}}" data-file-type="\{{#if thumbnail}}image\{{else}}document\{{/if}}" data-file-url="\{{url}}"  data-app-id="\{{appId}}" draggable="true">
+  <div class="file-row" data-org-id="\{{organizationId}}" data-folder="\{{mediaFolderId}}" data-name="\{{name}}" data-id="\{{id}}" data-file-type="\{{#if thumbnail}}image\{{else}}document\{{/if}}" data-file-url="\{{url}}"  data-app-id="\{{#if mediaFolderId}}\{{mediaFolder.appId}}\{{else}}\{{appId}}\{{/if}}" draggable="true">
     <div class="file-cell selectable">
       <div class="file-select">
         <div class="checkbox checkbox-icon">

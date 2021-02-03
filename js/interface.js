@@ -96,11 +96,51 @@ function parseThumbnail(file) {
   file.thumbnail = Fliplet.Media.authenticate(file.url.replace(Fliplet.Env.get('apiUrl'), Fliplet.Env.get('apiCdnUrl')));
 }
 
+function navigateToFirstLevelFolder($itemFolder) {    
+  // Deselection of  all active files when user switches folder
+  $itemFolder.parents('.file-manager-body').find('.file-row.active input[type="checkbox"]').click();
+  $('[restore-action]', '[file-remove-trash]').hide();
+  $('[rename-action]', '[delete-action]').show();
+
+  disableSearchState();
+  resetUpTo($itemFolder);
+  updateSearchTypeOptions($itemFolder.data('type'));
+
+  return getFolderContents($itemFolder, true);
+}
+
+function navigateToSecondLevelFolder($item) {
+  var id = $item.data('id');
+  var backItem;
+
+  removeSelection();
+  hideSideActions();
+  disableSearchState();
+
+  // Making a backstack item вроде все
+  backItem = _.find(folders, ['id', id]);
+  backItem.tempElement = $item;
+  backItem.back = function() {
+    getFolderContents(backItem.tempElement);
+  };
+  backItem.type = 'folderId';
+
+  navStack.push(backItem);
+
+  updatePaths();
+  getFolderContents($item);
+}
+
 function navigateToFolder(item) {
-  if (!item.data('app-id')) {
-    $('[data-org-id="' + item.data('org-id') +'"][data-browse-folder]').click();
+  if (item.data('folder') && item.data('app-id')) {
+    navigateToFirstLevelFolder($('[data-app-id="' + item.data('app-id') + '"][data-browse-folder]'))
+      .then(function() {
+        navigateToSecondLevelFolder($('.file-row[data-id="' + item.data('folder') + '"][data-file-type="folder"]'));
+      });
+  } else if (item.data('app-id')) {
+    navigateToFirstLevelFolder($('[data-app-id="' + item.data('app-id') + '"][data-browse-folder]'));
   } else {
-    $('[data-app-id="' + item.data('app-id') + '"][data-browse-folder]').click();
+    navigateToFirstLevelFolder($('[data-org-id="' + item.data('org-id') +'"][data-browse-folder]'));
   }
 }
 
@@ -589,7 +629,7 @@ function getFolderContents(el, isRootFolder) {
   if (el.attr('data-type') === 'trash') {
     getTrashFilesData(filterFiles, filterFolders);
   } else {
-    getFoldersData(options, filterFiles, filterFolders);
+    return getFoldersData(options, filterFiles, filterFolders);
   }
 }
 
@@ -835,7 +875,7 @@ function resetToTop(){
 }
 
 function getFoldersData(options, filterFiles, filterFolders) {
-  Fliplet.Media.Folders.get(options).then(function(response) {
+  return Fliplet.Media.Folders.get(options).then(function(response) {
     var navItem = navStack[navStack.length - 1];
     switch (navItem.type) {
       case 'organizationId':
@@ -1464,26 +1504,12 @@ $('.file-manager-wrapper')
     var $el = $(this);
     var $parent = $el.parents('.file-row');
     var id = $el.parents('.file-row').data('id');
-    var backItem;
 
     removeSelection();
     hideSideActions();
 
     if ($parent.data('file-type') === 'folder') {
-      disableSearchState();
-
-      // Store to nav stack
-      backItem = _.find(folders, ['id', id]);
-      backItem.tempElement = $('.file-row[data-id="' + id + '"]');
-      backItem.back = function() {
-        getFolderContents(backItem.tempElement);
-      };
-      backItem.type = 'folderId';
-      navStack.push(backItem);
-
-      // Update paths
-      updatePaths();
-      getFolderContents($(this).parents('.file-row'));
+      navigateToSecondLevelFolder($parent);
     } else {
       var fileURL = $('.file-row[data-id="' + id + '"]').attr('data-file-url');
 
@@ -1525,18 +1551,7 @@ $('.file-manager-wrapper')
     })
   })
   .on('click', '.dropdown-menu-holder [data-browse-folder]', function(event) {
-    // Deselection of  all active files when user switches folder
-    $(this).parents('.file-manager-body').find('.file-row.active input[type="checkbox"]').click();
-    $('[restore-action]').hide();
-    $('[file-remove-trash]').hide();
-    
-    $('[rename-action]').show();
-    $('[delete-action]').show();
-
-    disableSearchState();
-    resetUpTo($(this));
-    getFolderContents($(this), true);
-    updateSearchTypeOptions($(this).data('type'));
+    navigateToFirstLevelFolder($(this));
   })
   .on('click', '[data-create-folder]', function(event) {
     // Creates folder
