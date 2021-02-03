@@ -1441,6 +1441,32 @@ $('html').on('dragenter', function(e) {
   showDropZone();
 });
 
+// Generate correct modal delete message
+function generateDeleteMessage(items) {
+  var foldersCount = 0;
+  var filesCount = 0;
+
+  $(items).each(function() {
+    if ($(this).data('file-type') === 'folder') {
+      foldersCount++;
+    } else {
+      filesCount++;
+    }
+  });
+
+  if (foldersCount === 0 && filesCount === 1) {
+    return 'Are you sure you want to delete the file?';
+  } else if (foldersCount === 0 && filesCount > 1) {
+    return 'Are you sure you want to delete the selected files?';
+  } else if (foldersCount === 1 && filesCount === 0) {
+    return 'Are you sure you want to delete the folder?\nAll content inside the folder will be deleted too.';
+  } else if (foldersCount > 1 && filesCount === 0) {
+    return 'Are you sure you want to delete the selected folders?\nAll content inside the folders will be deleted too.';
+  } else {
+    return 'Are you sure you want to delete the selected items?\nAll the content inside any folders will be deleted too.';
+  }
+}
+
 // EVENTS //
 // Removes options popup by clicking elsewhere
 $(document).on("click", function(e) {
@@ -1652,7 +1678,7 @@ $('.file-manager-wrapper')
   .on('click', '[delete-action]', function() {
     var items = $('.file-row.active');
     Fliplet.Modal.confirm({
-      message: 'Are you sure you want to delete all selected items?\nAll the content inside a folder will be deleted too.',
+      message: generateDeleteMessage(items),
       buttons: {
         cancel: {
           label: 'Cancel',
