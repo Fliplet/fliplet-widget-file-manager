@@ -1507,7 +1507,9 @@ $('.file-manager-wrapper')
     var $items = $('.file-row.active');
     Fliplet.Modal.confirm({
       titile: 'Delete items',
-      message: 'The action will delete the file forever and it can not be undone.',
+      message: 'The action will delete '
+        + ($items.length > 1 ? $items.length + ' files' : 'the file')
+        + ' forever and it can not be undone.',
       buttons: {
         cancel: {
           label: 'Cancel',
