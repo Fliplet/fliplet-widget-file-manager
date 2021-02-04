@@ -138,7 +138,8 @@ function navigateToFolder($item) {
 function navigateToFolderItem(item) {
   var rootId = item.data('app-id')
     ? { appId: item.data('app-id') }
-    : { orgId: item.data('app-id') }
+    : { orgId: item.data('app-id') };
+
   if (item.data('folder')) {
     navigateToRootFolder(rootId)
       .then(function() {
