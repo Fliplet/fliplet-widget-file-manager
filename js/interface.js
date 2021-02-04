@@ -99,8 +99,8 @@ function parseThumbnail(file) {
 function navigateToFirstLevelFolder($itemFolder) {    
   // Deselection of  all active files when user switches folder
   $itemFolder.parents('.file-manager-body').find('.file-row.active input[type="checkbox"]').click();
-  $('[restore-action]', '[file-remove-trash]').hide();
-  $('[rename-action]', '[delete-action]').show();
+  $('[restore-action], [file-remove-trash]').hide();
+  $('[rename-action], [delete-action]').show();
 
   disableSearchState();
   resetUpTo($itemFolder);
