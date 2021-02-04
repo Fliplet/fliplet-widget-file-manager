@@ -117,7 +117,7 @@ function navigateToSecondLevelFolder($item) {
   hideSideActions();
   disableSearchState();
 
-  // Making a backstack item вроде все
+  // Making a backstack item
   backItem = _.find(folders, ['id', id]);
   backItem.tempElement = $item;
   backItem.back = function() {
