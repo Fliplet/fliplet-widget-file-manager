@@ -96,7 +96,11 @@ function parseThumbnail(file) {
   file.thumbnail = Fliplet.Media.authenticate(file.url.replace(Fliplet.Env.get('apiUrl'), Fliplet.Env.get('apiCdnUrl')));
 }
 
-function navigateToFirstLevelFolder($itemFolder) {    
+function navigateToRootLevelFolder(options) {
+  var $itemFolder = options.appId
+    ? $('[data-app-id="' + options.appId + '"][data-browse-folder]')
+    : $('[data-org-id="' + options.orgId +'"][data-browse-folder]');
+
   // Deselection of  all active files when user switches folder
   $itemFolder.parents('.file-manager-body').find('.file-row.active input[type="checkbox"]').click();
   $('[restore-action], [file-remove-trash]').hide();
@@ -109,7 +113,7 @@ function navigateToFirstLevelFolder($itemFolder) {
   return getFolderContents($itemFolder, true);
 }
 
-function navigateToSecondLevelFolder($item) {
+function navigateToFolder($item) {
   var id = $item.data('id');
   var backItem;
 
@@ -131,18 +135,14 @@ function navigateToSecondLevelFolder($item) {
   getFolderContents($item);
 }
 
-function navigateToFolder(item) {
-  var $rootElement = item.data('app-id')
-    ? $('[data-app-id="' + item.data('app-id') + '"][data-browse-folder]')
-    : $('[data-org-id="' + item.data('org-id') +'"][data-browse-folder]');
-
+function navigateToFolderItem(item) {
   if (item.data('folder')) {
-    navigateToFirstLevelFolder($rootElement)
+    navigateToRootLevelFolder({ appId: item.data('app-id'), orgId: item.data('org-id') })
       .then(function() {
-        navigateToSecondLevelFolder($('.file-row[data-id="' + item.data('folder') + '"][data-file-type="folder"]'));
+        navigateToFolder($('.file-row[data-id="' + item.data('folder') + '"][data-file-type="folder"]'));
       });
   } else {
-    navigateToFirstLevelFolder($rootElement);
+    navigateToRootLevelFolder({ appId: item.data('app-id'), orgId: item.data('org-id') });
   }
 }
 
@@ -361,7 +361,7 @@ function restoreParentFolder(options) {
         }
       }).then(function(result) {
         if (!result) {
-          navigateToFolder(options.element);
+          navigateToFolderItem(options.element);
         }
       });
     }).catch(function(error) {
@@ -477,7 +477,7 @@ function restoreTrashItems(items) {
           },
         }).then(function(result) {
           if (!result) {
-            navigateToFolder($element);
+            navigateToFolderItem($element);
           }
         })
       }
@@ -1511,7 +1511,7 @@ $('.file-manager-wrapper')
     hideSideActions();
 
     if ($parent.data('file-type') === 'folder') {
-      navigateToSecondLevelFolder($parent);
+      navigateToFolder($parent);
     } else {
       var fileURL = $('.file-row[data-id="' + id + '"]').attr('data-file-url');
 
@@ -1553,7 +1553,7 @@ $('.file-manager-wrapper')
     })
   })
   .on('click', '.dropdown-menu-holder [data-browse-folder]', function(event) {
-    navigateToFirstLevelFolder($(this));
+    navigateToRootLevelFolder({ appId: $(this).data('app-id'), orgId: $(this).data('org-id') });
   })
   .on('click', '[data-create-folder]', function(event) {
     // Creates folder
