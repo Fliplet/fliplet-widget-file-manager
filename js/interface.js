@@ -96,7 +96,7 @@ function parseThumbnail(file) {
   file.thumbnail = Fliplet.Media.authenticate(file.url.replace(Fliplet.Env.get('apiUrl'), Fliplet.Env.get('apiCdnUrl')));
 }
 
-function navigateToRootLevelFolder(options) {
+function navigateToRootFolder(options) {
   var $itemFolder = options.appId
     ? $('[data-app-id="' + options.appId + '"][data-browse-folder]')
     : $('[data-org-id="' + options.orgId +'"][data-browse-folder]');
@@ -136,13 +136,16 @@ function navigateToFolder($item) {
 }
 
 function navigateToFolderItem(item) {
+  var rootId = item.data('app-id')
+    ? { appId: item.data('app-id') }
+    : { orgId: item.data('app-id') }
   if (item.data('folder')) {
-    navigateToRootLevelFolder({ appId: item.data('app-id'), orgId: item.data('org-id') })
+    navigateToRootFolder(rootId)
       .then(function() {
         navigateToFolder($('.file-row[data-id="' + item.data('folder') + '"][data-file-type="folder"]'));
       });
   } else {
-    navigateToRootLevelFolder({ appId: item.data('app-id'), orgId: item.data('org-id') });
+    navigateToRootFolder(rootId);
   }
 }
 
@@ -629,10 +632,10 @@ function getFolderContents(el, isRootFolder) {
   };
 
   if (el.attr('data-type') === 'trash') {
-    getTrashFilesData(filterFiles, filterFolders);
-  } else {
-    return getFoldersData(options, filterFiles, filterFolders);
+    return getTrashFilesData(filterFiles, filterFolders);
   }
+
+  return getFoldersData(options, filterFiles, filterFolders);
 }
 
 // Adds organization item template
@@ -1553,7 +1556,11 @@ $('.file-manager-wrapper')
     })
   })
   .on('click', '.dropdown-menu-holder [data-browse-folder]', function(event) {
-    navigateToRootLevelFolder({ appId: $(this).data('app-id'), orgId: $(this).data('org-id') });
+    var rootId = $(this).data('app-id')
+      ? { appId: $(this).data('app-id') }
+      : { orgId: $(this).data('org-id') };
+
+    navigateToRootFolder(rootId);
   })
   .on('click', '[data-create-folder]', function(event) {
     // Creates folder
