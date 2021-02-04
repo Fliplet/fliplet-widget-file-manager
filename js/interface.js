@@ -132,15 +132,17 @@ function navigateToSecondLevelFolder($item) {
 }
 
 function navigateToFolder(item) {
-  if (item.data('folder') && item.data('app-id')) {
-    navigateToFirstLevelFolder($('[data-app-id="' + item.data('app-id') + '"][data-browse-folder]'))
+  var $rootElement = item.data('app-id')
+    ? $('[data-app-id="' + item.data('app-id') + '"][data-browse-folder]')
+    : $('[data-org-id="' + item.data('org-id') +'"][data-browse-folder]');
+
+  if (item.data('folder')) {
+    navigateToFirstLevelFolder($rootElement)
       .then(function() {
         navigateToSecondLevelFolder($('.file-row[data-id="' + item.data('folder') + '"][data-file-type="folder"]'));
       });
-  } else if (item.data('app-id')) {
-    navigateToFirstLevelFolder($('[data-app-id="' + item.data('app-id') + '"][data-browse-folder]'));
   } else {
-    navigateToFirstLevelFolder($('[data-org-id="' + item.data('org-id') +'"][data-browse-folder]'));
+    navigateToFirstLevelFolder($rootElement);
   }
 }
 
