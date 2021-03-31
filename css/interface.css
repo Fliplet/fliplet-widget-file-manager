@@ -685,14 +685,11 @@ html {
   width: 176px;
 }
 
-.file-cell.file-id-cell {
-  width: 60px;
-}
-
 .file-cell.file-path-cell {
   width: 300px;
 }
 
+.file-cell.file-id-cell,
 .file-cell.file-size-cell {
   width: 100px;
 }
