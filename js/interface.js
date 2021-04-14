@@ -381,7 +381,7 @@ function restoreParentFolder(options) {
 }
 
 function confirmDelete(element) {
-  var itemID = element.attr('data-id');
+  var itemID = Number(element.attr('data-id'));
   var isFolder = element.attr('data-file-type') === 'folder';
 
   Fliplet.Modal.confirm({
@@ -397,9 +397,9 @@ function confirmDelete(element) {
         className: 'btn-primary'
       }
     }
-  }).then(function(result) {
-    if (!result) {
-      var url = isFolder ? 'v1/media/folders/' : 'v1/media/files/' + itemID  + '/restore';
+  }).then(function(deleteResult) {
+    if (!deleteResult) {
+      var url = (isFolder ? 'v1/media/folders/' : 'v1/media/files/') + itemID  + '/restore';
 
       Fliplet.API.request({
         url: url,
@@ -410,7 +410,7 @@ function confirmDelete(element) {
         });
       }).catch(function(error) {
         Fliplet.Modal.confirm({
-          title: isFolder ? 'Folder ' : 'File ' + 'restore failed',
+          title: (isFolder ? 'Folder ' : 'File ') + 'restore failed',
           message: Fliplet.parseError(error),
           buttons: {
             cancel: {
@@ -422,8 +422,8 @@ function confirmDelete(element) {
               className: 'btn-primary'
             },
           },
-        }).then(function(result) {
-          if (!result) {
+        }).then(function(restoreResult) {
+          if (!restoreResult) {
             $('[data-browse-trash]').click();
           }
         });
@@ -432,8 +432,8 @@ function confirmDelete(element) {
       return;
     }
 
-    _.filter(isFolder ? currentFolders : currentFiles, function(item) {
-      return item.id !== itemID;
+    _.remove(isFolder ? currentFolders : currentFiles, function(item) {
+      return item.id === itemID;
     });
 
     element.remove();
