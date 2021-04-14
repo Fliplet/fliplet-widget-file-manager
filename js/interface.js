@@ -416,9 +416,19 @@ function deletionModalConfirm(element) {
           message: isFolder ? 'Folder' : 'File' +' restored from trash',
         });
       }).catch(function(error) {
-        Fliplet.Modal.alert({
+        Fliplet.Modal.confirm({
           title: 'Restore failed',
           message: Fliplet.parseError(error),
+          buttons: {
+            cancel: {
+              label: 'Go to Trash',
+              className: 'btn-default'
+            },
+            confirm: {
+              label: 'OK',
+              className: 'btn-primary'
+            },
+          },
         });
       });
 
@@ -546,19 +556,9 @@ function restoreTrashItems(items) {
       }
     }).catch(function(error) {
       showSpinner(false);
-      Fliplet.Modal.confirm({
+      Fliplet.Modal.alert({
         title: 'Restore failed',
         message: Fliplet.parseError(error),
-        buttons: {
-          cancel: {
-            label: 'Go to Trash',
-            className: 'btn-default'
-          },
-          confirm: {
-            label: 'OK',
-            className: 'btn-primary'
-          },
-        },
       }).then(function() {
         if (!result) {
           $('[data-browse-trash]').click();
