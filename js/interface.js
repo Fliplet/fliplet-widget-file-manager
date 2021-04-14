@@ -400,19 +400,12 @@ function confirmDelete(element) {
     }
   }).then(function(result) {
     if (!result) {
-      if (isFolder) {
-        restorePromise = Fliplet.API.request({
-          url: 'v1/media/folders/' + itemID + '/restore',
-          method: 'POST',
-        })
-      } else {
-        restorePromise = Fliplet.API.request({
-          url: 'v1/media/files/' + itemID + '/restore',
-          method: 'POST',
-        })
-      }
+      var url = isFolder ? 'v1/media/folders' : 'v1/media/files' + itemID +'/restore';
 
-      restorePromise.then(function() {
+      Fliplet.API.request({
+        url: url,
+        method: 'POST',
+      }).then(function() {
         Fliplet.Modal.alert({
           message: isFolder ? 'Folder' : 'File' +' restored from trash',
         });
@@ -441,7 +434,7 @@ function confirmDelete(element) {
     }
 
     if (isFolder) {
-      currentFolders = currentFolders.filter(function(folder){
+      return currentFolders = currentFolders.filter(function(folder){
         return folder.id != itemID;
       });
     } else {
@@ -449,6 +442,7 @@ function confirmDelete(element) {
         return file.id != itemID;
       });
     }
+
 
     element.remove();
   })
