@@ -380,6 +380,65 @@ function restoreParentFolder(options) {
     });
 }
 
+function deletionModalConfirm(element) {
+  var itemID = element.attr('data-id');
+  var isFolder = element.attr('data-file-type') === 'folder';
+  var restorePromise;
+  Fliplet.Modal.confirm({
+    title: 'Moved to Trash',
+    message: 'You can access the deleted file in <b>File manager > Trash</b>',
+    buttons: {
+      cancel: {
+        label: 'Undo',
+        className: 'btn-default'
+      },
+      confirm: {
+        label: 'OK',
+        className: 'btn-primary'
+      }
+    }
+  }).then(function(result) {
+    if (!result) {
+      if (isFolder) {
+        restorePromise = Fliplet.API.request({
+          url: 'v1/media/folders/' + itemID + '/restore',
+          method: 'POST',
+        })
+      } else {
+        restorePromise = Fliplet.API.request({
+          url: 'v1/media/files/' + itemID + '/restore',
+          method: 'POST',
+        })
+      }
+
+      restorePromise.then(function() {
+        Fliplet.Modal.alert({
+          message: isFolder ? 'Folder' : 'File' +' restored from trash',
+        });
+      }).catch(function(error) {
+        Fliplet.Modal.alert({
+          title: 'Restore failed',
+          message: Fliplet.parseError(error),
+        });
+      });
+
+      return;
+    }
+
+    if (isFolder) {
+      currentFolders = currentFolders.filter(function(folder){
+        return folder.id != itemID;
+      });
+    } else {
+      currentFiles = currentFiles.filter(function(file){
+        return file.id != itemID;
+      });
+    }
+
+    element.remove();
+  })
+}
+
 function restoreTrashItems(items) {
   completedItems = 0;
 
@@ -487,12 +546,26 @@ function restoreTrashItems(items) {
       }
     }).catch(function(error) {
       showSpinner(false);
-      Fliplet.Modal.alert({
+      Fliplet.Modal.confirm({
         title: 'Restore failed',
         message: Fliplet.parseError(error),
-      })
-    })
-  })
+        buttons: {
+          cancel: {
+            label: 'Go to Trash',
+            className: 'btn-default'
+          },
+          confirm: {
+            label: 'OK',
+            className: 'btn-primary'
+          },
+        },
+      }).then(function() {
+        if (!result) {
+          $('[data-browse-trash]').click();
+        }
+      });
+    });
+  });
 }
 
 function removeTrashItems(items) {
@@ -1725,24 +1798,14 @@ $('.file-manager-wrapper')
   
           if ($element.attr('data-file-type') === 'folder') {
             deletePromise = Fliplet.Media.Folders.delete(itemID).then(function() {
-              $element.remove();
               checkboxStatus();
-  
-              currentFolders = currentFolders.filter(function(folder){
-                return folder.id != itemID;
-              });
   
               // Toggle checkbox header to false
               $('.file-table-header input[type="checkbox"]').prop('checked', false);
             });
           } else {
             deletePromise = Fliplet.Media.Files.delete(itemID).then(function() {
-              $element.remove();
               checkboxStatus();
-  
-              currentFiles = currentFiles.filter(function(file){
-                return file.id != itemID;
-              });
   
               // Toggle checkbox header to false
               $('.file-table-header input[type="checkbox"]').prop('checked', false);
@@ -1751,6 +1814,7 @@ $('.file-manager-wrapper')
   
           deletePromise.then(function () {
             showSpinner(false);
+            deletionModalConfirm($element)
           }).catch(function (err) {
             showSpinner(false);
             Fliplet.Modal.alert({
