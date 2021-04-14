@@ -563,6 +563,10 @@ function restoreTrashItems(items) {
       Fliplet.Modal.alert({
         title: 'Restore failed',
         message: Fliplet.parseError(error),
+      }).then(function() {
+        if (!result) {
+          $('[data-browse-trash]').click();
+        }
       });
     });
   });
