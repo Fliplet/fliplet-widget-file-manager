@@ -443,7 +443,6 @@ function confirmDelete(element) {
       });
     }
 
-
     element.remove();
   })
 }
