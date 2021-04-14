@@ -417,7 +417,7 @@ function deletionModalConfirm(element) {
         });
       }).catch(function(error) {
         Fliplet.Modal.confirm({
-          title: 'Restore failed',
+          title: isFolder ? 'Folder' : 'File' + 'restore failed',
           message: Fliplet.parseError(error),
           buttons: {
             cancel: {
