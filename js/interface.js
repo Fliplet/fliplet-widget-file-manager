@@ -434,7 +434,7 @@ function confirmDelete(element) {
     }
 
     if (isFolder) {
-      return currentFolders = currentFolders.filter(function(folder){
+      currentFolders = currentFolders.filter(function(folder){
         return folder.id != itemID;
       });
     } else {
