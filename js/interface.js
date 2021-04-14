@@ -399,18 +399,18 @@ function confirmDelete(element) {
     }
   }).then(function(result) {
     if (!result) {
-      var url = isFolder ? 'v1/media/folders' : 'v1/media/files' + itemID +'/restore';
+      var url = isFolder ? 'v1/media/folders/' : 'v1/media/files/' + itemID  + '/restore';
 
       Fliplet.API.request({
         url: url,
         method: 'POST',
       }).then(function() {
         Fliplet.Modal.alert({
-          message: isFolder ? 'Folder' : 'File' +' restored from trash',
+          message: isFolder ? 'Folder ' : 'File ' +'restored from trash',
         });
       }).catch(function(error) {
         Fliplet.Modal.confirm({
-          title: isFolder ? 'Folder' : 'File' + 'restore failed',
+          title: isFolder ? 'Folder ' : 'File ' + 'restore failed',
           message: Fliplet.parseError(error),
           buttons: {
             cancel: {
@@ -422,7 +422,7 @@ function confirmDelete(element) {
               className: 'btn-primary'
             },
           },
-        }).then(function() {
+        }).then(function(result) {
           if (!result) {
             $('[data-browse-trash]').click();
           }
