@@ -556,7 +556,7 @@ function restoreTrashItems(items) {
       }
     }).catch(function(error) {
       showSpinner(false);
-      Fliplet.Modal.alert({
+      Fliplet.Modal.confirm({
         title: 'Restore failed',
         message: Fliplet.parseError(error),
       }).then(function() {
