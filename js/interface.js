@@ -380,10 +380,11 @@ function restoreParentFolder(options) {
     });
 }
 
-function deletionModalConfirm(element) {
+function confirmDelete(element) {
   var itemID = element.attr('data-id');
   var isFolder = element.attr('data-file-type') === 'folder';
   var restorePromise;
+
   Fliplet.Modal.confirm({
     title: 'Moved to Trash',
     message: 'You can access the deleted file in <b>File manager > Trash</b>',
@@ -1814,7 +1815,7 @@ $('.file-manager-wrapper')
   
           deletePromise.then(function () {
             showSpinner(false);
-            deletionModalConfirm($element)
+            confirmDelete($element)
           }).catch(function (err) {
             showSpinner(false);
             Fliplet.Modal.alert({
