@@ -429,6 +429,10 @@ function deletionModalConfirm(element) {
               className: 'btn-primary'
             },
           },
+        }).then(function() {
+          if (!result) {
+            $('[data-browse-trash]').click();
+          }
         });
       });
 
@@ -556,13 +560,9 @@ function restoreTrashItems(items) {
       }
     }).catch(function(error) {
       showSpinner(false);
-      Fliplet.Modal.confirm({
+      Fliplet.Modal.alert({
         title: 'Restore failed',
         message: Fliplet.parseError(error),
-      }).then(function() {
-        if (!result) {
-          $('[data-browse-trash]').click();
-        }
       });
     });
   });
