@@ -433,7 +433,7 @@ function confirmDelete(element) {
     }
 
     _.filter(isFolder ? currentFolders : currentFiles, function(item) {
-      return item.id !== itemId
+      return item.id !== itemID;
     });
 
     element.remove();
