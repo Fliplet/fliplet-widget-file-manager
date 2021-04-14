@@ -444,7 +444,7 @@ function confirmDelete(element) {
     }
 
     element.remove();
-  })
+  });
 }
 
 function restoreTrashItems(items) {
@@ -1808,7 +1808,7 @@ $('.file-manager-wrapper')
   
           deletePromise.then(function () {
             showSpinner(false);
-            confirmDelete($element)
+            confirmDelete($element);
           }).catch(function (err) {
             showSpinner(false);
             Fliplet.Modal.alert({
