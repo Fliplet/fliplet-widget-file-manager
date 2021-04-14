@@ -383,7 +383,6 @@ function restoreParentFolder(options) {
 function confirmDelete(element) {
   var itemID = element.attr('data-id');
   var isFolder = element.attr('data-file-type') === 'folder';
-  var restorePromise;
 
   Fliplet.Modal.confirm({
     title: 'Moved to Trash',
@@ -433,15 +432,9 @@ function confirmDelete(element) {
       return;
     }
 
-    if (isFolder) {
-      currentFolders = currentFolders.filter(function(folder){
-        return folder.id != itemID;
-      });
-    } else {
-      currentFiles = currentFiles.filter(function(file){
-        return file.id != itemID;
-      });
-    }
+    _.filter(isFolder ? currentFolders : currentFiles, function(item) {
+      return item.id !== itemId
+    });
 
     element.remove();
   });
