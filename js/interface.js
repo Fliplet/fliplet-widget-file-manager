@@ -453,7 +453,7 @@ function restoreTrashItems(items) {
             ? currentFolders
             : currentFiles, function(item) {
               return item.id !== +itemID;
-            })
+            });
 
           $element.remove();
 
@@ -465,7 +465,7 @@ function restoreTrashItems(items) {
             Fliplet.Modal.alert({
               title: 'Restore complete',
               message: items.length + ' items restored'
-            })
+            });
           } else if (completedItems === items.length && completedItems === 1) {
             Fliplet.Modal.confirm({
               title: 'Restore complete',
@@ -504,7 +504,6 @@ function restoreTrashItems(items) {
   });
 
   if (restorePromise.length) {
-
     return Promise.all(restorePromise);
   }
 }
@@ -1741,11 +1740,11 @@ $('.file-manager-wrapper')
           var itemID = $element.attr('data-id');
           var deletionItemMethod = $element.attr('data-file-type') === 'folder'
           ? 'Folders'
-          : 'Files'
+          : 'Files';
 
           deletionItemType = $element.attr('data-file-type') === 'folder'
             ? 'folder'
-            : 'file'
+            : 'file';
 
           itemsToDelete.push(Fliplet.Media[deletionItemMethod].delete(itemID));
         });
@@ -1756,7 +1755,7 @@ $('.file-manager-wrapper')
 
           var deletionMessage = itemsToDelete.length === 1
             ? 'You can access the deleted ' + deletionItemType + ' in <b>File manager > Trash</b>'
-            : 'You can access the deleted items in <b>File manager > Trash</b>'
+            : 'You can access the deleted items in <b>File manager > Trash</b>';
 
           Fliplet.Modal.confirm({
             title: 'Moved to Trash',
