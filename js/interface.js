@@ -1730,19 +1730,19 @@ $('.file-manager-wrapper')
     }).then(function(result) {
       if (result) {
         var itemsToDelete = [];
-        var deletedItemIds = [];
         var deletionItemType;
 
         showSpinner(true);
 
         $(items).each(function() {
           var $element = $(this);
-          var itemID = $element.attr('data-id');
-          var deletionItemMethod = $element.attr('data-file-type') === 'folder'
+          var itemID = Number($element.attr('data-id'));
+          var itemType = $element.attr('data-file-type');
+          var deletionItemMethod = itemType === 'folder'
           ? 'Folders'
           : 'Files';
 
-          deletionItemType = $element.attr('data-file-type') === 'folder'
+          deletionItemType = itemType === 'folder'
             ? 'folder'
             : 'file';
 
