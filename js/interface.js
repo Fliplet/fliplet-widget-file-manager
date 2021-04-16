@@ -449,43 +449,43 @@ function restoreTrashItems(items) {
         $element.removeClass('restore-fade');
         showSpinner(false);
 
-          _.remove(itemType === 'folders'
-            ? currentFolders
-            : currentFiles, function(item) {
-              return item.id !== +itemID;
-            });
+        _.remove(itemType === 'folders'
+          ? currentFolders
+          : currentFiles, function(item) {
+            return item.id !== +itemID;
+          });
 
-          $element.remove();
+        $element.remove();
 
-          if (!currentFolders.length || !currentFiles.length) {
-            $('.empty-state').addClass('active');
-          }
+        if (!currentFolders.length || !currentFiles.length) {
+          $('.empty-state').addClass('active');
+        }
 
-          if (completedItems === items.length && completedItems !== 1) {
-            Fliplet.Modal.alert({
-              title: 'Restore complete',
-              message: items.length + ' items restored'
-            });
-          } else if (completedItems === items.length && completedItems === 1) {
-            Fliplet.Modal.confirm({
-              title: 'Restore complete',
-              message: itemName + ' restored',
-              buttons: {
-                cancel: {
-                  label: 'Go to folder',
-                  className: 'btn-default'
-                },
-                confirm: {
-                  label: 'OK',
-                  className: 'btn-primary'
-                },
+        if (completedItems === items.length && completedItems !== 1) {
+          Fliplet.Modal.alert({
+            title: 'Restore complete',
+            message: items.length + ' items restored'
+          });
+        } else if (completedItems === items.length && completedItems === 1) {
+          Fliplet.Modal.confirm({
+            title: 'Restore complete',
+            message: itemName + ' restored',
+            buttons: {
+              cancel: {
+                label: 'Go to folder',
+                className: 'btn-default'
               },
-            }).then(function(result) {
-              if (!result) {
-                navigateToFolderItem($element);
-              }
-            });
-          }
+              confirm: {
+                label: 'OK',
+                className: 'btn-primary'
+              },
+            },
+          }).then(function(result) {
+            if (!result) {
+              navigateToFolderItem($element);
+            }
+          });
+        }
       }).catch(function(error) {
         showSpinner(false);
         Fliplet.Modal.alert({
