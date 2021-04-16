@@ -1730,22 +1730,18 @@ $('.file-manager-wrapper')
     }).then(function(result) {
       if (result) {
         var itemsToDelete = [];
-        var deletionItemType;
+        var itemType;
 
         showSpinner(true);
 
         $(items).each(function() {
           var $element = $(this);
           var itemID = Number($element.attr('data-id'));
-          var itemType = $element.attr('data-file-type');
           var deletionItemMethod = itemType === 'folder'
           ? 'Folders'
           : 'Files';
 
-          deletionItemType = itemType === 'folder'
-            ? 'folder'
-            : 'file';
-
+          itemType = $element.attr('data-file-type');
           itemsToDelete.push(Fliplet.Media[deletionItemMethod].delete(itemID));
         });
 
@@ -1754,7 +1750,7 @@ $('.file-manager-wrapper')
           checkboxStatus();
 
           var deletionMessage = itemsToDelete.length === 1
-            ? 'You can access the deleted ' + deletionItemType + ' in <b>File manager > Trash</b>'
+            ? 'You can access the deleted ' + itemType + ' in <b>File manager > Trash</b>'
             : 'You can access the deleted items in <b>File manager > Trash</b>';
 
           Fliplet.Modal.confirm({
@@ -1775,13 +1771,13 @@ $('.file-manager-wrapper')
               restoreTrashItems(items).then(function() {
                 Fliplet.Modal.alert({
                   message: itemsToDelete.length === 1
-                    ?  deletionItemType +' restored from Trash'
+                    ?  itemType +' restored from Trash'
                     : 'items restored from Trash'
                 });
               }).catch(function(err) {
                 Fliplet.Modal.confirm({
                   title: itemsToDelete.length === 1
-                    ?  deletionItemType +' restore failed'
+                    ?  itemType +' restore failed'
                     : 'items restore failed',
                   message: Fliplet.parseError(err)
                 })
@@ -1795,7 +1791,7 @@ $('.file-manager-wrapper')
               var $element = $(this);
               var itemID = $element.attr('data-id');
 
-              _.remove(deletionItemType === 'folder'
+              _.remove(itemType === 'folder'
                 ? currentFolders
                 : currentFiles, function(item) {
                   return item.id !== +itemID;
