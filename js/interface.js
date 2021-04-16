@@ -342,6 +342,20 @@ function loadTrashFolder() {
   updateSearchTypeOptions($element.data('type'));
 }
 
+function restoreAction(type, id) {
+  var url = 'v1/media/' + type + '/' + id + '/restore';
+
+  return Fliplet.API.request({
+    url: url,
+    method: 'POST',
+  }).then(function() {
+    checkboxStatus();
+    completedItems++;
+
+    $('.file-table-header input[type="checkbox"]').prop('checked', false);
+  });
+}
+
 function restoreParentFolder(options) {
   Fliplet.API.request(options.request)
     .then(function(result) {
@@ -380,75 +394,19 @@ function restoreParentFolder(options) {
     });
 }
 
-function confirmDelete(element) {
-  var itemID = Number(element.attr('data-id'));
-  var isFolder = element.attr('data-file-type') === 'folder';
-
-  Fliplet.Modal.confirm({
-    title: 'Moved to Trash',
-    message: 'You can access the deleted file in <b>File manager > Trash</b>',
-    buttons: {
-      cancel: {
-        label: 'Undo',
-        className: 'btn-default'
-      },
-      confirm: {
-        label: 'OK',
-        className: 'btn-primary'
-      }
-    }
-  }).then(function(deleteResult) {
-    if (!deleteResult) {
-      var url = (isFolder ? 'v1/media/folders/' : 'v1/media/files/') + itemID  + '/restore';
-
-      Fliplet.API.request({
-        url: url,
-        method: 'POST',
-      }).then(function() {
-        Fliplet.Modal.alert({
-          message: isFolder ? 'Folder ' : 'File ' +'restored from trash',
-        });
-      }).catch(function(error) {
-        Fliplet.Modal.confirm({
-          title: (isFolder ? 'Folder ' : 'File ') + 'restore failed',
-          message: Fliplet.parseError(error),
-          buttons: {
-            cancel: {
-              label: 'Go to Trash',
-              className: 'btn-default'
-            },
-            confirm: {
-              label: 'OK',
-              className: 'btn-primary'
-            },
-          },
-        }).then(function(restoreResult) {
-          if (!restoreResult) {
-            $('[data-browse-trash]').click();
-          }
-        });
-      });
-
-      return;
-    }
-
-    _.remove(isFolder ? currentFolders : currentFiles, function(item) {
-      return item.id === itemID;
-    });
-
-    element.remove();
-  });
-}
-
 function restoreTrashItems(items) {
   completedItems = 0;
 
+  var restorePromise = [];
+
   $(items).each(function() {
-    var restorePromise;
     var $element = $(this);
     var itemID = $element.attr('data-id');
     var itemName = $element.attr('data-name');
     var parentFolderId = $element.attr('data-folder');
+    var itemType = $element.attr('data-file-type') === 'folder'
+      ? 'folders'
+      : 'files'
 
     showSpinner(true);
 
@@ -486,73 +444,69 @@ function restoreTrashItems(items) {
       return false;
     }
 
-    if ($element.attr('data-file-type') === 'folder') {
-      restorePromise = Fliplet.API.request({
-        url: 'v1/media/folders/' + itemID + '/restore',
-        method: 'POST',
-      }).then(function() {
-        $element.remove();
-        checkboxStatus();
-        completedItems++;
+    if ($('[data-browse-trash] span').hasClass('active-trash')) {
+      restoreAction(itemType, itemID).then(function() {
+        $element.removeClass('restore-fade');
+        showSpinner(false);
 
-        currentFolders = currentFolders.filter(function(folder) {
-          return folder.id != itemID;
+          _.remove(itemType === 'folders'
+            ? currentFolders
+            : currentFiles, function(item) {
+              return item.id !== +itemID;
+            })
+
+          $element.remove();
+
+          if (!currentFolders.length || !currentFiles.length) {
+            $('.empty-state').addClass('active');
+          }
+
+          if (completedItems === items.length && completedItems !== 1) {
+            Fliplet.Modal.alert({
+              title: 'Restore complete',
+              message: items.length + ' items restored'
+            })
+          } else if (completedItems === items.length && completedItems === 1) {
+            Fliplet.Modal.confirm({
+              title: 'Restore complete',
+              message: itemName + ' restored',
+              buttons: {
+                cancel: {
+                  label: 'Go to folder',
+                  className: 'btn-default'
+                },
+                confirm: {
+                  label: 'OK',
+                  className: 'btn-primary'
+                },
+              },
+            }).then(function(result) {
+              if (!result) {
+                navigateToFolderItem($element);
+              }
+            });
+          }
+      }).catch(function(error) {
+        showSpinner(false);
+        Fliplet.Modal.alert({
+          title: 'Restore failed',
+          message: Fliplet.parseError(error),
         });
-        $('.file-table-header input[type="checkbox"]').prop('checked', false);
-      })
-    } else {
-      restorePromise = Fliplet.API.request({
-        url: 'v1/media/files/' + itemID + '/restore',
-        method: 'POST',
-      }).then(function() {
-        $element.remove();
-        checkboxStatus();
-        completedItems++;
+      });
 
-        currentFiles = currentFiles.filter(function(file){
-          return file.id != itemID;
-        });
-
-        $('.file-table-header input[type="checkbox"]').prop('checked', false);
-      })
+      return;
     }
 
-    restorePromise.then(function(result) {
-      showSpinner(false);
+    showSpinner(false);
+    $element.removeClass('restore-fade');
 
-      if (completedItems === items.length && completedItems !== 1) {
-        Fliplet.Modal.alert({
-          title: 'Restore complete',
-          message: items.length + ' items restored'
-        })
-      } else if (completedItems === items.length && completedItems === 1) {
-        Fliplet.Modal.confirm({
-          title: 'Restore complete',
-          message: itemName + ' restored',
-          buttons: {
-            cancel: {
-              label: 'Go to folder',
-              className: 'btn-default'
-            },
-            confirm: {
-              label: 'OK',
-              className: 'btn-primary'
-            },
-          },
-        }).then(function(result) {
-          if (!result) {
-            navigateToFolderItem($element);
-          }
-        })
-      }
-    }).catch(function(error) {
-      showSpinner(false);
-      Fliplet.Modal.alert({
-        title: 'Restore failed',
-        message: Fliplet.parseError(error),
-      });
-    });
+    return restorePromise.push(restoreAction(itemType, itemID));
   });
+
+  if (restorePromise.length) {
+
+    return Promise.all(restorePromise);
+  }
 }
 
 function removeTrashItems(items) {
@@ -1776,41 +1730,93 @@ $('.file-manager-wrapper')
       }
     }).then(function(result) {
       if (result) {
+        var itemsToDelete = [];
+        var deletedItemIds = [];
+        var deletionItemType;
+
+        showSpinner(true);
+
         $(items).each(function() {
           var $element = $(this);
           var itemID = $element.attr('data-id');
-          var deletePromise;
-  
-          showSpinner(true);
-  
-          if ($element.attr('data-file-type') === 'folder') {
-            deletePromise = Fliplet.Media.Folders.delete(itemID).then(function() {
-              checkboxStatus();
-  
-              // Toggle checkbox header to false
-              $('.file-table-header input[type="checkbox"]').prop('checked', false);
-            });
-          } else {
-            deletePromise = Fliplet.Media.Files.delete(itemID).then(function() {
-              checkboxStatus();
-  
-              // Toggle checkbox header to false
-              $('.file-table-header input[type="checkbox"]').prop('checked', false);
-            });
-          }
-  
-          deletePromise.then(function () {
-            showSpinner(false);
-            confirmDelete($element);
-          }).catch(function (err) {
-            showSpinner(false);
-            Fliplet.Modal.alert({
-              message: Fliplet.parseError(err)
+          var deletionItemMethod = $element.attr('data-file-type') === 'folder'
+          ? 'Folders'
+          : 'Files'
+
+          deletionItemType = $element.attr('data-file-type') === 'folder'
+            ? 'folder'
+            : 'file'
+
+          itemsToDelete.push(Fliplet.Media[deletionItemMethod].delete(itemID));
+        });
+
+        Promise.all(itemsToDelete).then(function() {
+          showSpinner(false);
+          checkboxStatus();
+
+          var deletionMessage = itemsToDelete.length === 1
+            ? 'You can access the deleted ' + deletionItemType + ' in <b>File manager > Trash</b>'
+            : 'You can access the deleted items in <b>File manager > Trash</b>'
+
+          Fliplet.Modal.confirm({
+            title: 'Moved to Trash',
+            message: deletionMessage,
+            buttons: {
+              cancel: {
+                label: 'Undo',
+                className: 'btn-default'
+              },
+              confirm: {
+                label: 'OK',
+                className: 'btn-primary'
+              }
+            }
+          }).then(function(deleteResult) {
+            if (!deleteResult) {
+              restoreTrashItems(items).then(function() {
+                Fliplet.Modal.alert({
+                  message: itemsToDelete.length === 1
+                    ?  deletionItemType +' restored from Trash'
+                    : 'items restored from Trash'
+                });
+              }).catch(function(err) {
+                Fliplet.Modal.confirm({
+                  title: itemsToDelete.length === 1
+                    ?  deletionItemType +' restore failed'
+                    : 'items restore failed',
+                  message: Fliplet.parseError(err)
+                })
+              });
+
+              return;
+            }
+
+            $('.file-table-header input[type="checkbox"]').prop('checked', false);
+            $(items).each(function() {
+              var $element = $(this);
+              var itemID = $element.attr('data-id');
+
+              _.remove(deletionItemType === 'folder'
+                ? currentFolders
+                : currentFiles, function(item) {
+                  return item.id !== +itemID;
+                });
+
+              $element.remove();
+
+              if (!currentFolders.length || !currentFiles.length) {
+                $('.empty-state').addClass('active');
+              }
             })
+          })
+        }).catch(function(err) {
+          showSpinner(false);
+          Fliplet.Modal.alert({
+            message: Fliplet.parseError(err)
           });
         });
       }
-    })
+    });
   })
   .on('click', '[download-action]', function() {
     var items = $('.file-row.active'),
