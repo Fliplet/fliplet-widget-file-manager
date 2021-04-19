@@ -1738,11 +1738,13 @@ $('.file-manager-wrapper')
         $(items).each(function() {
           var $element = $(this);
           var itemID = Number($element.attr('data-id'));
+
+          itemType = $element.attr('data-file-type');
+
           var deletionItemMethod = itemType === 'folder'
           ? 'Folders'
           : 'Files';
 
-          itemType = $element.attr('data-file-type');
           itemsToDelete.push(Fliplet.Media[deletionItemMethod].delete(itemID));
         });
 
@@ -1790,20 +1792,21 @@ $('.file-manager-wrapper')
             $('.file-table-header input[type="checkbox"]').prop('checked', false);
             $(items).each(function() {
               var $element = $(this);
-              var itemID = $element.attr('data-id');
+              var itemID = Number($element.attr('data-id'));
 
               _.remove(itemType === 'folder'
                 ? currentFolders
                 : currentFiles, function(item) {
-                  return item.id !== +itemID;
+                  return item.id === itemID;
                 });
 
               $element.remove();
 
-              if (!currentFolders.length || !currentFiles.length) {
-                $('.empty-state').addClass('active');
-              }
             })
+
+            if (!currentFolders.length && !currentFiles.length) {
+              $('.empty-state').addClass('active');
+            }
           })
         }).catch(function(err) {
           showSpinner(false);
