@@ -975,8 +975,9 @@ function getTrashFilesData(filterFiles, filterFolders) {
       $('.file-deleted-cell').show();
 
       renderList();
-      showSpinner(false);
     }
+
+    showSpinner(false);
   })
 }
 
