@@ -100,6 +100,9 @@
                   Created
                 </div>
                 <div class="file-cell file-deleted-cell">
+                  Origin folder
+                </div>
+                <div class="file-cell file-deleted-cell">
                   Deleted
                 </div>
                 <!-- HIDE
@@ -251,13 +254,11 @@
         <span>\{{name}}</span>
       </div>
     </div>
-    <!-- HIDE
     <div class="file-cell">
       <div class="file-owner">
-        <span>\{{owner}}</span>
+        <span>\{{originPath}}</span>
       </div>
     </div>
-    -->
     <div class="file-cell file-date-cell">
       \{{#if deletedAt}}<span>\{{deletedAt}}</span>
       \{{else}}<span>\{{formattedDate}}</span>\{{/if}}
@@ -301,13 +302,11 @@
         <span>\{{name}}</span>
       </div>
     </div>
-    <!-- HIDE
     <div class="file-cell">
       <div class="file-owner">
-        <span>\{{owner}}</span>
+        <span>\{{originPath}}</span>
       </div>
     </div>
-    -->
     <div class="file-cell file-date-cell">
       <span>\{{formattedDate}}</span>
     </div>

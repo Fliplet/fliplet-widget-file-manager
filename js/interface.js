@@ -672,6 +672,20 @@ function addOrganizations(organizations) {
   }
 }
 
+function getOriginPath(data) {
+  return _.map(data.parents, function(item) {
+    if (item['app']) {
+      return item['app'].name;
+    }
+
+    if (item['organization']) {
+      return item['organization'].name;
+    }
+
+    return item['folder'].name;
+  }).join('/');
+}
+
 // Adds app item template
 function addApps(apps) {
   var $appList = $('.dropdown-menu-holder #organization-' + apps.organizationId + ' .panel-body');
@@ -681,6 +695,7 @@ function addApps(apps) {
 // Adds folder item template
 function addFolder(folder) {
   folder.formattedDate = formatDate(folder.createdAt);
+  folder.originPath = getOriginPath(folder);
 
   if(folder.deletedAt !== null) {
     folder.deletedAt = formatDate(folder.deletedAt)
@@ -698,6 +713,7 @@ function addFolder(folder) {
 // Adds file item template
 function addFile(file) {
   file.formattedDate = formatDate(file.createdAt);
+  file.originPath = getOriginPath(file);
 
   if(file.deletedAt !== null) {
     file.deletedAt = formatDate(file.deletedAt)
