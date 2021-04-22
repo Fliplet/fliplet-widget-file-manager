@@ -32,7 +32,7 @@ var currentFolderId;
 var currentAppId;
 var currentFolders;
 var currentFiles;
-var completedItems = 0;
+var restoredItems = 0;
 var counterOrganization;
 var currentSearchResult;
 
@@ -350,7 +350,7 @@ function restoreAction(type, id) {
     method: 'POST',
   }).then(function() {
     updateCheckboxStatus();
-    completedItems++;
+    restoredItems++;
 
     $('.file-table-header input[type="checkbox"]').prop('checked', false);
   });
@@ -395,7 +395,7 @@ function restoreParentFolder(options) {
 }
 
 function restoreTrashItems(items) {
-  completedItems = 0;
+  restoredItems = 0;
 
   var restorePromises = [];
 
@@ -461,12 +461,12 @@ function restoreTrashItems(items) {
           $('.empty-state').addClass('active');
         }
 
-        if (completedItems === items.length && completedItems !== 1) {
+        if (restoredItems === items.length && restoredItems !== 1) {
           Fliplet.Modal.alert({
             title: 'Restore complete',
             message: items.length + ' items restored'
           });
-        } else if (completedItems === items.length && completedItems === 1) {
+        } else if (restoredItems === items.length && restoredItems === 1) {
           Fliplet.Modal.confirm({
             title: 'Restore complete',
             message: itemName + ' restored',
@@ -510,7 +510,7 @@ function restoreTrashItems(items) {
 }
 
 function removeTrashItems(items) {
-  completedItems = 0;
+  restoredItems = 0;
 
   $(items).each(function() {
     var $element = $(this);
@@ -527,7 +527,7 @@ function removeTrashItems(items) {
       }).then(function() {
         $element.remove();
         updateCheckboxStatus();
-        completedItems++;
+        restoredItems++;
 
         currentFolders = currentFolders.filter(function(folder){
           return folder.id != itemID;
@@ -541,7 +541,7 @@ function removeTrashItems(items) {
       }).then(function() {
         $element.remove();
         updateCheckboxStatus();
-        completedItems++;
+        restoredItems++;
 
         currentFiles = currentFiles.filter(function(file){
           return file.id != itemID;
@@ -554,11 +554,11 @@ function removeTrashItems(items) {
     deletePromise.then(function(result) {
       showSpinner(false);
 
-      if (completedItems === items.length) {
+      if (restoredItems === items.length) {
         var title = 'Deletion complete'
         Fliplet.Modal.alert({
           title: title,
-          message: completedItems !== 1 ? items.length + ' items deleted' : itemName + ' deleted',
+          message: restoredItems !== 1 ? items.length + ' items deleted' : itemName + ' deleted',
         })
       }
     }).catch(function(error) {
