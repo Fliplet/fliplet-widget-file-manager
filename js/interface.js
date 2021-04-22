@@ -349,7 +349,7 @@ function restoreAction(type, id) {
     url: url,
     method: 'POST',
   }).then(function() {
-    checkboxStatus();
+    updateCheckboxStatus();
     completedItems++;
 
     $('.file-table-header input[type="checkbox"]').prop('checked', false);
@@ -397,14 +397,14 @@ function restoreParentFolder(options) {
 function restoreTrashItems(items) {
   completedItems = 0;
 
-  var restorePromise = [];
+  var restorePromises = [];
 
   $(items).each(function() {
     var $element = $(this);
-    var itemID = $element.attr('data-id');
+    var itemID = Number($element.attr('data-id'));
     var itemName = $element.attr('data-name');
     var parentFolderId = $element.attr('data-folder');
-    var itemType = $element.attr('data-file-type') === 'folder'
+    var itemType = $element.data('file-type') === 'folder'
       ? 'folders'
       : 'files'
 
@@ -452,7 +452,7 @@ function restoreTrashItems(items) {
         _.remove(itemType === 'folders'
           ? currentFolders
           : currentFiles, function(item) {
-            return item.id !== +itemID;
+            return item.id !== itemID;
           });
 
         $element.remove();
@@ -488,6 +488,7 @@ function restoreTrashItems(items) {
         }
       }).catch(function(error) {
         showSpinner(false);
+
         Fliplet.Modal.alert({
           title: 'Restore failed',
           message: Fliplet.parseError(error),
@@ -500,11 +501,11 @@ function restoreTrashItems(items) {
     showSpinner(false);
     $element.removeClass('restore-fade');
 
-    return restorePromise.push(restoreAction(itemType, itemID));
+    return restorePromises.push(restoreAction(itemType, itemID));
   });
 
-  if (restorePromise.length) {
-    return Promise.all(restorePromise);
+  if (restorePromises.length) {
+    return Promise.all(restorePromises);
   }
 }
 
@@ -525,7 +526,7 @@ function removeTrashItems(items) {
         method: 'DELETE'
       }).then(function() {
         $element.remove();
-        checkboxStatus();
+        updateCheckboxStatus();
         completedItems++;
 
         currentFolders = currentFolders.filter(function(folder){
@@ -539,7 +540,7 @@ function removeTrashItems(items) {
         method: 'DELETE'
       }).then(function() {
         $element.remove();
-        checkboxStatus();
+        updateCheckboxStatus();
         completedItems++;
 
         currentFiles = currentFiles.filter(function(file){
@@ -731,7 +732,7 @@ function template(name) {
   return Handlebars.compile($('#template-' + name).html());
 }
 
-function checkboxStatus() {
+function updateCheckboxStatus() {
   var numberOfRows = $('.file-row').length;
   var numberOfActiveRows = $('.file-row.active').length;
   var fileURL = $('.file-row.active').data('file-url');
@@ -1709,7 +1710,7 @@ $('.file-manager-wrapper')
   })
   .on('change', '.file-row input[type="checkbox"]', function() {
     $(this).parents('.file-row').toggleClass('active');
-    checkboxStatus();
+    updateCheckboxStatus();
   })
   .on('change', '.file-table-header input[type="checkbox"]', function() {
     toggleAll($(this));
@@ -1750,7 +1751,7 @@ $('.file-manager-wrapper')
 
         Promise.all(itemsToDelete).then(function() {
           showSpinner(false);
-          checkboxStatus();
+          updateCheckboxStatus();
 
           var deletionMessage = itemsToDelete.length === 1
             ? 'You can access the deleted ' + itemType + ' in <b>File manager > Trash</b>'
@@ -1783,13 +1784,14 @@ $('.file-manager-wrapper')
                     ?  itemType +' restore failed'
                     : 'items restore failed',
                   message: Fliplet.parseError(err)
-                })
+                });
               });
 
               return;
             }
 
             $('.file-table-header input[type="checkbox"]').prop('checked', false);
+
             $(items).each(function() {
               var $element = $(this);
               var itemID = Number($element.attr('data-id'));
@@ -1810,6 +1812,7 @@ $('.file-manager-wrapper')
           })
         }).catch(function(err) {
           showSpinner(false);
+
           Fliplet.Modal.alert({
             message: Fliplet.parseError(err)
           });
