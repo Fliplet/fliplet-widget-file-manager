@@ -32,7 +32,7 @@ var currentFolderId;
 var currentAppId;
 var currentFolders;
 var currentFiles;
-var completedItems = 0;
+var restoredItems = 0;
 var counterOrganization;
 var currentSearchResult;
 
@@ -342,6 +342,20 @@ function loadTrashFolder() {
   updateSearchTypeOptions($element.data('type'));
 }
 
+function restoreAction(type, id) {
+  var url = 'v1/media/' + type + '/' + id + '/restore';
+
+  return Fliplet.API.request({
+    url: url,
+    method: 'POST',
+  }).then(function() {
+    updateCheckboxStatus();
+    restoredItems++;
+
+    $('.file-table-header input[type="checkbox"]').prop('checked', false);
+  });
+}
+
 function restoreParentFolder(options) {
   Fliplet.API.request(options.request)
     .then(function(result) {
@@ -381,14 +395,18 @@ function restoreParentFolder(options) {
 }
 
 function restoreTrashItems(items) {
-  completedItems = 0;
+  restoredItems = 0;
+
+  var restorePromises = [];
 
   $(items).each(function() {
-    var restorePromise;
     var $element = $(this);
-    var itemID = $element.attr('data-id');
+    var itemID = Number($element.attr('data-id'));
     var itemName = $element.attr('data-name');
     var parentFolderId = $element.attr('data-folder');
+    var itemType = $element.data('file-type') === 'folder'
+      ? 'folders'
+      : 'files'
 
     showSpinner(true);
 
@@ -426,77 +444,73 @@ function restoreTrashItems(items) {
       return false;
     }
 
-    if ($element.attr('data-file-type') === 'folder') {
-      restorePromise = Fliplet.API.request({
-        url: 'v1/media/folders/' + itemID + '/restore',
-        method: 'POST',
-      }).then(function() {
+    if ($('[data-browse-trash] span').hasClass('active-trash')) {
+      restoreAction(itemType, itemID).then(function() {
+        $element.removeClass('restore-fade');
+        showSpinner(false);
+
+        _.remove(itemType === 'folders'
+          ? currentFolders
+          : currentFiles, function(item) {
+            return item.id !== itemID;
+          });
+
         $element.remove();
-        checkboxStatus();
-        completedItems++;
 
-        currentFolders = currentFolders.filter(function(folder) {
-          return folder.id != itemID;
+        if (!currentFolders.length || !currentFiles.length) {
+          $('.empty-state').addClass('active');
+        }
+
+        if (restoredItems === items.length && restoredItems !== 1) {
+          Fliplet.Modal.alert({
+            title: 'Restore complete',
+            message: items.length + ' items restored'
+          });
+        } else if (restoredItems === items.length && restoredItems === 1) {
+          Fliplet.Modal.confirm({
+            title: 'Restore complete',
+            message: itemName + ' restored',
+            buttons: {
+              cancel: {
+                label: 'Go to folder',
+                className: 'btn-default'
+              },
+              confirm: {
+                label: 'OK',
+                className: 'btn-primary'
+              },
+            },
+          }).then(function(result) {
+            if (!result) {
+              navigateToFolderItem($element);
+            }
+          });
+        }
+      }).catch(function(error) {
+        showSpinner(false);
+
+        Fliplet.Modal.alert({
+          title: 'Restore failed',
+          message: Fliplet.parseError(error),
         });
-        $('.file-table-header input[type="checkbox"]').prop('checked', false);
-      })
-    } else {
-      restorePromise = Fliplet.API.request({
-        url: 'v1/media/files/' + itemID + '/restore',
-        method: 'POST',
-      }).then(function() {
-        $element.remove();
-        checkboxStatus();
-        completedItems++;
+      });
 
-        currentFiles = currentFiles.filter(function(file){
-          return file.id != itemID;
-        });
-
-        $('.file-table-header input[type="checkbox"]').prop('checked', false);
-      })
+      return;
     }
 
-    restorePromise.then(function(result) {
-      showSpinner(false);
+    showSpinner(false);
+    $element.removeClass('restore-fade');
 
-      if (completedItems === items.length && completedItems !== 1) {
-        Fliplet.Modal.alert({
-          title: 'Restore complete',
-          message: items.length + ' items restored'
-        })
-      } else if (completedItems === items.length && completedItems === 1) {
-        Fliplet.Modal.confirm({
-          title: 'Restore complete',
-          message: itemName + ' restored',
-          buttons: {
-            cancel: {
-              label: 'Go to folder',
-              className: 'btn-default'
-            },
-            confirm: {
-              label: 'OK',
-              className: 'btn-primary'
-            },
-          },
-        }).then(function(result) {
-          if (!result) {
-            navigateToFolderItem($element);
-          }
-        })
-      }
-    }).catch(function(error) {
-      showSpinner(false);
-      Fliplet.Modal.alert({
-        title: 'Restore failed',
-        message: Fliplet.parseError(error),
-      })
-    })
-  })
+    return restorePromises.push(restoreAction(itemType, itemID));
+  });
+
+  if (restorePromises.length) {
+    return Promise.all(restorePromises);
+  }
 }
 
 function removeTrashItems(items) {
-  completedItems = 0;
+  restoredItems = 0;
 
   $(items).each(function() {
     var $element = $(this);
@@ -512,8 +526,8 @@ function removeTrashItems(items) {
         method: 'DELETE'
       }).then(function() {
         $element.remove();
-        checkboxStatus();
-        completedItems++;
+        updateCheckboxStatus();
+        restoredItems++;
 
         currentFolders = currentFolders.filter(function(folder){
           return folder.id != itemID;
@@ -526,8 +540,8 @@ function removeTrashItems(items) {
         method: 'DELETE'
       }).then(function() {
         $element.remove();
-        checkboxStatus();
-        completedItems++;
+        updateCheckboxStatus();
+        restoredItems++;
 
         currentFiles = currentFiles.filter(function(file){
           return file.id != itemID;
@@ -540,11 +554,11 @@ function removeTrashItems(items) {
     deletePromise.then(function(result) {
       showSpinner(false);
 
-      if (completedItems === items.length) {
+      if (restoredItems === items.length) {
         var title = 'Deletion complete'
         Fliplet.Modal.alert({
           title: title,
-          message: completedItems !== 1 ? items.length + ' items deleted' : itemName + ' deleted',
+          message: restoredItems !== 1 ? items.length + ' items deleted' : itemName + ' deleted',
         })
       }
     }).catch(function(error) {
@@ -718,7 +732,7 @@ function template(name) {
   return Handlebars.compile($('#template-' + name).html());
 }
 
-function checkboxStatus() {
+function updateCheckboxStatus() {
   var numberOfRows = $('.file-row').length;
   var numberOfActiveRows = $('.file-row.active').length;
   var fileURL = $('.file-row.active').data('file-url');
@@ -1696,7 +1710,7 @@ $('.file-manager-wrapper')
   })
   .on('change', '.file-row input[type="checkbox"]', function() {
     $(this).parents('.file-row').toggleClass('active');
-    checkboxStatus();
+    updateCheckboxStatus();
   })
   .on('change', '.file-table-header input[type="checkbox"]', function() {
     toggleAll($(this));
@@ -1717,50 +1731,94 @@ $('.file-manager-wrapper')
       }
     }).then(function(result) {
       if (result) {
+        var itemsToDelete = [];
+        var itemType;
+
+        showSpinner(true);
+
         $(items).each(function() {
           var $element = $(this);
-          var itemID = $element.attr('data-id');
-          var deletePromise;
-  
-          showSpinner(true);
-  
-          if ($element.attr('data-file-type') === 'folder') {
-            deletePromise = Fliplet.Media.Folders.delete(itemID).then(function() {
-              $element.remove();
-              checkboxStatus();
-  
-              currentFolders = currentFolders.filter(function(folder){
-                return folder.id != itemID;
+          var itemID = Number($element.attr('data-id'));
+
+          itemType = $element.attr('data-file-type');
+
+          var deletionItemMethod = itemType === 'folder'
+          ? 'Folders'
+          : 'Files';
+
+          itemsToDelete.push(Fliplet.Media[deletionItemMethod].delete(itemID));
+        });
+
+        Promise.all(itemsToDelete).then(function() {
+          showSpinner(false);
+          updateCheckboxStatus();
+
+          var deletionMessage = itemsToDelete.length === 1
+            ? 'You can access the deleted ' + itemType + ' in <b>File manager > Trash</b>'
+            : 'You can access the deleted items in <b>File manager > Trash</b>';
+
+          Fliplet.Modal.confirm({
+            title: 'Moved to Trash',
+            message: deletionMessage,
+            buttons: {
+              cancel: {
+                label: 'Undo',
+                className: 'btn-default'
+              },
+              confirm: {
+                label: 'OK',
+                className: 'btn-primary'
+              }
+            }
+          }).then(function(deleteResult) {
+            if (!deleteResult) {
+              restoreTrashItems(items).then(function() {
+                Fliplet.Modal.alert({
+                  message: itemsToDelete.length === 1
+                    ?  itemType +' restored from Trash'
+                    : 'items restored from Trash'
+                });
+              }).catch(function(err) {
+                Fliplet.Modal.confirm({
+                  title: itemsToDelete.length === 1
+                    ?  itemType +' restore failed'
+                    : 'items restore failed',
+                  message: Fliplet.parseError(err)
+                });
               });
-  
-              // Toggle checkbox header to false
-              $('.file-table-header input[type="checkbox"]').prop('checked', false);
-            });
-          } else {
-            deletePromise = Fliplet.Media.Files.delete(itemID).then(function() {
+
+              return;
+            }
+
+            $('.file-table-header input[type="checkbox"]').prop('checked', false);
+
+            $(items).each(function() {
+              var $element = $(this);
+              var itemID = Number($element.attr('data-id'));
+
+              _.remove(itemType === 'folder'
+                ? currentFolders
+                : currentFiles, function(item) {
+                  return item.id === itemID;
+                });
+
               $element.remove();
-              checkboxStatus();
-  
-              currentFiles = currentFiles.filter(function(file){
-                return file.id != itemID;
-              });
-  
-              // Toggle checkbox header to false
-              $('.file-table-header input[type="checkbox"]').prop('checked', false);
-            });
-          }
-  
-          deletePromise.then(function () {
-            showSpinner(false);
-          }).catch(function (err) {
-            showSpinner(false);
-            Fliplet.Modal.alert({
-              message: Fliplet.parseError(err)
+
             })
+
+            if (!currentFolders.length && !currentFiles.length) {
+              $('.empty-state').addClass('active');
+            }
+          })
+        }).catch(function(err) {
+          showSpinner(false);
+
+          Fliplet.Modal.alert({
+            message: Fliplet.parseError(err)
           });
         });
       }
-    })
+    });
   })
   .on('click', '[download-action]', function() {
     var items = $('.file-row.active'),
