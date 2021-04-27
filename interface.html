@@ -4,6 +4,10 @@
     <div class="progress-bar progress-bar-striped active" role="progressbar" style="width: 0%"></div>
   </div>
 
+  <button type="button" class="btn btn-secondary" data-toggle="tooltip" data-placement="left" title="Tooltip on left">
+    Tooltip on left
+  </button>
+
   <div class="file-manager-body">
     <div class="file-manager-leftside">
       <!-- <div class="split-bar"></div> -->
@@ -255,8 +259,8 @@
       </div>
     </div>
     <div class="file-cell">
-      <div class="file-owner">
-        <span>\{{originPath}}</span>
+      <div class="file-owner" title="\{{originPath.tooltip}}">
+        <span class="has-tooltip \{{originPath.rootFolderType}}">\{{{originPath.path}}}</span>
       </div>
     </div>
     <div class="file-cell file-date-cell">
@@ -304,7 +308,7 @@
     </div>
     <div class="file-cell">
       <div class="file-owner">
-        <span>\{{originPath}}</span>
+        <span class="\{{originPath.rootFolderType}}" data-toggle="tooltip" title="\{{originPath.tooltip}}">\{{{originPath.path}}}</span>
       </div>
     </div>
     <div class="file-cell file-date-cell">

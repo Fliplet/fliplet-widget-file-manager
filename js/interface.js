@@ -687,17 +687,22 @@ function addOrganizations(organizations) {
 }
 
 function getOriginPath(data) {
-  return _.map(data.parents, function(item) {
-    if (item['app']) {
-      return item['app'].name;
-    }
-
-    if (item['organization']) {
-      return item['organization'].name;
-    }
-
-    return item['folder'].name;
-  }).join('/');
+  return {
+    html: _.map(data.parents, function(item) {
+      if (item.type === 'app') {
+        return '<b>' + item.data.name + '</b>';
+      }
+  
+      if (item.type === 'organization') {
+        return '<b>' + item.data.name + '</b>';
+      }
+  
+      return item.data.name;
+    }),
+    tooltip: _.map(data.parents, function(item) {  
+      return item.data.name;
+    })
+  };
 }
 
 // Adds app item template
@@ -707,9 +712,18 @@ function addApps(apps) {
 }
 
 // Adds folder item template
-function addFolder(folder) {
+function addFolder(folder, type) {
+  if (type) {
+    folder.originPath = { 
+      path: getOriginPath(folder).html.join(' / '),
+      tooltip: getOriginPath(folder).tooltip.join(' / '),
+      rootFolderType: folder.parents[0].type
+    }
+  }
+
+  $('.has-tooltip').tooltip({ boundary: 'window' });
+
   folder.formattedDate = formatDate(folder.createdAt);
-  folder.originPath = getOriginPath(folder);
 
   if(folder.deletedAt !== null) {
     folder.deletedAt = formatDate(folder.deletedAt)
@@ -725,9 +739,16 @@ function addFolder(folder) {
 }
 
 // Adds file item template
-function addFile(file) {
+function addFile(file, type) {
+  if (type) {
+    file.originPath = { 
+      path: getOriginPath(file).html.join(' / '),
+      tooltip: getOriginPath(file).tooltip.join(' / '),
+      rootFolderType: file.parents[0].type
+    }  
+  }
+
   file.formattedDate = formatDate(file.createdAt);
-  file.originPath = getOriginPath(file);
 
   if(file.deletedAt !== null) {
     file.deletedAt = formatDate(file.deletedAt)
@@ -983,8 +1004,8 @@ function getTrashFilesData(filterFiles, filterFolders) {
       var mediaFiles = result.files.filter(filterFiles);
       var mediaFolders = result.folders.filter(filterFolders);
 
-      mediaFolders.forEach(addFolder);
-      mediaFiles.forEach(addFile);
+      mediaFolders.forEach(addFolder, 'trash');
+      mediaFiles.forEach(addFile, 'trash');
 
       mediaFiles.forEach(parseThumbnail);
 

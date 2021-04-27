@@ -603,9 +603,19 @@ html {
   width: 100%;
 }
 
+.organization::before {
+  width: 25px;
+  height: 25px;
+  border-radius: 21%;
+  border: 1px solid #f0f0f0;
+  font: normal normal normal 14px/1 FontAwesome;
+  content: "\f0f7";
+  color: black;
+  margin-right: 10px;
+}
+
 .file-table-header .file-cell {
   border-bottom: none;
-  width: 100%;
 }
 
 .file-cell.selectable {
@@ -682,7 +692,7 @@ html {
 
 .file-cell.file-date-cell,
 .file-deleted-cell {
-  width: 176px;
+  max-width: 176px;
 }
 
 .file-cell.file-path-cell {
