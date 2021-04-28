@@ -202,10 +202,6 @@ function navigateToDefaultFolder() {
   getFolderContentsById(folderId, type);
 }
 
-function getAppIcon(id) {
-  return appIcons.get(id);
-}
-
 function getAppsList() {
   showSpinner(true);
 
@@ -718,14 +714,13 @@ function addApps(apps) {
 // Adds folder item template
 function addFolder(folder, isTrash) {
   if (isTrash) {
-    var folderType = folder.parents[0].type;
-    var folderId = folder.parents[0].data.id;
+    var folderParent = folder.parents[0];
 
     folder.originPath = { 
       path: getOriginPath(folder).html.join(' / '),
       tooltip: getOriginPath(folder).tooltip.join(' / '),
-      isApp: folderType === 'app',
-      appIcon: getAppIcon(folderId)
+      isApp: folderParent.type === 'app',
+      appIcon: appIcons.get(folderParent.data.id)
     }
   }
 
@@ -746,14 +741,13 @@ function addFolder(folder, isTrash) {
 // Adds file item template
 function addFile(file, isTrash) {
   if (isTrash) {
-    var fileType = file.parents[0].type;
-    var fileId = file.parents[0].data.id;
+    var fileParent = file.parents[0];
 
     file.originPath = { 
       path: getOriginPath(file).html.join(' / '),
       tooltip: getOriginPath(file).tooltip.join(' / '),
-      isApp: fileType === 'app',
-      appIcon: getAppIcon(fileId)
+      isApp: fileParent.type === 'app',
+      appIcon: appIcons.get(fileParent.data.id)
     }  
   }
 
