@@ -26,7 +26,7 @@ var $selectAllCheckbox =  $('.file-cell.selectable');
 var appList;
 // This should contain either app/org/folder of current folder
 var currentSelection;
-
+var appIcons = new Map();
 var currentOrganizationId;
 var currentFolderId;
 var currentAppId;
@@ -203,14 +203,10 @@ function navigateToDefaultFolder() {
 }
 
 function getAppIcon(folder) {
-  var iconObject = _.find(appList, function(item) {
-    if (folder.parents[0].data.id === item.id) {
-      return item.icon;
-    }
-  })
+  var entry = appIcons.get(folder.parents[0].data.id);
 
-  if (iconObject) {
-    return iconObject.icon;
+  if (entry) {
+    return entry;
   }
 }
 
@@ -1010,6 +1006,9 @@ function getTrashFilesData(filterFiles, filterFolders) {
       $('.empty-state').addClass('active');
     } else {
       folders = result.folders;
+      appList.forEach(function(item) {
+        appIcons.set(item.id, item.icon);
+      });
 
       // Filter only the files from that request app/org/folder
       var mediaFiles = result.files.filter(filterFiles);
