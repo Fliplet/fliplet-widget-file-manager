@@ -4,10 +4,6 @@
     <div class="progress-bar progress-bar-striped active" role="progressbar" style="width: 0%"></div>
   </div>
 
-  <button type="button" class="btn btn-secondary" data-toggle="tooltip" data-placement="left" title="Tooltip on left">
-    Tooltip on left
-  </button>
-
   <div class="file-manager-body">
     <div class="file-manager-leftside">
       <!-- <div class="split-bar"></div> -->
@@ -258,11 +254,20 @@
         <span>\{{name}}</span>
       </div>
     </div>
+    \{{#if originPath}}
     <div class="file-cell">
-      <div class="file-owner" title="\{{originPath.tooltip}}">
-        <span class="has-tooltip \{{originPath.rootFolderType}}">\{{{originPath.path}}}</span>
+      <div class="file-owner" data-toggle="tooltip" data-placement="left" title="\{{originPath.tooltip}}">
+        <span>
+          \{{#if originPath.isApp}}
+          \{{#if originPath.appIcon}}<img class="icon-image" src="\{{originPath.appIcon}}">\{{/if}}
+          \{{else}}
+          <i class="fa fa-fw fa-lg fa-building-o"></i>
+          \{{/if}}
+          \{{{originPath.path}}}
+        </span>
       </div>
     </div>
+    \{{/if}}
     <div class="file-cell file-date-cell">
       \{{#if deletedAt}}<span>\{{deletedAt}}</span>
       \{{else}}<span>\{{formattedDate}}</span>\{{/if}}
@@ -307,8 +312,15 @@
       </div>
     </div>
     <div class="file-cell">
-      <div class="file-owner">
-        <span class="\{{originPath.rootFolderType}}" data-toggle="tooltip" title="\{{originPath.tooltip}}">\{{{originPath.path}}}</span>
+      <div class="file-owner" data-toggle="tooltip" data-placement="left" title="\{{originPath.tooltip}}">
+        <span>
+          \{{#if originPath.isApp}}
+          \{{#if originPath.appIcon}}<img class="icon-image" src="\{{originPath.appIcon}}" alt="">\{{/if}}
+          \{{else}}
+          <i class="fa fa-fw fa-lg fa-building-o"></i>
+          \{{/if}}
+          \{{{originPath.path}}}
+        </span>
       </div>
     </div>
     <div class="file-cell file-date-cell">

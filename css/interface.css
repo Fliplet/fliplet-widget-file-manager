@@ -603,15 +603,11 @@ html {
   width: 100%;
 }
 
-.organization::before {
+.icon-image {
   width: 25px;
   height: 25px;
   border-radius: 21%;
   border: 1px solid #f0f0f0;
-  font: normal normal normal 14px/1 FontAwesome;
-  content: "\f0f7";
-  color: black;
-  margin-right: 10px;
 }
 
 .file-table-header .file-cell {
