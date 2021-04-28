@@ -26,7 +26,7 @@ var $selectAllCheckbox =  $('.file-cell.selectable');
 var appList;
 // This should contain either app/org/folder of current folder
 var currentSelection;
-
+var appIcons = new Map();
 var currentOrganizationId;
 var currentFolderId;
 var currentAppId;
@@ -200,6 +200,14 @@ function navigateToDefaultFolder() {
     updatePaths();
   }
   getFolderContentsById(folderId, type);
+}
+
+function getAppIcon(folder) {
+  var entry = appIcons.get(folder.parents[0].data.id);
+
+  if (entry) {
+    return entry;
+  }
 }
 
 function getAppsList() {
@@ -712,16 +720,15 @@ function addApps(apps) {
 }
 
 // Adds folder item template
-function addFolder(folder, type) {
-  if (type) {
+function addFolder(folder, isTrash) {
+  if (isTrash) {
     folder.originPath = { 
       path: getOriginPath(folder).html.join(' / '),
       tooltip: getOriginPath(folder).tooltip.join(' / '),
-      rootFolderType: folder.parents[0].type
+      isApp: folder.parents[0].type === 'app',
+      appIcon: getAppIcon(folder)
     }
   }
-
-  $('.has-tooltip').tooltip({ boundary: 'window' });
 
   folder.formattedDate = formatDate(folder.createdAt);
 
@@ -730,7 +737,6 @@ function addFolder(folder, type) {
   }
 
   currentFolders.push(folder);
-  folders.push(folder);
 
   $('.empty-state').removeClass('active');
   // Toggle checkbox header to false
@@ -739,12 +745,13 @@ function addFolder(folder, type) {
 }
 
 // Adds file item template
-function addFile(file, type) {
-  if (type) {
+function addFile(file, isTrash) {
+  if (isTrash) {
     file.originPath = { 
       path: getOriginPath(file).html.join(' / '),
       tooltip: getOriginPath(file).tooltip.join(' / '),
-      rootFolderType: file.parents[0].type
+      isApp: file.parents[0].type === 'app',
+      appIcon: getAppIcon(file)
     }  
   }
 
@@ -970,8 +977,8 @@ function getFoldersData(options, filterFiles, filterFolders) {
       var mediaFiles = response.files.filter(filterFiles);
       var mediaFolders = response.folders.filter(filterFolders);
 
-      mediaFolders.forEach(addFolder);
-      mediaFiles.forEach(addFile);
+      _.forEach(mediaFolders, function(item) { addFolder(item, false) });
+      _.forEach(mediaFiles, function(item) { addFile(item, false) });
 
       mediaFiles.forEach(parseThumbnail);
 
@@ -999,13 +1006,16 @@ function getTrashFilesData(filterFiles, filterFolders) {
       $('.empty-state').addClass('active');
     } else {
       folders = result.folders;
+      appList.forEach(function(item) {
+        appIcons.set(item.id, item.icon);
+      });
 
       // Filter only the files from that request app/org/folder
       var mediaFiles = result.files.filter(filterFiles);
       var mediaFolders = result.folders.filter(filterFolders);
 
-      mediaFolders.forEach(addFolder, 'trash');
-      mediaFiles.forEach(addFile, 'trash');
+      _.forEach(mediaFolders, function(item) { addFolder(item, true) });
+      _.forEach(mediaFiles, function(item) { addFile(item, true) });
 
       mediaFiles.forEach(parseThumbnail);
 
@@ -1111,6 +1121,7 @@ function renderList() {
     renderItem(file, false);
   });
 
+  $('[data-toggle="tooltip"]').tooltip()
   $selectAllCheckbox.addClass('active');
 }
 
