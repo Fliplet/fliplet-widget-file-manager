@@ -202,12 +202,8 @@ function navigateToDefaultFolder() {
   getFolderContentsById(folderId, type);
 }
 
-function getAppIcon(folder) {
-  var entry = appIcons.get(folder.parents[0].data.id);
-
-  if (entry) {
-    return entry;
-  }
+function getAppIcon(id) {
+  return appIcons.get(id);
 }
 
 function getAppsList() {
@@ -722,11 +718,14 @@ function addApps(apps) {
 // Adds folder item template
 function addFolder(folder, isTrash) {
   if (isTrash) {
+    var folderType = folder.parents[0].type;
+    var folderId = folder.parents[0].data.id;
+
     folder.originPath = { 
       path: getOriginPath(folder).html.join(' / '),
       tooltip: getOriginPath(folder).tooltip.join(' / '),
-      isApp: folder.parents[0].type === 'app',
-      appIcon: getAppIcon(folder)
+      isApp: folderType === 'app',
+      appIcon: getAppIcon(folderId)
     }
   }
 
@@ -747,11 +746,14 @@ function addFolder(folder, isTrash) {
 // Adds file item template
 function addFile(file, isTrash) {
   if (isTrash) {
+    var fileType = file.parents[0].type;
+    var fileId = file.parents[0].data.id;
+
     file.originPath = { 
       path: getOriginPath(file).html.join(' / '),
       tooltip: getOriginPath(file).tooltip.join(' / '),
-      isApp: file.parents[0].type === 'app',
-      appIcon: getAppIcon(file)
+      isApp: fileType === 'app',
+      appIcon: getAppIcon(fileId)
     }  
   }
 
@@ -1006,6 +1008,7 @@ function getTrashFilesData(filterFiles, filterFolders) {
       $('.empty-state').addClass('active');
     } else {
       folders = result.folders;
+
       appList.forEach(function(item) {
         appIcons.set(item.id, item.icon);
       });
