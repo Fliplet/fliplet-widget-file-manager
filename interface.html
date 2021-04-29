@@ -311,6 +311,7 @@
         <span>\{{name}}</span>
       </div>
     </div>
+    \{{#if originPath}}
     <div class="file-cell">
       <div class="file-owner" data-toggle="tooltip" data-placement="left" title="\{{originPath.tooltip}}">
         <span>
@@ -323,6 +324,7 @@
         </span>
       </div>
     </div>
+    \{{/if}}
     <div class="file-cell file-date-cell">
       <span>\{{formattedDate}}</span>
     </div>
