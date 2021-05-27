@@ -100,6 +100,9 @@
                   Created
                 </div>
                 <div class="file-cell file-deleted-cell">
+                  Origin folder
+                </div>
+                <div class="file-cell file-deleted-cell">
                   Deleted
                 </div>
                 <!-- HIDE
@@ -194,7 +197,7 @@
                     </li>
                     <li role="separator" class="divider"></li>
                     <li>
-                      <a href="#" class="text-danger" delete-action>Delete</a>
+                      <a href="#" class="text-danger" delete-action>Move to trash</a>
                       <a href="#" class="text-danger" file-remove-trash>Delete forever</a>
                     </li>
                   </ul>
@@ -251,13 +254,20 @@
         <span>\{{name}}</span>
       </div>
     </div>
-    <!-- HIDE
+    \{{#if originPath}}
     <div class="file-cell">
-      <div class="file-owner">
-        <span>\{{owner}}</span>
+      <div class="file-owner" data-toggle="tooltip" data-placement="left" title="\{{originPath.tooltip}}">
+        <span>
+          \{{#if originPath.isApp}}
+          \{{#if originPath.appIcon}}<img class="trash-item-icon" src="\{{originPath.appIcon}}">\{{/if}}
+          \{{else}}
+          <i class="fa fa-fw fa-lg fa-building-o"></i>
+          \{{/if}}
+          \{{{originPath.path}}}
+        </span>
       </div>
     </div>
-    -->
+    \{{/if}}
     <div class="file-cell file-date-cell">
       \{{#if deletedAt}}<span>\{{deletedAt}}</span>
       \{{else}}<span>\{{formattedDate}}</span>\{{/if}}
@@ -301,13 +311,20 @@
         <span>\{{name}}</span>
       </div>
     </div>
-    <!-- HIDE
+    \{{#if originPath}}
     <div class="file-cell">
-      <div class="file-owner">
-        <span>\{{owner}}</span>
+      <div class="file-owner" data-toggle="tooltip" data-placement="left" title="\{{originPath.tooltip}}">
+        <span>
+          \{{#if originPath.isApp}}
+          \{{#if originPath.appIcon}}<img class="trash-item-icon" src="\{{originPath.appIcon}}" alt="">\{{/if}}
+          \{{else}}
+          <i class="fa fa-fw fa-lg fa-building-o"></i>
+          \{{/if}}
+          \{{{originPath.path}}}
+        </span>
       </div>
     </div>
-    -->
+    \{{/if}}
     <div class="file-cell file-date-cell">
       <span>\{{formattedDate}}</span>
     </div>
