@@ -2096,14 +2096,13 @@ $('.file-manager-wrapper')
     e.preventDefault();
     $(this).addClass('highlight');
   })
-  .on('click', '.trash-holder', function (e) {
-    $('.new-btn-holder').hide();
-  })
-  .on('click', '.app-holder', function (e) {
-    $('.new-btn-holder').show();
-  })
-  .on('click', '.panel-heading', function (e) {
-    $('.new-btn-holder').show();
+  .on('click', '.trash-holder, .app-holder, .panel-heading', function () {
+    if ($(this).hasClass('trash-holder')) {
+      $newBtn.parent().hide();
+      return;
+    }
+    
+    $newBtn.parent().show();
   })
   .on('dragleave', '.drop-area', function () {
     $(this).removeClass('highlight');
