@@ -483,6 +483,7 @@ function restoreTrashItems(items) {
           }).then(function(result) {
             if (!result) {
               navigateToFolderItem($element);
+              $newBtn.parent().show();
             }
           });
         }
