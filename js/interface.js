@@ -329,8 +329,8 @@ function getFolderContentsById(id, type, isSearchNav) {
 
 function loadTrashFolder() {
   $('[data-browse-trash] span').addClass('active-trash');
-  $('[restore-action]').show(); 
-  $('[file-remove-trash]').show();  
+  $('[restore-action]').show();
+  $('[file-remove-trash]').show();
   $('[rename-action]').hide();
   $('[delete-action]').hide();
 
@@ -384,7 +384,7 @@ function restoreParentFolder(options) {
       });
     }).catch(function(error) {
       showSpinner(false);
-      
+
       Fliplet.Modal.alert({
         title: 'Restore failed',
         message: Fliplet.parseError(error)
@@ -578,7 +578,7 @@ function getFolderContents(el, isRootFolder) {
     // Restart breadcrumbs
     var $el = el;
     var $listHolder;
-    
+
     if ($el.data('type') === 'organization') {
       $listHolder = $el;
     } else if ($el.data('type') === 'trash') {
@@ -693,14 +693,14 @@ function getOriginPath(data) {
       if (item.type === 'app') {
         return '<b>' + item.data.name + '</b>';
       }
-  
+
       if (item.type === 'organization') {
         return '<b>' + item.data.name + '</b>';
       }
-  
+
       return item.data.name;
     }),
-    tooltip: _.map(data.parents, function(item) {  
+    tooltip: _.map(data.parents, function(item) {
       return item.data.name;
     })
   };
@@ -717,7 +717,7 @@ function addFolder(folder, isTrash) {
   if (isTrash) {
     var folderParent = folder.parents[0];
 
-    folder.originPath = { 
+    folder.originPath = {
       path: getOriginPath(folder).html.join(' / '),
       tooltip: getOriginPath(folder).tooltip.join(' / '),
       isApp: folderParent.type === 'app',
@@ -732,6 +732,7 @@ function addFolder(folder, isTrash) {
   }
 
   currentFolders.push(folder);
+  folders.push(folder);
 
   $('.empty-state').removeClass('active');
   // Toggle checkbox header to false
@@ -744,12 +745,12 @@ function addFile(file, isTrash) {
   if (isTrash) {
     var fileParent = file.parents[0];
 
-    file.originPath = { 
+    file.originPath = {
       path: getOriginPath(file).html.join(' / '),
       tooltip: getOriginPath(file).tooltip.join(' / '),
       isApp: fileParent.type === 'app',
       appIcon: appIcons.get(fileParent.data.id)
-    }  
+    }
   }
 
   file.formattedDate = formatDate(file.createdAt);
@@ -996,7 +997,7 @@ function getFoldersData(options, filterFiles, filterFolders) {
   });
 }
 
-function getTrashFilesData(filterFiles, filterFolders) {  
+function getTrashFilesData(filterFiles, filterFolders) {
   Fliplet.API.request('v1/media/deleted').then(function(result) {
     if (result.files.length === 0 && result.folders.length === 0) {
       $selectAllCheckbox.addClass('active');
@@ -2102,7 +2103,7 @@ $('.file-manager-wrapper')
       $newBtn.parent().hide();
       return;
     }
-    
+
     $newBtn.parent().show();
   })
   .on('dragleave', '.drop-area', function () {
