@@ -483,6 +483,7 @@ function restoreTrashItems(items) {
           }).then(function(result) {
             if (!result) {
               navigateToFolderItem($element);
+              $newBtn.parent().show();
             }
           });
         }
@@ -2095,6 +2096,14 @@ $('.file-manager-wrapper')
   .on('dragover', '.drop-area', function (e) {
     e.preventDefault();
     $(this).addClass('highlight');
+  })
+  .on('click', '.trash-holder, .app-holder, .panel-heading', function () {
+    if ($(this).hasClass('trash-holder')) {
+      $newBtn.parent().hide();
+      return;
+    }
+    
+    $newBtn.parent().show();
   })
   .on('dragleave', '.drop-area', function () {
     $(this).removeClass('highlight');
