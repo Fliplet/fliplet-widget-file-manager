@@ -1074,6 +1074,7 @@ function uploadFiles(files) {
     }
   }).then(function(files) {
     files.forEach(function(file) {
+      parseThumbnail(file);
       addFile(file);
       insertItem(file);
     });
@@ -1734,6 +1735,7 @@ $('.file-manager-wrapper')
     }).then(function(files) {
       $input.val('');
       files.forEach(function(file) {
+        parseThumbnail(file);
         addFile(file);
         insertItem(file);
       });
