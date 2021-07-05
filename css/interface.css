@@ -58,6 +58,7 @@ html {
   display: -ms-flexbox;
   display: flex;
   width: 260px;
+  position: relative;
   background-color: #ffffff;
   border-left: 1px solid #e4e9eb;
   padding: 15px;
@@ -239,7 +240,10 @@ html {
 }
 
 .side-actions {
+  position: sticky;
+  top: 10px;
   width: 100%;
+  height: max-content;
   text-align: center;
   display: none;
 }
