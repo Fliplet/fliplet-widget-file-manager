@@ -241,7 +241,7 @@ html {
 
 .side-actions {
   position: sticky;
-  top: 10px;
+  top: 10px;  /* gap to the header to avoid touch of elements */
   width: 100%;
   height: max-content;
   text-align: center;
