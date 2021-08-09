@@ -1080,6 +1080,13 @@ function uploadFiles(files) {
     });
 
     $progress.addClass('hidden');
+  }).catch(function(error) {
+    Fliplet.Modal.alert({
+      title: 'Error uploading',
+      message: Fliplet.parseError(error, 'Unknown error. Please try again later.')
+    });
+
+    $progress.addClass('hidden');
   });
 }
 
@@ -1738,6 +1745,13 @@ $('.file-manager-wrapper')
         parseThumbnail(file);
         addFile(file);
         insertItem(file);
+      });
+
+      $progress.addClass('hidden');
+    }).catch(function(error) {
+      Fliplet.Modal.alert({
+        title: 'Error uploading',
+        message: Fliplet.parseError(error, 'Unknown error. Please try again later.')
       });
 
       $progress.addClass('hidden');
