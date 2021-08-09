@@ -1,0 +1,5 @@
+# IDE and OS files
+.DS_Store
+.idea
+.history
+node_modules
