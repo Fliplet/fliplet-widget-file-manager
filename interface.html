@@ -307,7 +307,7 @@
     </div>
     <div class="file-cell file-name-cell">
       <div class="file-name" data-open-file>
-        \{{#if thumbnail}}<img src="\{{thumbnail}}"/>\{{/if}}
+        \{{#if thumbnail}}<img loading="lazy" src="\{{thumbnail}}"/>\{{/if}}
         <span>\{{name}}</span>
       </div>
     </div>
@@ -316,7 +316,7 @@
       <div class="file-owner" data-toggle="tooltip" data-placement="left" title="\{{originPath.tooltip}}">
         <span>
           \{{#if originPath.isApp}}
-          \{{#if originPath.appIcon}}<img class="trash-item-icon" src="\{{originPath.appIcon}}" alt="">\{{/if}}
+          \{{#if originPath.appIcon}}<img loading="lazy" class="trash-item-icon" src="\{{originPath.appIcon}}" alt="">\{{/if}}
           \{{else}}
           <i class="fa fa-fw fa-lg fa-building-o"></i>
           \{{/if}}
