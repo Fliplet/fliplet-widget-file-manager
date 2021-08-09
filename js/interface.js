@@ -1627,7 +1627,7 @@ $('.file-manager-wrapper')
 
     var $items = $('.file-row.active');
     Fliplet.Modal.confirm({
-      titile: 'Delete items',
+      title: 'Delete items',
       message: 'The action will delete '
         + ($items.length > 1 ? $items.length + ' files' : 'the file')
         + ' forever and it can not be undone.',
@@ -2039,13 +2039,13 @@ $('.file-manager-wrapper')
   })
   .on('dragstart', '.file-row', function(e) {
     changeGlobalDropZoneState(true);
-    var dragingItem = $(e.target).data();
-    e.originalEvent.dataTransfer.setData('text', JSON.stringify(dragingItem));
+    var draggingItem = $(e.target).data();
+    e.originalEvent.dataTransfer.setData('text', JSON.stringify(draggingItem));
     $('.panel-title.list-holder').addClass('drop-area');
     $('.app-holder').addClass('drop-area');
     $('.file-row[data-file-type="folder"]').each(function() {
       var item = $(this);
-      if (dragingItem.id != item[0].dataset.id && !$(item).hasClass('active')) {
+      if (draggingItem.id != item[0].dataset.id && !$(item).hasClass('active')) {
         $(item).addClass('drop-area');
       }
     });
