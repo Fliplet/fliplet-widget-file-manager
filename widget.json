@@ -10,13 +10,13 @@
       "fliplet-media",
       "fliplet-studio-ui",
       "lodash",
+      "handlebars",
       "bootstrap",
-      "animate-css"
+      "animate-css",
+      "moment"
     ],
     "assets": [
-      "vendor/handlebars.js",
       "vendor/tether.min.js",
-      "vendor/moment.js",
       "vendor/paginationjs/pagination.css",
       "vendor/paginationjs/pagination.min.js",
       "js/interface.js",
