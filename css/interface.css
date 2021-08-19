@@ -603,15 +603,19 @@ html {
   background-color: #f3f3f3;
 }
 
+.file-row[data-av-status="infected"] {
+  color: #a94442;
+}
+
 .file-row .fa-bug {
   position: absolute;
   left: -5px;
   top: 5px;
-  background: #fcf8e3;
+  background: #d9534f;
   border-radius: 50%;
   padding: 3px;
-  border: 1px solid #faebcc;
-  color: #8a6d3b;
+  color: #fff;
+  box-shadow: 0px 0px 0px 2px #fff;
 }
 
 .file-cell {

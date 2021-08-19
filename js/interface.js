@@ -1143,7 +1143,9 @@ function renderItem(item, isFolder, insertIndex) {
     $folderContents.append(template);
   }
 
-  $('.file-row[data-id="' + item.id + '"]').find('[data-toggle="tooltip"]').tooltip();
+  if (!isFolder && _.get(item, ['metadata.av.status']) === 'infected') {
+    $('.file-row[data-id="' + item.id + '"]').find('[data-toggle="tooltip"]').tooltip();
+  }
 }
 
 // Renders sorted list of folders and files
