@@ -1336,7 +1336,9 @@ function calculatePath(item) {
 
 // Converts date to readable date format
 function formatDate(date) {
-  return moment(date).format('MMM D, YYYY');
+  var locale = navigator.language.indexOf('en') === 0 ? navigator.language : 'en';
+
+  return TD(date, { format: 'll', locale: locale });
 }
 
 // Remove any selected field
