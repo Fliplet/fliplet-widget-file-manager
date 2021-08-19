@@ -6,8 +6,8 @@ html {
 
 ::-webkit-scrollbar {
   width: 0;
-  background: transparent;
   /* make scrollbar transparent */
+  background: transparent;
 }
 
 /* FILE MANAGER */
@@ -246,8 +246,8 @@ html {
 
 .side-actions {
   position: sticky;
-  top: 10px;
   /* gap to the header to avoid touch of elements */
+  top: 10px;
   width: 100%;
   height: max-content;
   text-align: center;
@@ -558,7 +558,6 @@ html {
   text-align: center;
 }
 */
-
 .file-table {
   display: table;
   table-layout: fixed;
