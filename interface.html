@@ -312,6 +312,9 @@
       <div class="file-name" data-open-file>
         \{{#if thumbnail}}<img loading="lazy" src="\{{thumbnail}}" />\{{/if}}
         <span>\{{name}}</span>
+        \{{#ifCond metadata.av.status '===' 'infected'}}
+          <i class="fa fa-bug" data-toggle="tooltip" data-placement="top" title="Virus detected"></i>
+        \{{/ifCond}}
       </div>
     </div>
     \{{#if originPath}}

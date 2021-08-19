@@ -603,6 +603,17 @@ html {
   background-color: #f3f3f3;
 }
 
+.file-row .fa-bug {
+  position: absolute;
+  left: -5px;
+  top: 5px;
+  background: #fcf8e3;
+  border-radius: 50%;
+  padding: 3px;
+  border: 1px solid #faebcc;
+  color: #8a6d3b;
+}
+
 .file-cell {
   border-bottom: 1px solid rgba(0, 0, 0, 0.065);
   display: table-cell;

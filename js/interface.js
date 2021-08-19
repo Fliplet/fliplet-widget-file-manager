@@ -1142,6 +1142,8 @@ function renderItem(item, isFolder, insertIndex) {
   } else {
     $folderContents.append(template);
   }
+
+  $('.file-row[data-id="' + item.id + '"]').find('[data-toggle="tooltip"]').tooltip();
 }
 
 // Renders sorted list of folders and files
