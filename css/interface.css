@@ -6,7 +6,8 @@ html {
 
 ::-webkit-scrollbar {
   width: 0;
-  background: transparent; /* make scrollbar transparent */
+  background: transparent;
+  /* make scrollbar transparent */
 }
 
 /* FILE MANAGER */
@@ -147,22 +148,26 @@ html {
   background-color: transparent;
 }
 
-.empty-state, .search-empty-state {
+.empty-state,
+.search-empty-state {
   width: 100%;
   text-align: center;
   padding-top: 40px;
   display: none;
 }
 
-.empty-state.active, .search-empty-state.active {
+.empty-state.active,
+.search-empty-state.active {
   display: block;
 }
 
-.empty-state span, .search-empty-state span {
+.empty-state span,
+.search-empty-state span {
   font-size: 30px;
 }
 
-.empty-state h3, .search-empty-state h3 {
+.empty-state h3,
+.search-empty-state h3 {
   color: #14505e;
 }
 
@@ -241,7 +246,8 @@ html {
 
 .side-actions {
   position: sticky;
-  top: 10px;  /* gap to the header to avoid touch of elements */
+  top: 10px;
+  /* gap to the header to avoid touch of elements */
   width: 100%;
   height: max-content;
   text-align: center;
