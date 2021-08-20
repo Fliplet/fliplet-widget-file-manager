@@ -11,6 +11,7 @@ html {
 }
 
 /* FILE MANAGER */
+
 .file-manager-wrapper {
   background-color: #FFF;
   height: 100%;
@@ -558,6 +559,7 @@ html {
   text-align: center;
 }
 */
+
 .file-table {
   display: table;
   table-layout: fixed;
