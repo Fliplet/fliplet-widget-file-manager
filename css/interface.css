@@ -6,8 +6,7 @@ html {
 
 ::-webkit-scrollbar {
   width: 0;
-  /* make scrollbar transparent */
-  background: transparent;
+  background: transparent; /* make scrollbar transparent */
 }
 
 /* FILE MANAGER */
@@ -247,8 +246,7 @@ html {
 
 .side-actions {
   position: sticky;
-  /* gap to the header to avoid touch of elements */
-  top: 10px;
+  top: 10px; /* gap to the header to avoid touch of elements */
   width: 100%;
   height: max-content;
   text-align: center;
