@@ -1142,6 +1142,10 @@ function renderItem(item, isFolder, insertIndex) {
   } else {
     $folderContents.append(template);
   }
+
+  if (!isFolder && _.get(item, ['metadata.av.status']) === 'infected') {
+    $('.file-row[data-id="' + item.id + '"]').find('[data-toggle="tooltip"]').tooltip();
+  }
 }
 
 // Renders sorted list of folders and files
@@ -1332,7 +1336,9 @@ function calculatePath(item) {
 
 // Converts date to readable date format
 function formatDate(date) {
-  return moment(date).format('MMM D, YYYY');
+  var locale = navigator.language.indexOf('en') === 0 ? navigator.language : 'en';
+
+  return TD(date, { format: 'll', locale: locale });
 }
 
 // Remove any selected field
