@@ -22,6 +22,22 @@
           </div>
         </h4>
       </div>
+      <div class="storage-holder">
+        <p><strong>Storage</strong></p>
+        {{#if organizationIsPaying}}
+        <div class="storage-progress-holder">
+          <div class="storage-size">250 MB of Unlimited</div>
+        </div>
+        {{else}}
+        <div class="storage-progress-holder">
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuenow="50" aria-valuemax="3" style="width: 50%;"></div>
+          </div>
+          <div class="storage-size">250 MB of 500 MB</div>
+        </div>
+        <div class="btn btn-warning btn-upgrade">Upgrade for more storage</div>
+        {{/if}}
+      </div>
     </div>
     <div class="file-manager-middleholder">
       <div class="file-manager-subheader">

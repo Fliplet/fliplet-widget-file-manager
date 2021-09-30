@@ -1,5 +1,7 @@
-var widgetId = parseInt(Fliplet.Widget.getDefaultId(), 10);
+var widgetId = Fliplet.Widget.getDefaultId();
 var data = Fliplet.Widget.getData(widgetId) || {};
+var organizationIsPaying = data.organizationIsPaying;
+var isPaidApp = data.isPaidApp;
 var $folderContents = $('.file-table-body');
 var $organizationList = $('.dropdown-menu-holder .panel-group');
 var $progress = $('.progress');
