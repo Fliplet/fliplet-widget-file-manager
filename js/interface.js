@@ -1693,6 +1693,7 @@ function toggleStorageUsage($el) {
   ]('hidden');
 
   // Update the UI to show the storage usage
+  $('.storage-holder p span').text(selectedApp.name);
   $('.storage-holder .progress-bar').css({ width: ((storageInMB / 500) * 100).toFixed(2) + '%' });
   $('.storage-holder .progress-bar').attr('aria-valuenow', ((storageInMB / 500) * 100).toFixed(2));
   $('.storage-holder .storage-size .storage-usage').text(formattedStorageUsage);
