@@ -221,10 +221,10 @@ function navigateToDefaultFolder() {
   getFolderContentsById(folderId, type);
 }
 
-function getAppsList() {
+function getAppsList(options) {
   showSpinner(true);
 
-  Fliplet.Apps.get().then(function(apps) {
+  return Fliplet.Apps.get(options).then(function(apps) {
     // Remove V1 apps
     apps = apps.filter(function(app) {
       return !app.legacy;
@@ -1130,6 +1130,12 @@ function uploadFiles(files) {
     });
 
     $progress.addClass('hidden');
+
+    return getAppsList({
+      cache: false
+    });
+  }).then(function() {
+    toggleStorageUsage();
   }).catch(function(error) {
     Fliplet.Modal.alert({
       title: 'Error uploading',
@@ -1658,7 +1664,9 @@ function generateDeleteMessage(items) {
 }
 
 function toggleStorageUsage($el) {
-  var selectedAppId = $el.data('app-id');
+  var selectedAppId = $el
+    ? $el.data('app-id')
+    : $('.list-holder.active').parents('[data-browse-folder]').data('app-id');
 
   // Show or hide the storage usage UI
   $('.storage-holder')[selectedAppId ? 'removeClass' : 'addClass']('hidden');
@@ -1875,6 +1883,12 @@ $('.file-manager-wrapper')
       });
 
       $progress.addClass('hidden');
+
+      return getAppsList({
+        cache: false
+      });
+    }).then(function() {
+      toggleStorageUsage();
     }).catch(function(error) {
       Fliplet.Modal.alert({
         title: 'Error uploading',
