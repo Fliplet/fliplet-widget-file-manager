@@ -1,5 +1,7 @@
-var widgetId = parseInt(Fliplet.Widget.getDefaultId(), 10);
+var widgetId = Fliplet.Widget.getDefaultId();
 var data = Fliplet.Widget.getData(widgetId) || {};
+var organizationIsSelfServe = data.organizationIsSelfServe;
+var isPaidApp = data.isPaidApp;
 var $folderContents = $('.file-table-body');
 var $organizationList = $('.dropdown-menu-holder .panel-group');
 var $progress = $('.progress');
@@ -168,6 +170,8 @@ function navigateToDefaultFolder() {
 
   // Set first folder of breadcrumbs
   resetUpTo($el);
+
+  toggleStorageUsage($listHolder.parents('[data-browse-folder]'));
 
   if (data.appId) {
     getFolderContents($el, true);
@@ -1637,6 +1641,55 @@ function generateDeleteMessage(items) {
   return 'Are you sure you want to delete the selected items?\nAll the content inside any folders will be deleted too.';
 }
 
+function toggleStorageUsage($el) {
+  var selectedAppId = $el.data('app-id');
+
+  // Show or hide the storage usage UI
+  $('.storage-holder')[selectedAppId ? 'removeClass' : 'addClass']('hidden');
+
+  if (!selectedAppId) {
+    return;
+  }
+
+  // Get the selected app
+  var selectedApp = _.find(appList, function(app) {
+    return app.id === selectedAppId;
+  });
+
+  if (!selectedApp) {
+    return;
+  }
+
+  var appMetrics = selectedApp.metrics
+    ? selectedApp.metrics.storageUsed || 0
+    : 0;
+  var storageInMB = Math.round(appMetrics / 1024);
+  var storageUsageInBytes = Math.round(appMetrics * 1024);
+  var formattedStorageUsage = formatBytes(storageUsageInBytes);
+  var isPaidApp = selectedApp.plan && selectedApp.plan.active;
+
+  // Toggle progress bar and upgrade button
+  $('.storage-holder .storage-progress-holder .progress')[!organizationIsSelfServe || isPaidApp
+    ? 'addClass'
+    : 'removeClass'
+  ]('hidden');
+  $('.storage-holder .btn-upgrade')[!organizationIsSelfServe || isPaidApp
+    ? 'addClass'
+    : 'removeClass'
+  ]('hidden');
+
+  // Update the UI to show the storage usage
+  $('.storage-holder p span').text(selectedApp.name);
+  $('.storage-holder .progress-bar').css({ width: ((storageInMB / 500) * 100).toFixed(2) + '%' });
+  $('.storage-holder .progress-bar').attr('aria-valuenow', ((storageInMB / 500) * 100).toFixed(2));
+  $('.storage-holder .storage-size .storage-usage').text(formattedStorageUsage);
+  $('.storage-holder .storage-size .storage-limit').text(
+    !organizationIsSelfServe || isPaidApp
+      ? 'Unlimited'
+      : '500 MB'
+  );
+}
+
 // EVENTS //
 // Removes options popup by clicking elsewhere
 $(document).on('click', function(e) {
@@ -1714,6 +1767,8 @@ $('.file-manager-wrapper')
     var rootId = $(this).data('app-id')
       ? { appId: $(this).data('app-id') }
       : { orgId: $(this).data('org-id') };
+
+    toggleStorageUsage($(this));
 
     navigateToRootFolder(rootId);
   })
@@ -2193,6 +2248,26 @@ $('.file-manager-wrapper')
   })
   .on('dragleave', '.drop-area', function() {
     $(this).removeClass('highlight');
+  })
+  .on('click', '.storage-holder .btn-upgrade', function() {
+    var $activeElement = $('.list-holder.active');
+    var $activeElementParent = $activeElement.parents('[data-browse-folder]');
+    var selectedAppId = $activeElementParent.data('app-id');
+
+    if (!selectedAppId) {
+      return;
+    }
+
+    Fliplet.Studio.emit('overlay', {
+      name: 'app-settings',
+      options: {
+        size: 'large',
+        title: 'App Settings',
+        appId: selectedAppId,
+        section: 'appBilling',
+        helpLink: 'https://help.fliplet.com/app-settings/'
+      }
+    });
   });
 
 /* Resize sidebar
