@@ -4,7 +4,7 @@ var organizationIsSelfServe = data.organizationIsSelfServe;
 var isPaidApp = data.isPaidApp;
 var $folderContents = $('.file-table-body');
 var $organizationList = $('.dropdown-menu-holder .panel-group');
-var $progress = $('.progress');
+var $progress = $('.upload-progress-bar');
 var $progressBar = $progress.find('.progress-bar');
 var $dropZone = $('#drop-zone');
 var $dropZoneWrapper = $('.drop-zone-wrapper');
@@ -51,6 +51,22 @@ var isActiveSearch = false;
 var useCdn = false;
 
 // CORE FUNCTIONS //
+
+// Formats the file size from bytes
+function formatBytes(bytes, decimals = 2) {
+  if (bytes === 0) {
+    return '0 Bytes';
+  }
+
+  var k = 1024;
+  var dm = decimals < 0 ? 0 : decimals;
+  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+  var i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
 // Get organizations and apps list for left side menu
 function getOrganizationsList() {
   $('[restore-action]').hide();
@@ -205,10 +221,10 @@ function navigateToDefaultFolder() {
   getFolderContentsById(folderId, type);
 }
 
-function getAppsList() {
+function getAppsList(options) {
   showSpinner(true);
 
-  Fliplet.Apps.get().then(function(apps) {
+  return Fliplet.Apps.get(options).then(function(apps) {
     // Remove V1 apps
     apps = apps.filter(function(app) {
       return !app.legacy;
@@ -1114,6 +1130,12 @@ function uploadFiles(files) {
     });
 
     $progress.addClass('hidden');
+
+    return getAppsList({
+      cache: false
+    });
+  }).then(function() {
+    toggleStorageUsage();
   }).catch(function(error) {
     Fliplet.Modal.alert({
       title: 'Error uploading',
@@ -1642,7 +1664,9 @@ function generateDeleteMessage(items) {
 }
 
 function toggleStorageUsage($el) {
-  var selectedAppId = $el.data('app-id');
+  var selectedAppId = $el
+    ? $el.data('app-id')
+    : $('.list-holder.active').parents('[data-browse-folder]').data('app-id');
 
   // Show or hide the storage usage UI
   $('.storage-holder')[selectedAppId ? 'removeClass' : 'addClass']('hidden');
@@ -1859,6 +1883,12 @@ $('.file-manager-wrapper')
       });
 
       $progress.addClass('hidden');
+
+      return getAppsList({
+        cache: false
+      });
+    }).then(function() {
+      toggleStorageUsage();
     }).catch(function(error) {
       Fliplet.Modal.alert({
         title: 'Error uploading',

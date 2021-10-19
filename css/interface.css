@@ -310,7 +310,7 @@ html {
 
 .dropdown-menu-holder .panel-group {
   margin: 0 -15px;
-  max-height: calc(90vh - 135px);
+  max-height: calc(90vh - 140px);
   overflow-y: auto;
 }
 
@@ -496,10 +496,10 @@ html {
 }
 
 .storage-holder {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
-  right: 0;
+  width: 240px;
   padding: 15px;
   border-top: 1px solid #e4e9eb;
 }
