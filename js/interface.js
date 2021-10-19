@@ -1671,6 +1671,10 @@ function toggleStorageUsage($el) {
   // Show or hide the storage usage UI
   $('.storage-holder')[selectedAppId ? 'removeClass' : 'addClass']('hidden');
 
+  // Set context to the .panel-group
+  $('.list-holder.active').parents('.panel-group')
+    [selectedAppId ? 'removeClass' : 'addClass']('is-organization');
+
   if (!selectedAppId) {
     return;
   }
