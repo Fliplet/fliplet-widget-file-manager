@@ -1669,11 +1669,10 @@ function toggleStorageUsage($el) {
     : $('.list-holder.active').parents('[data-browse-folder]').data('app-id');
 
   // Show or hide the storage usage UI
-  $('.storage-holder')[selectedAppId ? 'removeClass' : 'addClass']('hidden');
+  $('.storage-holder').toggleClass('hidden', !selectedAppId);
 
   // Set context to the .panel-group
-  $('.list-holder.active').parents('.panel-group')
-    [selectedAppId ? 'removeClass' : 'addClass']('is-organization');
+  $('.list-holder.active').parents('.panel-group').toggleClass('is-organization', !selectedAppId);
 
   if (!selectedAppId) {
     return;
@@ -1697,14 +1696,9 @@ function toggleStorageUsage($el) {
   var isPaidApp = selectedApp.plan && selectedApp.plan.active;
 
   // Toggle progress bar and upgrade button
-  $('.storage-holder .storage-progress-holder .progress')[!organizationIsSelfServe || isPaidApp
-    ? 'addClass'
-    : 'removeClass'
-  ]('hidden');
-  $('.storage-holder .btn-upgrade')[!organizationIsSelfServe || isPaidApp
-    ? 'addClass'
-    : 'removeClass'
-  ]('hidden');
+  $('.storage-holder .storage-progress-holder .progress')
+    .toggleClass('hidden', !organizationIsSelfServe || !!isPaidApp);
+  $('.storage-holder .btn-upgrade').toggleClass('hidden', !organizationIsSelfServe || !!isPaidApp);
 
   // Update the UI to show the storage usage
   $('.storage-holder p span').text(selectedApp.name);
