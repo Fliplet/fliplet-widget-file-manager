@@ -314,6 +314,10 @@ html {
   overflow-y: auto;
 }
 
+.dropdown-menu-holder .panel-group.is-organization {
+  max-height: calc(90vh + 10px);
+}
+
 .dropdown-menu-holder .panel-group .panel {
   border: none;
   border-radius: 0;
