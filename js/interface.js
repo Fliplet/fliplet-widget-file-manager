@@ -1,7 +1,6 @@
 var widgetId = Fliplet.Widget.getDefaultId();
 var data = Fliplet.Widget.getData(widgetId) || {};
 var organizationIsSelfServe = data.organizationIsSelfServe;
-var isPaidApp = data.isPaidApp;
 var $folderContents = $('.file-table-body');
 var $organizationList = $('.dropdown-menu-holder .panel-group');
 var $progress = $('.upload-progress-bar');
@@ -221,18 +220,20 @@ function navigateToDefaultFolder() {
   getFolderContentsById(folderId, type);
 }
 
-function getAppsList(options) {
+function getAppsList() {
   showSpinner(true);
 
-  return Fliplet.Apps.get(options).then(function(apps) {
+  return Fliplet.Apps.get().then(function(apps) {
     // Remove V1 apps
     apps = apps.filter(function(app) {
       return !app.legacy;
     });
+
     // Sort apps alphabetically
     apps = _.sortBy(apps, [function(o) {
       return o.name;
     }]);
+
     // Add apps to HTML
     apps.forEach(addApps);
     appList = apps;
@@ -245,6 +246,26 @@ function getAppsList(options) {
       message: Fliplet.parseError(err)
     });
   });
+}
+
+function getAppById(appId) {
+  return Fliplet.API.request('v1/apps/' + appId);
+}
+
+function updateAppMetrics(appId) {
+  return getAppById(appId)
+    .then(function(result) {
+      var updatedApp = result.app;
+      var appIndex = appList.findIndex(function(app) {
+        return app.id === updatedApp.id;
+      });
+
+      if (appIndex === -1) {
+        return;
+      }
+
+      appList[appIndex].metrics = updatedApp.metrics;
+    });
 }
 
 function getFolderContentsById(id, type, isSearchNav) {
@@ -367,6 +388,7 @@ function loadTrashFolder() {
   resetUpTo($element);
   getFolderContents($element, true);
   updateSearchTypeOptions($element.data('type'));
+  toggleStorageUsage();
 }
 
 function restoreAction(type, id) {
@@ -543,7 +565,8 @@ function removeTrashItems(items) {
   $(items).each(function() {
     var $element = $(this);
     var itemID = $element.data('id');
-    var itemName = $element.attr('data-name');
+    var itemName = $element.data('name');
+    var itemAppId = $element.data('app-id');
     var deletePromise;
 
     showSpinner(true);
@@ -560,6 +583,7 @@ function removeTrashItems(items) {
         currentFolders = currentFolders.filter(function(folder) {
           return folder.id !== itemID;
         });
+
         $('.file-table-header input[type="checkbox"]').prop('checked', false);
       });
     } else {
@@ -590,6 +614,12 @@ function removeTrashItems(items) {
           message: restoredItems !== 1 ? items.length + ' items deleted' : itemName + ' deleted'
         });
       }
+
+      if (!itemAppId) {
+        return;
+      }
+
+      return updateAppMetrics(itemAppId);
     }).catch(function(error) {
       showSpinner(false);
       Fliplet.Modal.alert({
@@ -1131,9 +1161,11 @@ function uploadFiles(files) {
 
     $progress.addClass('hidden');
 
-    return getAppsList({
-      cache: false
-    });
+    if (!currentAppId) {
+      return;
+    }
+
+    return updateAppMetrics(currentAppId);
   }).then(function() {
     toggleStorageUsage();
   }).catch(function(error) {
@@ -1882,9 +1914,11 @@ $('.file-manager-wrapper')
 
       $progress.addClass('hidden');
 
-      return getAppsList({
-        cache: false
-      });
+      if (!currentAppId) {
+        return;
+      }
+  
+      return updateAppMetrics(currentAppId);
     }).then(function() {
       toggleStorageUsage();
     }).catch(function(error) {
