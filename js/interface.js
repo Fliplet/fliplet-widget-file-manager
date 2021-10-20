@@ -220,10 +220,10 @@ function navigateToDefaultFolder() {
   getFolderContentsById(folderId, type);
 }
 
-function getAppsList(options) {
+function getAppsList() {
   showSpinner(true);
 
-  return Fliplet.Apps.get(options).then(function(apps) {
+  return Fliplet.Apps.get().then(function(apps) {
     // Remove V1 apps
     apps = apps.filter(function(app) {
       return !app.legacy;
