@@ -253,6 +253,10 @@ function getAppById(appId) {
 }
 
 function updateAppMetrics(appId) {
+  if (!appId) {
+    return;
+  }
+
   return getAppById(appId)
     .then(function(result) {
       var updatedApp = result.app;
@@ -613,10 +617,6 @@ function removeTrashItems(items) {
           title: title,
           message: restoredItems !== 1 ? items.length + ' items deleted' : itemName + ' deleted'
         });
-      }
-
-      if (!itemAppId) {
-        return;
       }
 
       return updateAppMetrics(itemAppId);
@@ -1161,10 +1161,6 @@ function uploadFiles(files) {
 
     $progress.addClass('hidden');
 
-    if (!currentAppId) {
-      return;
-    }
-
     return updateAppMetrics(currentAppId);
   }).then(function() {
     toggleStorageUsage();
@@ -1575,7 +1571,10 @@ function moveItems(folderType, id, dropArea, element, items) {
         element.remove();
         showGoToFolderAlert(items || element, dropArea);
         hideSideActions();
+        updateAppMetrics(currentAppId);
       }
+    }).then(function() {
+      toggleStorageUsage();
     }).catch(function(error) {
       Fliplet.Modal.alert({
         title: 'Error moving folder',
@@ -1588,7 +1587,10 @@ function moveItems(folderType, id, dropArea, element, items) {
         element.remove();
         showGoToFolderAlert(items || element, dropArea);
         hideSideActions();
+        updateAppMetrics(currentAppId);
       }
+    }).then(function() {
+      toggleStorageUsage();
     }).catch(function(error) {
       Fliplet.Modal.alert({
         title: 'Error moving file',
@@ -1913,10 +1915,6 @@ $('.file-manager-wrapper')
       });
 
       $progress.addClass('hidden');
-
-      if (!currentAppId) {
-        return;
-      }
   
       return updateAppMetrics(currentAppId);
     }).then(function() {
