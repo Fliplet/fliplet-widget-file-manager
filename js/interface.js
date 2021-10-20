@@ -260,6 +260,10 @@ function updateAppMetrics(appId) {
         return app.id === updatedApp.id;
       });
 
+      if (appIndex === -1) {
+        return;
+      }
+
       appList[appIndex].metrics = updatedApp.metrics;
     });
 }
