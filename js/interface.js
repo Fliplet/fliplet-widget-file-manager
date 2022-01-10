@@ -1746,6 +1746,65 @@ function toggleStorageUsage($el) {
   );
 }
 
+// Create new folder
+function createFolder(event, folderName) {
+  Fliplet.Modal.prompt({
+    title: 'Type folder name',
+    value: folderName || ''
+  }).then(function(result) {
+    if (result === null) {
+      return;
+    }
+
+    if (result.length > 45) {
+      Fliplet.Modal.alert({ 
+        title: 'Failed to create folder',
+        message: 'Folder name must be 45 characters or less'
+      }).then(function () {
+        createFolder(null, result)
+      });
+
+      return;
+    }
+
+    var dataSourceName = result.trim();
+    var lastFolderSelected = navStack[navStack.length - 1];
+    var options = {
+      name: dataSourceName,
+      parentId: currentFolderId || undefined
+    };
+  
+    if (lastFolderSelected.type === 'appId') {
+      options.appId = lastFolderSelected.id;
+    } else if (lastFolderSelected.type === 'organizationId') {
+      options.organizationId = lastFolderSelected.id;
+    } else {
+      options.parentId = lastFolderSelected.id;
+  
+      if (lastFolderSelected.organizationId !== null) {
+        options.organizationId = lastFolderSelected.organizationId;
+      } else if (lastFolderSelected.appId !== null) {
+        options.appId = lastFolderSelected.appId;
+      }
+    }
+  
+    showSpinner(true);
+  
+    Fliplet.Media.Folders.create(options).then(function(folder) {
+      addFolder(folder);
+      insertItem(folder, true);
+      showSpinner(false);
+    }).catch(function(err) {
+      showSpinner(false);
+      Fliplet.Modal.alert({
+        message: Fliplet.parseError(err)
+      });
+    });
+  
+    $newBtn.click();     
+  });
+}
+
 // EVENTS //
 // Removes options popup by clicking elsewhere
 $(document).on('click', function(e) {
@@ -1828,52 +1887,7 @@ $('.file-manager-wrapper')
 
     navigateToRootFolder(rootId);
   })
-  .on('click', '[data-create-folder]', function() {
-    // Creates folder
-    Fliplet.Modal.prompt({
-      title: 'Type folder name'
-    }).then(function(result) {
-      if (result === null) {
-        return;
-      }
-
-      var dataSourceName = result.trim();
-      var lastFolderSelected = navStack[navStack.length - 1];
-      var options = {
-        name: dataSourceName,
-        parentId: currentFolderId || undefined
-      };
-
-      if (lastFolderSelected.type === 'appId') {
-        options.appId = lastFolderSelected.id;
-      } else if (lastFolderSelected.type === 'organizationId') {
-        options.organizationId = lastFolderSelected.id;
-      } else {
-        options.parentId = lastFolderSelected.id;
-
-        if (lastFolderSelected.organizationId !== null) {
-          options.organizationId = lastFolderSelected.organizationId;
-        } else if (lastFolderSelected.appId !== null) {
-          options.appId = lastFolderSelected.appId;
-        }
-      }
-
-      showSpinner(true);
-
-      Fliplet.Media.Folders.create(options).then(function(folder) {
-        addFolder(folder);
-        insertItem(folder, true);
-        showSpinner(false);
-      }).catch(function(err) {
-        showSpinner(false);
-        Fliplet.Modal.alert({
-          message: Fliplet.parseError(err)
-        });
-      });
-
-      $newBtn.click();
-    });
-  })
+  .on('click', '[data-create-folder]', createFolder)
   .on('submit', '[data-upload-file]', function(event) {
     // Upload file
     event.preventDefault();
