@@ -2293,6 +2293,10 @@ $('.file-manager-wrapper')
 
       if (checkDraggedItems) {
         $('.alert-message').text('Moving ' + items.length + ' item(s)...');
+        setTimeout(function() {
+          setAlertVisibilityWhenMovingItems(false);
+        }, goToFolderAlertTimeout);
+
         $(items).each(function() {
           var $element = $(this);
           var folderType = $element.attr('data-file-type');
@@ -2303,6 +2307,10 @@ $('.file-manager-wrapper')
         });
       } else {
         $('.alert-message').text('Moving ' + $element.length + ' item(s)...');
+        setTimeout(function() {
+          setAlertVisibilityWhenMovingItems(false);
+        }, goToFolderAlertTimeout);
+
         moveItems(itemType.fileType, itemType.id, dropArea, $element);
       }
     });
