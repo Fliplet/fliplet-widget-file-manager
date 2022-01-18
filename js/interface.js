@@ -70,6 +70,7 @@ function formatBytes(bytes, decimals = 2) {
 function getOrganizationsList() {
   $('[restore-action]').hide();
   $('[file-remove-trash]').hide();
+  $('.file-deleted-cell').hide();
 
   showSpinner(true);
 
@@ -1193,10 +1194,8 @@ function renderItem(item, isFolder, insertIndex) {
     var $item = $folderContents.find('.file-row').eq(insertIndex);
 
     $item.before(template);
-    $('.file-deleted-cell').hide();
   } else {
     $folderContents.append(template);
-    $('.file-deleted-cell').hide();
   }
 
   if (!isFolder && _.get(item, ['metadata.av.status']) === 'infected') {
@@ -2058,7 +2057,6 @@ $('.file-manager-wrapper')
 
             if (!currentFolders.length && !currentFiles.length) {
               $('.empty-state').addClass('active');
-              $('.file-deleted-cell').show();
             }
           });
         }).catch(function(err) {
