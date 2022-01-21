@@ -1050,6 +1050,8 @@ function getFoldersData(options, filterFiles, filterFolders) {
     if (response.files.length === 0 && response.folders.length === 0) {
       $selectAllCheckbox.addClass('active');
       $('.empty-state').addClass('active');
+      $('.file-date-cell').show();
+      $('.file-deleted-cell').hide();
     } else {
       folders = response.folders;
 
@@ -1100,6 +1102,7 @@ function getTrashFilesData(filterFiles, filterFolders) {
 
       mediaFiles.forEach(parseThumbnail);
 
+      $('.file-deleted-cell').removeClass('hide-deleted-cell');
       $('.file-date-cell').hide();
       $('.file-deleted-cell').show();
 

@@ -761,6 +761,10 @@ html {
   max-width: 176px;
 }
 
+.hide-deleted-cell {
+  visibility: hidden;
+}
+
 .file-cell.file-path-cell {
   width: 300px;
 }
