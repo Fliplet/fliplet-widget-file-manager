@@ -70,7 +70,6 @@ function formatBytes(bytes, decimals = 2) {
 function getOrganizationsList() {
   $('[restore-action]').hide();
   $('[file-remove-trash]').hide();
-  $('.file-deleted-cell').hide();
 
   showSpinner(true);
 
@@ -1102,7 +1101,7 @@ function getTrashFilesData(filterFiles, filterFolders) {
 
       mediaFiles.forEach(parseThumbnail);
 
-      $('.file-deleted-cell').removeClass('hide-deleted-cell');
+      $('.file-deleted-cell').removeClass('file-cell-hidden')
       $('.file-date-cell').hide();
       $('.file-deleted-cell').show();
 

@@ -757,7 +757,7 @@ html {
 }
 
 .file-cell.file-date-cell,
-.file-deleted-cell {
+.file-cell-hidden {
   max-width: 176px;
 }
 
