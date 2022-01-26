@@ -761,10 +761,6 @@ html {
   max-width: 176px;
 }
 
-.file-cell-hidden {
-  display: none;
-}
-
 .file-cell.file-path-cell {
   width: 300px;
 }

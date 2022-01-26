@@ -1101,7 +1101,7 @@ function getTrashFilesData(filterFiles, filterFolders) {
 
       mediaFiles.forEach(parseThumbnail);
 
-      $('.file-deleted-cell').removeClass('file-cell-hidden')
+      $('.file-deleted-cell').removeClass('hidden')
       $('.file-date-cell').hide();
       $('.file-deleted-cell').show();
 
