@@ -762,7 +762,7 @@ html {
 }
 
 .file-cell-hidden {
-  visibility: hidden;
+  display: none;
 }
 
 .file-cell.file-path-cell {
