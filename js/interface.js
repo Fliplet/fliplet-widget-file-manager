@@ -34,6 +34,7 @@ var currentFolders;
 var currentFiles;
 var restoredItems = 0;
 var currentSearchResult;
+var deletedOnly = false;
 
 var folders = [];
 var navStack = [];
@@ -380,6 +381,7 @@ function getFolderContentsById(id, type, isSearchNav) {
 }
 
 function loadTrashFolder() {
+  deletedOnly = true;
   $('[data-browse-trash] span').addClass('active-trash');
   $('[restore-action]').show();
   $('[file-remove-trash]').show();
@@ -1101,7 +1103,7 @@ function getTrashFilesData(filterFiles, filterFolders) {
 
       mediaFiles.forEach(parseThumbnail);
 
-      $('.file-deleted-cell').removeClass('hidden')
+      $('.file-deleted-cell').removeClass('hidden');
       $('.file-date-cell').hide();
       $('.file-deleted-cell').show();
 
@@ -1268,12 +1270,20 @@ function search(type, term) {
     name: term
   };
 
+
   // If the user put anything except a numbers _.toNumber function will return a NaN result
   if (_.toNumber(term)) {
     query.id = term;
   }
 
-  if (type === 'all') {
+  // add deletedOnly to query in case of search in trash folder
+  if (deletedOnly) {
+    query.deletedOnly = deletedOnly;
+
+    if (currentFolderId) {
+      query.folderId = currentFolderId;
+    }
+  } else if (type === 'all') {
     if (currentAppId) {
       query.appId = currentAppId;
     } else {
@@ -1313,6 +1323,10 @@ function renderSearchResult(result, searchType) {
 
   result = result
     .filter(function(item) {
+      if (deletedOnly) {
+        return item.deletedAt;
+      }
+
       if (currentAppId || currentFolderId || searchType === 'all') {
         return !item.deletedAt;
       }
@@ -1356,6 +1370,18 @@ function renderSearchResult(result, searchType) {
           addFile(item);
         }
       });
+
+      // show and hide columns for trash items in case of sub-folder
+      if (deletedOnly) {
+        if (currentFolderId) {
+          $('.file-deleted-cell').hide();
+          $('.file-date-cell:contains("Created")').show();
+        } else {
+          $('.file-deleted-cell').hide();
+          $('.file-deleted-cell:contains("Deleted")').show();
+          $('.file-date-cell').hide();
+        }
+      }
 
       renderList();
     }
@@ -1760,11 +1786,11 @@ function createFolder(event, folderName) {
     }
 
     if (result.length > 45) {
-      Fliplet.Modal.alert({ 
+      Fliplet.Modal.alert({
         title: 'Failed to create folder',
         message: 'Folder name must be 45 characters or less'
-      }).then(function () {
-        createFolder(null, result)
+      }).then(function() {
+        createFolder(null, result);
       });
 
       return;
@@ -1776,23 +1802,23 @@ function createFolder(event, folderName) {
       name: dataSourceName,
       parentId: currentFolderId || undefined
     };
-  
+
     if (lastFolderSelected.type === 'appId') {
       options.appId = lastFolderSelected.id;
     } else if (lastFolderSelected.type === 'organizationId') {
       options.organizationId = lastFolderSelected.id;
     } else {
       options.parentId = lastFolderSelected.id;
-  
+
       if (lastFolderSelected.organizationId !== null) {
         options.organizationId = lastFolderSelected.organizationId;
       } else if (lastFolderSelected.appId !== null) {
         options.appId = lastFolderSelected.appId;
       }
     }
-  
+
     showSpinner(true);
-  
+
     Fliplet.Media.Folders.create(options).then(function(folder) {
       addFolder(folder);
       insertItem(folder, true);
@@ -1803,8 +1829,8 @@ function createFolder(event, folderName) {
         message: Fliplet.parseError(err)
       });
     });
-  
-    $newBtn.click();     
+
+    $newBtn.click();
   });
 }
 
@@ -1882,6 +1908,8 @@ $('.file-manager-wrapper')
     });
   })
   .on('click', '.dropdown-menu-holder [data-browse-folder]', function() {
+    deletedOnly = false;
+
     var rootId = $(this).data('app-id')
       ? { appId: $(this).data('app-id') }
       : { orgId: $(this).data('org-id') };
@@ -1932,7 +1960,7 @@ $('.file-manager-wrapper')
       });
 
       $progress.addClass('hidden');
-  
+
       return updateAppMetrics(currentAppId);
     }).then(function() {
       toggleStorageUsage();
