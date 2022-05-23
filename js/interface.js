@@ -1323,7 +1323,7 @@ function renderSearchResult(result, searchType) {
 
   result = result
     .filter(function(item) {
-      if (deletedOnly && item.deletedAt) {
+      if (deletedOnly) {
         return item.deletedAt;
       }
 
