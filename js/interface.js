@@ -620,6 +620,8 @@ function removeTrashItems(items) {
       }
 
       return updateAppMetrics(itemAppId);
+    }).then(function() {
+      toggleStorageUsage();
     }).catch(function(error) {
       showSpinner(false);
       Fliplet.Modal.alert({
@@ -1101,7 +1103,7 @@ function getTrashFilesData(filterFiles, filterFolders) {
 
       mediaFiles.forEach(parseThumbnail);
 
-      $('.file-deleted-cell').removeClass('hidden')
+      $('.file-deleted-cell').removeClass('hidden');
       $('.file-date-cell').hide();
       $('.file-deleted-cell').show();
 
@@ -1760,11 +1762,11 @@ function createFolder(event, folderName) {
     }
 
     if (result.length > 45) {
-      Fliplet.Modal.alert({ 
+      Fliplet.Modal.alert({
         title: 'Failed to create folder',
         message: 'Folder name must be 45 characters or less'
-      }).then(function () {
-        createFolder(null, result)
+      }).then(function() {
+        createFolder(null, result);
       });
 
       return;
@@ -1776,23 +1778,23 @@ function createFolder(event, folderName) {
       name: dataSourceName,
       parentId: currentFolderId || undefined
     };
-  
+
     if (lastFolderSelected.type === 'appId') {
       options.appId = lastFolderSelected.id;
     } else if (lastFolderSelected.type === 'organizationId') {
       options.organizationId = lastFolderSelected.id;
     } else {
       options.parentId = lastFolderSelected.id;
-  
+
       if (lastFolderSelected.organizationId !== null) {
         options.organizationId = lastFolderSelected.organizationId;
       } else if (lastFolderSelected.appId !== null) {
         options.appId = lastFolderSelected.appId;
       }
     }
-  
+
     showSpinner(true);
-  
+
     Fliplet.Media.Folders.create(options).then(function(folder) {
       addFolder(folder);
       insertItem(folder, true);
@@ -1803,8 +1805,8 @@ function createFolder(event, folderName) {
         message: Fliplet.parseError(err)
       });
     });
-  
-    $newBtn.click();     
+
+    $newBtn.click();
   });
 }
 
@@ -1932,7 +1934,7 @@ $('.file-manager-wrapper')
       });
 
       $progress.addClass('hidden');
-  
+
       return updateAppMetrics(currentAppId);
     }).then(function() {
       toggleStorageUsage();
@@ -2061,6 +2063,10 @@ $('.file-manager-wrapper')
               $('.empty-state').addClass('active');
             }
           });
+
+          return updateAppMetrics(currentAppId);
+        }).then(function() {
+          toggleStorageUsage();
         }).catch(function(err) {
           showSpinner(false);
 
