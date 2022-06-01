@@ -2075,6 +2075,10 @@ $('.file-manager-wrapper')
           });
         });
       }
+
+      return updateAppMetrics(currentAppId);
+    }).then(function() {
+      toggleStorageUsage();
     });
   })
   .on('click', '[download-action]', function() {
