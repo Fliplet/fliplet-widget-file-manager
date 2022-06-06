@@ -622,6 +622,8 @@ function removeTrashItems(items) {
       }
 
       return updateAppMetrics(itemAppId);
+    }).then(function() {
+      toggleStorageUsage();
     }).catch(function(error) {
       showSpinner(false);
       Fliplet.Modal.alert({
@@ -2089,6 +2091,10 @@ $('.file-manager-wrapper')
               $('.empty-state').addClass('active');
             }
           });
+
+          return updateAppMetrics(currentAppId);
+        }).then(function() {
+          toggleStorageUsage();
         }).catch(function(err) {
           showSpinner(false);
 
@@ -2097,6 +2103,10 @@ $('.file-manager-wrapper')
           });
         });
       }
+
+      return updateAppMetrics(currentAppId);
+    }).then(function() {
+      toggleStorageUsage();
     });
   })
   .on('click', '[download-action]', function() {
