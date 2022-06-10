@@ -1916,7 +1916,11 @@ $('.file-manager-wrapper')
       ? { appId: $(this).data('app-id') }
       : { orgId: $(this).data('org-id') };
 
-    toggleStorageUsage($(this));
+    if(rootId.appId) {
+      updateAppMetrics(rootId.appId).then(function() {
+        toggleStorageUsage();
+      });
+    }
 
     navigateToRootFolder(rootId);
   })
