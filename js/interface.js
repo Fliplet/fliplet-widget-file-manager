@@ -1916,7 +1916,7 @@ $('.file-manager-wrapper')
       ? { appId: $(this).data('app-id') }
       : { orgId: $(this).data('org-id') };
 
-    if(rootId.appId) {
+    if (rootId.appId) {
       updateAppMetrics(rootId.appId).then(function() {
         toggleStorageUsage();
       });
