@@ -363,8 +363,8 @@ function getFolderContentsById(id, type, isSearchNav) {
 
       mediaFiles.forEach(parseThumbnail);
 
-      mediaFolders.forEach(addFolder);
-      mediaFiles.forEach(addFile);
+      mediaFolders.forEach((folder) => addFolder(folder));
+      mediaFiles.forEach(file =>addFile(file));
 
       renderList();
     }
@@ -1338,9 +1338,9 @@ function renderSearchResult(result, searchType) {
     .map(function(item) {
       item.relativePath = calculatePath(item);
 
-      if (item.parentId) {
+      if (item.parentId || item.mediaFolderId) {
         item.parentItemType = 'folder';
-        item.parentItemId = item.parentId;
+        item.parentItemId = item.parentId || item.mediaFolderId;
       } else if (item.appId) {
         item.parentItemType = 'app';
         item.parentItemId = item.appId;
