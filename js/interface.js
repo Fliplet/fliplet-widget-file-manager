@@ -1350,7 +1350,8 @@ function renderSearchResult(result, searchType) {
 
 // Builds a relative path to folder or file
 function calculatePath({ item, showApp }) {
-  const path = [...(showApp  ? [(item.parentFolder || item ).app.name] : [])];
+  const rootApp = showApp && (item.parentFolder || item ).app;
+  const path = [...(rootApp ? [rootApp.name] : [])];
   const separator = '/';
 
   const getNames = function(item) {
