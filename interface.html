@@ -44,8 +44,8 @@
           <div class="spinner-overlay">Loading...</div>
         </div>
         <div class="search-holder">
-          <select class="form-control search-type">
-            <option value="all">This organization</option>
+          <select class="form-control search-type" id="search-type">
+            <option value="organization">This organization</option>
             <option value="this-folder" selected>This folder</option>
           </select>
           <input type="text" class="form-control search-term" placeholder="Search...">
@@ -294,7 +294,7 @@
     -->
     <div class="file-cell search-result-cell file-path-cell">
       <span>
-        <a href="javascript:;" class="path-link" data-folder data-id="\{{parentItemId}}" data-type="\{{parentItemType}}" title="\{{relativePath}}">\{{relativePath}}</a>
+        <a href="javascript:;" class="path-link" data-folder data-id="\{{id}}" data-parent-id="\{{parentItemId}}" data-type="\{{parentItemType}}" title="\{{relativePath}}">\{{relativePath}}</a>
       </span>
     </div>
     <div class="file-cell search-result-cell file-size-cell">
@@ -353,7 +353,7 @@
     -->
     <div class="file-cell search-result-cell file-path-cell">
       <span>
-        <a href="javascript:;" class="path-link" data-folder data-id="\{{parentItemId}}" data-type="\{{parentItemType}}" title="\{{relativePath}}">\{{relativePath}}</a>
+        <a href="javascript:;" class="path-link" data-folder data-id="\{{id}}" data-parent-id="\{{parentItemId}}" data-type="\{{parentItemType}}" title="\{{relativePath}}">\{{relativePath}}</a>
       </span>
     </div>
     <div class="file-cell search-result-cell file-size-cell">
