@@ -982,13 +982,14 @@ function resetUpTo(element) {
     id: type === 'app' && appId || type === 'organization' && orgId || id,
     name: element.find('.list-text-holder span').first().text(),
     tempElement: element,
-    type: type === 'app' && 'appId' || type === 'organization' && 'organizationId' || 'folderId',
-  }
+    type: type === 'app' && 'appId' || type === 'organization' && 'organizationId' || 'folderId'
+  };
+
   backItem.back = function() {
     getFolderContents(backItem.tempElement);
   };
 
-  navStack = [...(type === 'app' ? [currentOrganizationNavItem ]: []), backItem];
+  navStack = [...(type === 'app' ? [currentOrganizationNavItem ] : []), backItem];
 
   updatePaths();
 }
@@ -1001,8 +1002,6 @@ function resetToTop() {
 
 function getFoldersData(options, filterFiles, filterFolders) {
   return Fliplet.Media.Folders.get(options).then(function(response) {
-
-
     if (!$folderContents.is(':empty')) {
       // Content already rendered from a recent request. Do nothing.
       return;
@@ -1294,7 +1293,7 @@ function renderSearchResult(result, searchType) {
       return !item.deletedAt && !item.mediaFolderId && !item.appId;
     })
     .map(function(item) {
-      item.relativePath = calculatePath({ item, showApp: searchType === 'organization'});
+      item.relativePath = calculatePath({ item, showApp: searchType === 'organization' });
 
       if (item.parentFolder) {
         item.parentItemType = 'folder';
@@ -1350,7 +1349,7 @@ function renderSearchResult(result, searchType) {
 
 // Builds a relative path to folder or file
 function calculatePath({ item, showApp }) {
-  const rootApp = showApp && (item.parentFolder || item ).app;
+  const rootApp = showApp && (item.parentFolder || item).app;
   const path = [...(rootApp ? [rootApp.name] : [])];
   const separator = '/';
 
@@ -1404,10 +1403,10 @@ function updateBreadcrumbsBySearchItem(item) {
     return;
   }
 
-const { app } = item.parentFolder || item;
+  const { app } = item.parentFolder || item;
 
   const nav = [
-   currentOrganizationNavItem,
+    currentOrganizationNavItem,
     {
       id: app.id,
       name: app.name,
@@ -1421,7 +1420,7 @@ const { app } = item.parentFolder || item;
   const getParents = function(parent) {
     if (parent.parentFolder) {
       getParents(parent.parentFolder);
-    } else if ( parent.id === +currentFolderId) {
+    } else if (parent.id === +currentFolderId) {
       return;
     }
 
@@ -1469,25 +1468,25 @@ function removePagination() {
 function updateSearchTypeOptions(type) {
   const select = document.getElementById('search-type');
   const options = [
-    ...(type === "app"
+    ...(type === 'app'
       ? [
-          {
-            value: "app",
-            label: "This app"
-          }
-        ]
+        {
+          value: 'app',
+          label: 'This app'
+        }
+      ]
       : [
-          {
-            value: "organization",
-            label: "This organization"
-          }
-        ]),
-    { value: "this-folder", label: "This folder" }
+        {
+          value: 'organization',
+          label: 'This organization'
+        }
+      ]),
+    { value: 'this-folder', label: 'This folder' }
   ];
 
   select.innerHTML = options.map(option =>
-      `<option value="${option.value}" ${option.value === 'this-folder' ? 'selected' : ''}>${option.label}</option>`
-    ).join('');
+    `<option value="${option.value}" ${option.value === 'this-folder' ? 'selected' : ''}>${option.label}</option>`
+  ).join('');
 }
 
 // Shows content of the last folder before run search
@@ -2233,10 +2232,10 @@ $('.file-manager-wrapper')
     $searchTermClearBtn.addClass('hide');
   })
   .on('click', '.path-link', function() {
-    const { id, parentId, type } = this.dataset
+    const { id, parentId, type } = this.dataset;
 
     const numId = +id;
-    const item = currentSearchResult.find(item => item.id == numId);
+    const item = currentSearchResult.find(item => item.id === numId);
 
     if (item) {
       updateBreadcrumbsBySearchItem(item.parentFolder || item);
