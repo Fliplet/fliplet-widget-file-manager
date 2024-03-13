@@ -28,7 +28,6 @@ var appList;
 // eslint-disable-next-line no-undef
 var appIcons = new Map();
 var currentOrganizationId;
-let currentOrganizationNavItem;
 var currentFolderId;
 var currentAppId;
 var currentFolders;
@@ -748,7 +747,6 @@ function addOrganizations(organizations) {
 
   backItem.type = 'organizationId';
   navStack.push(backItem);
-  currentOrganizationNavItem = backItem;
 
   $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + orgName + '</a></span>');
 
@@ -976,21 +974,38 @@ function updatePaths() {
 }
 
 function resetUpTo(element) {
-  const { id, type, appId, orgId } = element[0].dataset;
+  var backItem;
 
-  const backItem = {
-    id: type === 'app' && appId || type === 'organization' && orgId || id,
-    name: element.find('.list-text-holder span').first().text(),
-    tempElement: element,
-    type: type === 'app' && 'appId' || type === 'organization' && 'organizationId' || 'folderId'
-  };
+  navStack = [];
+
+  if (element.attr('data-type') === 'app') {
+    backItem = {
+      id: element.data('app-id'),
+      name: element.find('.list-text-holder span').first().text(),
+      tempElement: element
+    };
+    backItem.type = 'appId';
+  } else if (element.attr('data-type') === 'organization') {
+    backItem = {
+      id: element.data('org-id'),
+      name: element.find('.list-text-holder span').first().text(),
+      tempElement: element
+    };
+    backItem.type = 'organizationId';
+  } else {
+    backItem = {
+      id: element.data('id'),
+      name: element.find('.list-text-holder span').first().text(),
+      tempElement: element
+    };
+    backItem.type = 'folderId';
+  }
 
   backItem.back = function() {
     getFolderContents(backItem.tempElement);
   };
 
-  navStack = [...(type === 'app' ? [currentOrganizationNavItem ] : []), backItem];
-
+  navStack.push(backItem);
   updatePaths();
 }
 
@@ -1002,6 +1017,34 @@ function resetToTop() {
 
 function getFoldersData(options, filterFiles, filterFolders) {
   return Fliplet.Media.Folders.get(options).then(function(response) {
+    var navItem = navStack[navStack.length - 1];
+
+    switch (navItem.type) {
+      case 'organizationId':
+        // User is no longer browsing the organization folder
+        if (options.hasOwnProperty('folderId') || !options.hasOwnProperty('organizationId') || parseInt(options.organizationId, 10) !== navItem.id) {
+          return;
+        }
+
+        break;
+      case 'appId':
+        // User is no longer browsing the app folder
+        if (!options.hasOwnProperty('appId') || parseInt(options.appId, 10) !== navItem.id) {
+          return;
+        }
+
+        break;
+      case 'folderId':
+        // User is no longer browsing the folder
+        if (!options.hasOwnProperty('folderId') || parseInt(options.folderId, 10) !== navItem.id) {
+          return;
+        }
+
+        break;
+      default:
+        break;
+    }
+
     if (!$folderContents.is(':empty')) {
       // Content already rendered from a recent request. Do nothing.
       return;
@@ -1242,7 +1285,7 @@ function search(type, term) {
     if (currentFolderId) {
       query.folderId = currentFolderId;
     }
-  } else if (type !== 'this-folder') {
+  } else if (type === 'all') {
     if (currentAppId) {
       query.appId = currentAppId;
     } else {
@@ -1276,7 +1319,7 @@ function renderSearchResult(result, searchType) {
     return;
   }
 
-  if (searchType !== 'this-folder') {
+  if (searchType === 'all') {
     resetToTop();
   }
 
@@ -1286,18 +1329,18 @@ function renderSearchResult(result, searchType) {
         return item.deletedAt;
       }
 
-      if (currentAppId || currentFolderId || searchType !== 'this-folder') {
+      if (currentAppId || currentFolderId || searchType === 'all') {
         return !item.deletedAt;
       }
 
       return !item.deletedAt && !item.mediaFolderId && !item.appId;
     })
     .map(function(item) {
-      item.relativePath = calculatePath({ item, showApp: searchType === 'organization' });
+      item.relativePath = calculatePath(item);
 
-      if (item.parentFolder) {
+      if (item.parentId || item.mediaFolderId) {
         item.parentItemType = 'folder';
-        item.parentItemId = item.parentFolder.id;
+        item.parentItemId = item.parentId || item.mediaFolderId;
       } else if (item.appId) {
         item.parentItemType = 'app';
         item.parentItemId = item.appId;
@@ -1348,19 +1391,23 @@ function renderSearchResult(result, searchType) {
 }
 
 // Builds a relative path to folder or file
-function calculatePath({ item, showApp }) {
-  const rootApp = showApp && (item.parentFolder || item).app;
-  const path = [...(rootApp ? [rootApp.name] : [])];
-  const separator = '/';
+function calculatePath(item) {
+  var path = [];
+  var separator = '/';
+  var isLast = false;
 
-  const getNames = function(item) {
+  var getNames = function(item) {
     if (!item) {
       return;
     }
 
     if (item.parentFolder) {
       getNames(item.parentFolder);
-    } else if (item.id === +currentFolderId) {
+    } else {
+      isLast = true;
+    }
+
+    if (isLast && item.id === +currentFolderId) {
       return;
     }
 
@@ -1403,24 +1450,17 @@ function updateBreadcrumbsBySearchItem(item) {
     return;
   }
 
-  const { app } = item.parentFolder || item;
+  var nav = [];
+  var isLast = false;
 
-  const nav = [
-    currentOrganizationNavItem,
-    {
-      id: app.id,
-      name: app.name,
-      type: 'appId',
-      back: function() {
-        getFolderContentsById(app.id, 'app');
-      }
-    }
-  ];
-
-  const getParents = function(parent) {
+  var getParents = function(parent) {
     if (parent.parentFolder) {
       getParents(parent.parentFolder);
-    } else if (parent.id === +currentFolderId) {
+    } else {
+      isLast = true;
+    }
+
+    if (isLast && parent.id === +currentFolderId) {
       return;
     }
 
@@ -1436,7 +1476,7 @@ function updateBreadcrumbsBySearchItem(item) {
 
   getParents(item);
 
-  navStack = nav;
+  navStack = navStack.concat(nav);
   updatePaths();
 }
 
@@ -1466,27 +1506,13 @@ function removePagination() {
 }
 
 function updateSearchTypeOptions(type) {
-  const select = document.getElementById('search-type');
-  const options = [
-    ...(type === 'app'
-      ? [
-        {
-          value: 'app',
-          label: 'This app'
-        }
-      ]
-      : [
-        {
-          value: 'organization',
-          label: 'This organization'
-        }
-      ]),
-    { value: 'this-folder', label: 'This folder' }
-  ];
+  var optionName = 'This organization';
 
-  select.innerHTML = options.map(option =>
-    `<option value="${option.value}" ${option.value === 'this-folder' ? 'selected' : ''}>${option.label}</option>`
-  ).join('');
+  if (type === 'app') {
+    optionName = 'This app';
+  }
+
+  $searchType.find('option:first').text(optionName);
 }
 
 // Shows content of the last folder before run search
@@ -2189,7 +2215,6 @@ $('.file-manager-wrapper')
 
     navStack.splice(position, 9999);
     navStack[index].back();
-    updateSearchTypeOptions(navStack[index].type);
     updatePaths();
   })
   .on('show.bs.collapse', '.panel-collapse', function() {
@@ -2232,16 +2257,19 @@ $('.file-manager-wrapper')
     $searchTermClearBtn.addClass('hide');
   })
   .on('click', '.path-link', function() {
-    const { id, parentId, type } = this.dataset;
+    var $el = $(this);
+    var type = $el.data('type');
+    var id = $el.data('id');
 
-    const numId = +id;
-    const item = currentSearchResult.find(item => item.id === numId);
+    if (type === 'app' || type === 'organization') {
+      resetToTop();
+    } else {
+      var item = _.find(currentSearchResult, ['id', id]);
 
-    if (item) {
-      updateBreadcrumbsBySearchItem(item.parentFolder || item);
+      updateBreadcrumbsBySearchItem(item);
     }
 
-    getFolderContentsById(parentId, type, true);
+    getFolderContentsById(id, type, true);
 
     removeSelection();
     hideSideActions();
@@ -2254,7 +2282,7 @@ $('.file-manager-wrapper')
 
     var type = $searchType.val();
 
-    if (type !== 'this-folder') {
+    if (type === 'all') {
       currentFolderId = null;
     }
 
