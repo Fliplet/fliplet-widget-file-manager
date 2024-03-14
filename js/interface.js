@@ -1407,14 +1407,14 @@ function updateBreadcrumbsBySearchItem(item) {
 
   const nav = [
     currentOrganizationNavItem,
-    {
+    ...(app ? [{
       id: app.id,
       name: app.name,
       type: 'appId',
       back: function() {
         getFolderContentsById(app.id, 'app');
       }
-    }
+    }] : [])
   ];
 
   const getParents = function(parent) {
@@ -2221,6 +2221,7 @@ $('.file-manager-wrapper')
       })
       .catch(function(error) {
         showSpinner(false);
+        console.log(error);
         Fliplet.Modal.alert({
           title: 'Error on search files',
           message: Fliplet.parseError(error, 'Unknown error. Please try again later.')
