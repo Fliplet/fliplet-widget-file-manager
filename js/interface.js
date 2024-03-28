@@ -75,14 +75,8 @@ function getOrganizationsList() {
 
   showSpinner(true);
 
-  Fliplet.Organizations.get().then(function(organizations) {
-    // Sort alphabetically
-    organizations = _.sortBy(organizations, [function(o) {
-      return o.name;
-    }]);
-    // Add to HTML
-    organizations.forEach(addOrganizations);
-  }).then(function() {
+  Fliplet.Organizations.getCurrentOrganization().then(function(organization) {
+    addOrganizations(organization);
     getAppsList();
     $selectAllCheckbox.addClass('active');
     showSpinner(false);
