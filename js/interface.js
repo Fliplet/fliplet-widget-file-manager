@@ -120,6 +120,7 @@ function navigateToRootFolder(options) {
 
   disableSearchState();
   resetUpTo($itemFolder);
+  updateSearchTypeOptions($itemFolder.data('type'));
 
   return getFolderContents($itemFolder, true);
 }
@@ -393,6 +394,7 @@ function loadTrashFolder() {
   disableSearchState();
   resetUpTo($element);
   getFolderContents($element, true);
+  updateSearchTypeOptions($element.data('type'));
   toggleStorageUsage();
 }
 
@@ -963,9 +965,13 @@ function updatePaths() {
     return acc + `<span class="bread-link" ${dataType}="${type}" ${idType}="${item.id}"><a href="#" data-breadcrumb="${index}">${item.name}</a></span>`;
   }, '');
 
-  $('.header-breadcrumbs .current-folder-title').html(breadcrumbsPath);
+    $('.header-breadcrumbs .current-folder-title').html(breadcrumbsPath);
 
-  updateSearchTypeOptions(navStack[navStack.length-1].type);
+    return;
+  }
+
+  // Current folder
+  $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + navStack[navStack.length - 1].name + '</a></span>');
 }
 
 function resetUpTo(element) {
@@ -1461,7 +1467,7 @@ function removePagination() {
 function updateSearchTypeOptions(type) {
   const select = document.getElementById('search-type');
   const options = [
-    ...(type === 'appId'
+    ...(type === 'app'
       ? [
         {
           value: 'app',
@@ -2182,6 +2188,7 @@ $('.file-manager-wrapper')
 
     navStack.splice(position, 9999);
     navStack[index].back();
+    updateSearchTypeOptions(navStack[index].type);
     updatePaths();
   })
   .on('show.bs.collapse', '.panel-collapse', function() {
