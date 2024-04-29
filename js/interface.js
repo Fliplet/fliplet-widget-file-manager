@@ -951,7 +951,7 @@ function updatePaths() {
     }
   };
 
-  const breadcrumbsPath = navStack.reduce((acc, item) => {
+  const breadcrumbsPath = navStack.reduce((acc, item, index) => {
     const data = dataMap[item.type];
 
     if (!data) {
@@ -960,7 +960,7 @@ function updatePaths() {
 
     const { type, idType, dataType } = data;
 
-    return acc + `<span class="bread-link"${dataType}="${type}" ${idType}="${navStack[i].id}"><a href="#" data-breadcrumb="${i}">${navStack[i].name}</a></span>`;
+    return acc + `<span class="bread-link" ${dataType}="${type}" ${idType}="${item.id}"><a href="#" data-breadcrumb="${index}">${item.name}</a></span>`;
   }, '');
 
   $('.header-breadcrumbs .current-folder-title').html(breadcrumbsPath);
