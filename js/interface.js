@@ -386,6 +386,7 @@ function loadTrashFolder() {
   $('[data-browse-trash] span').addClass('active-trash');
   $('[restore-action]').show();
   $('[file-remove-trash]').show();
+  $('[download-action]').hide();
   $('[rename-action]').hide();
   $('[delete-action]').hide();
 
