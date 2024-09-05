@@ -1753,29 +1753,35 @@ function toggleStorageUsage($el) {
 }
 
 // Create new folder
-function createFolder(event, folderName) {
-  Fliplet.Modal.prompt({
-    title: 'Type folder name',
-    value: folderName || ''
-  }).then(function(result) {
-    if (result === null) {
+async function createFolder(event, folderName) {
+  try {
+    const result = await Fliplet.Modal.prompt({
+      title: 'Type folder name',
+      value: folderName || ''
+    });
+
+    const newFolderName = result?.trim();
+
+    if (!newFolderName) {
+      await Fliplet.Modal.alert({
+        title: 'Failed to create folder',
+        message: 'Folder name cannot be empty'
+      });
       return;
     }
 
-    if (result.length > 45) {
-      Fliplet.Modal.alert({
+    if (newFolderName.length > 45) {
+      await Fliplet.Modal.alert({
         title: 'Failed to create folder',
         message: 'Folder name must be 45 characters or less'
-      }).then(function() {
-        createFolder(null, result);
       });
-
+      await createFolder(null, newFolderName);
       return;
     }
 
-    var dataSourceName = result.trim();
-    var lastFolderSelected = navStack[navStack.length - 1];
-    var options = {
+    const dataSourceName = newFolderName.trim();
+    const lastFolderSelected = navStack[navStack.length - 1];
+    const options = {
       name: dataSourceName,
       parentId: currentFolderId || undefined
     };
@@ -1796,19 +1802,18 @@ function createFolder(event, folderName) {
 
     showSpinner(true);
 
-    Fliplet.Media.Folders.create(options).then(function(folder) {
-      addFolder(folder);
-      insertItem(folder, true);
-      showSpinner(false);
-    }).catch(function(err) {
-      showSpinner(false);
-      Fliplet.Modal.alert({
-        message: Fliplet.parseError(err)
-      });
-    });
+    const folder = await Fliplet.Media.Folders.create(options);
+    addFolder(folder);
+    insertItem(folder, true);
 
     $newBtn.click();
-  });
+  } catch (err) {
+    await Fliplet.Modal.alert({
+      message: Fliplet.parseError(err)
+    });
+  } finally {
+    showSpinner(false);
+  }
 }
 
 // EVENTS //
@@ -2133,56 +2138,59 @@ $('.file-manager-wrapper')
       $('.file-row.active').find('.file-name').dblclick();
     }
   })
-  .on('click', '[rename-action]', function() {
+  .on('click', '[rename-action]', async function() {
     // Rename folder or file
     var itemID = $('.file-row.active').data('id');
     var itemType = $('.file-row.active').data('file-type');
     var fileName = $('.file-row[data-id="' + itemID + '"]').find('.file-name span').text();
+    try {
+      const result = await Fliplet.Modal.prompt({
+        title: 'Please enter the new name',
+        value: fileName
+      });
 
-    Fliplet.Modal.prompt({
-      title: 'Please enter the file name',
-      value: fileName
-    }).then(function(result) {
-      if (result === null) {
+      const changedName = result?.trim();
+
+      if (!changedName) {
+        await Fliplet.Modal.alert({
+          title: 'Failed to rename',
+          message: 'Name cannot be empty'
+        });
         return;
       }
 
-      var changedName = result.trim();
-      var updatePromise;
-
       showSpinner(true);
+
+      let updatePromise;
 
       if (itemType === 'folder') {
         updatePromise = Fliplet.Media.Folders.update(itemID, {
           name: changedName
-        }).then(function() {
-          $('.file-row[data-id="' + itemID + '"]').find('.file-name span').html(changedName);
-
-          var folder = _.find(currentFolders, ['id', itemID]);
-
-          folder.name = changedName;
         });
       } else {
         updatePromise = Fliplet.Media.Files.update(itemID, {
           name: changedName
-        }).then(function() {
-          $('.file-row[data-id="' + itemID + '"]').find('.file-name span').html(changedName);
-
-          var file = _.find(currentFiles, ['id', itemID]);
-
-          file.name = changedName;
         });
       }
 
-      updatePromise.then(function() {
-        showSpinner(false);
-      }).catch(function(err) {
-        showSpinner(false);
-        Fliplet.Modal.alert({
-          message: Fliplet.parseError(err)
-        });
+      await updatePromise;
+
+      $('.file-row[data-id="' + itemID + '"]').find('.file-name span').html(changedName);
+
+      if (itemType === 'folder') {
+        const folder = currentFolders.find(folder => folder.id === itemID);
+        if (folder) folder.name = changedName;
+      } else {
+        const file = currentFiles.find(file => file.id === itemID);
+        if (file) file.name = changedName;
+      }
+    } catch (err) {
+      Fliplet.Modal.alert({
+        message: Fliplet.parseError(err)
       });
-    });
+    } finally {
+      showSpinner(false);
+    }
   })
   .on('click', '.header-breadcrumbs [data-breadcrumb]', function() {
     var index = $(this).data('breadcrumb');
