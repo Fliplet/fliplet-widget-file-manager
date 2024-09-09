@@ -930,36 +930,35 @@ function toggleAll(el) {
 }
 
 function updatePaths() {
-  if (navStack.length > 1) {
-    var breadcrumbsPath = '';
-    var type = '';
-    var idType = '';
-    var dataType = '';
-
-    for (var i = 0; i < navStack.length; i++) {
-      switch (navStack[i].type) {
-        case 'organizationId':
-          type = 'organization';
-          idType = 'data-org-id';
-          dataType = 'data-type';
-          break;
-        case 'appId':
-          type = 'app';
-          idType = 'data-app-id';
-          dataType = 'data-type';
-          break;
-        case 'folderId':
-          type = 'folder';
-          idType = 'data-id';
-          dataType = 'data-file-type';
-          break;
-        default:
-          throw new Error('Not supported type');
-      }
-
-      breadcrumbsPath += '<span class="bread-link"' + dataType + '="' + type + '" ' + idType + '="'
-        + navStack[i].id + '"><a href="#" data-breadcrumb="' + i + '">' + navStack[i].name + '</a></span>';
+  const dataMap = {
+    organizationId: {
+      type: 'organization',
+      idType: 'data-org-id',
+      dataType: 'data-type'
+    },
+    appId: {
+      type: 'app',
+      idType: 'data-app-id',
+      dataType: 'data-type'
+    },
+    folderId: {
+      type: 'folder',
+      idType: 'data-id',
+      dataType: 'data-file-type'
     }
+  };
+
+  const breadcrumbsPath = navStack.reduce((acc, item, index) => {
+    const data = dataMap[item.type];
+
+    if (!data) {
+      throw new Error('Not supported type');
+    }
+
+    const { type, idType, dataType } = data;
+
+    return acc + `<span class="bread-link" ${dataType}="${type}" ${idType}="${item.id}"><a href="#" data-breadcrumb="${index}">${item.name}</a></span>`;
+  }, '');
 
     $('.header-breadcrumbs .current-folder-title').html(breadcrumbsPath);
 
