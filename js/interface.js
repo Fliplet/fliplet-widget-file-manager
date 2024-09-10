@@ -114,7 +114,6 @@ function navigateToRootFolder(options) {
 
   disableSearchState();
   resetUpTo($itemFolder);
-  updateSearchTypeOptions($itemFolder.data('type'));
 
   return getFolderContents($itemFolder, true);
 }
@@ -389,7 +388,6 @@ function loadTrashFolder() {
   disableSearchState();
   resetUpTo($element);
   getFolderContents($element, true);
-  updateSearchTypeOptions($element.data('type'));
   toggleStorageUsage();
 }
 
@@ -930,44 +928,39 @@ function toggleAll(el) {
 }
 
 function updatePaths() {
-  if (navStack.length > 1) {
-    var breadcrumbsPath = '';
-    var type = '';
-    var idType = '';
-    var dataType = '';
+  const dataMap = {
+    organizationId: {
+      type: 'organization',
+      idType: 'data-org-id',
+      dataType: 'data-type'
+    },
+    appId: {
+      type: 'app',
+      idType: 'data-app-id',
+      dataType: 'data-type'
+    },
+    folderId: {
+      type: 'folder',
+      idType: 'data-id',
+      dataType: 'data-file-type'
+    }
+  };
 
-    for (var i = 0; i < navStack.length; i++) {
-      switch (navStack[i].type) {
-        case 'organizationId':
-          type = 'organization';
-          idType = 'data-org-id';
-          dataType = 'data-type';
-          break;
-        case 'appId':
-          type = 'app';
-          idType = 'data-app-id';
-          dataType = 'data-type';
-          break;
-        case 'folderId':
-          type = 'folder';
-          idType = 'data-id';
-          dataType = 'data-file-type';
-          break;
-        default:
-          throw new Error('Not supported type');
-      }
+  const breadcrumbsPath = navStack.reduce((acc, item, index) => {
+    const data = dataMap[item.type];
 
-      breadcrumbsPath += '<span class="bread-link"' + dataType + '="' + type + '" ' + idType + '="'
-        + navStack[i].id + '"><a href="#" data-breadcrumb="' + i + '">' + navStack[i].name + '</a></span>';
+    if (!data) {
+      throw new Error('Not supported type');
     }
 
-    $('.header-breadcrumbs .current-folder-title').html(breadcrumbsPath);
+    const { type, idType, dataType } = data;
 
-    return;
-  }
+    return acc + `<span class="bread-link" ${dataType}="${type}" ${idType}="${item.id}"><a href="#" data-breadcrumb="${index}">${item.name}</a></span>`;
+  }, '');
 
-  // Current folder
-  $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + navStack[navStack.length - 1].name + '</a></span>');
+  $('.header-breadcrumbs .current-folder-title').html(breadcrumbsPath);
+
+  updateSearchTypeOptions(navStack[navStack.length-1].type);
 }
 
 function resetUpTo(element) {
@@ -1463,7 +1456,7 @@ function removePagination() {
 function updateSearchTypeOptions(type) {
   const select = document.getElementById('search-type');
   const options = [
-    ...(type === 'app'
+    ...(type === 'appId'
       ? [
         {
           value: 'app',
@@ -2192,7 +2185,6 @@ $('.file-manager-wrapper')
 
     navStack.splice(position, 9999);
     navStack[index].back();
-    updateSearchTypeOptions(navStack[index].type);
     updatePaths();
   })
   .on('show.bs.collapse', '.panel-collapse', function() {
