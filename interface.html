@@ -115,13 +115,11 @@
               <div class="file-cell file-deleted-cell hidden">
                 Deleted
               </div>
-              <!-- HIDE
-                <div class="file-cell">
-                  <div class="file-size">
-                    File size
-                  </div>
+              <div class="file-cell">
+                <div class="file-size">
+                  File size
                 </div>
-                -->
+              </div>
               <div class="file-cell search-result-cell file-path-cell">
                 Path
               </div>
@@ -285,13 +283,11 @@
         <span>\{{formattedDate}}</span>
       \{{/if}}
     </div>
-    <!-- HIDE
     <div class="file-cell">
       <div class="file-size">
-        <span>\{{#if size}} \{{size}} \{{else}} - \{{/if}}</span>
+        <span>\{{#if metadata.size}} \{{formatBytes metadata.size}} \{{else}} - \{{/if}}</span>
       </div>
     </div>
-    -->
     <div class="file-cell search-result-cell file-path-cell">
       <span>
         <a href="javascript:;" class="path-link" data-folder data-id="\{{id}}" data-parent-id="\{{parentItemId}}" data-type="\{{parentItemType}}" title="\{{relativePath}}">\{{relativePath}}</a>
@@ -344,13 +340,11 @@
     <div class="file-cell file-date-cell">
       <span>\{{formattedDate}}</span>
     </div>
-    <!-- HIDE
     <div class="file-cell">
       <div class="file-size">
-        <span>\{{size}}</span>
+        <span>\{{#if metadata.size}} \{{formatBytes metadata.size}} \{{else}} - \{{/if}}</span>
       </div>
     </div>
-    -->
     <div class="file-cell search-result-cell file-path-cell">
       <span>
         <a href="javascript:;" class="path-link" data-folder data-id="\{{id}}" data-parent-id="\{{parentItemId}}" data-type="\{{parentItemType}}" title="\{{relativePath}}">\{{relativePath}}</a>
