@@ -68,6 +68,8 @@ function formatBytes(bytes, decimals = 2) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
+Handlebars.registerHelper('formatBytes', formatBytes);
+
 // Get organizations and apps list for left side menu
 function getOrganizationsList() {
   $('[restore-action]').hide();
