@@ -220,8 +220,13 @@ FlTable.prototype.renderBody = function() {
 
   dataToRender.forEach(function(rowData) {
     var row = document.createElement('div');
+    var isSelected = self.selection.indexOf(rowData) > -1;
 
     row.className = 'fl-table-row';
+
+    if (isSelected) {
+      row.classList.add('fl-table-selected');
+    }
 
     // Add click listener for row selection if enabled
     if (self.options.selection && self.options.selection.rowClickEnabled) {
@@ -239,6 +244,7 @@ FlTable.prototype.renderBody = function() {
       var checkbox = document.createElement('input');
 
       checkbox.type = 'checkbox';
+      checkbox.checked = isSelected;
       checkbox.addEventListener('click', function(event) {
         event.stopPropagation();
         self.toggleRowSelection(rowData, row, 'checkbox');
