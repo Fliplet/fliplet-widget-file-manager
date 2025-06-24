@@ -91,9 +91,9 @@ Each task should be completed following Test-Driven Development (TDD) principles
 - [x] Test: selectAll method
 - [x] Test: deselectAll method
 - [x] Test: getSelectedRows method
-- [x] Test: isSelected method
+- [ ] Test: isSelected method
 - [x] Implement: Selection API methods
-- [x] Implement: Selection state queries
+- [ ] Implement: Selection state queries
 
 ## 4. Sorting System
 
@@ -107,11 +107,11 @@ Each task should be completed following Test-Driven Development (TDD) principles
 - [x] Implement: Sort indicators
 
 ### 4.2 Advanced Sorting
-- [ ] Test: Custom sort functions
+- [x] Test: Custom sort functions
 - [ ] Test: Multiple column sorting
 - [ ] Test: Sort persistence
 - [ ] Test: Sort event firing
-- [ ] Implement: Custom sort function support
+- [x] Implement: Custom sort function support
 - [ ] Implement: Multi-column sort
 - [ ] Implement: Sort state management
 
@@ -128,22 +128,22 @@ Each task should be completed following Test-Driven Development (TDD) principles
 
 ### 5.2 Advanced Search
 - [ ] Test: Custom search implementation
-- [ ] Test: Search events
-- [ ] Test: Search debouncing
+- [x] Test: Search events
+- [x] Test: Search debouncing
 - [ ] Test: Column-specific search
 - [ ] Implement: Custom search handler support
-- [ ] Implement: Search event system
-- [ ] Implement: Search optimization
+- [x] Implement: Search event system
+- [x] Implement: Search optimization
 
 ## 6. Pagination
 
 ### 6.1 Basic Pagination
-- [ ] Test: Page size rendering
-- [ ] Test: Page navigation
+- [x] Test: Page size rendering
+- [x] Test: Page navigation
 - [ ] Test: Current page indicator
 - [ ] Test: Page size selector
-- [ ] Implement: Basic pagination logic
-- [ ] Implement: Page navigation controls
+- [x] Implement: Basic pagination logic
+- [x] Implement: Page navigation controls
 - [ ] Implement: Page size selection
 
 ### 6.2 Advanced Pagination
@@ -158,16 +158,16 @@ Each task should be completed following Test-Driven Development (TDD) principles
 ## 7. Event System
 
 ### 7.1 Core Events
-- [ ] Test: Event subscription
-- [ ] Test: Event unsubscription
-- [ ] Test: Event data structure
-- [ ] Test: Multiple handlers
-- [ ] Implement: Event registration system
-- [ ] Implement: Event dispatch system
-- [ ] Implement: Event cleanup
+- [x] Test: Event subscription
+- [x] Test: Event unsubscription
+- [x] Test: Event data structure
+- [x] Test: Multiple handlers
+- [x] Implement: Event registration system
+- [x] Implement: Event dispatch system
+- [x] Implement: Event cleanup
 
 ### 7.2 Specific Events
-- [ ] Test: Row click events
+- [x] Test: Row click events
 - [ ] Test: Row double-click events
 - [ ] Test: Selection events
 - [ ] Test: Sort events

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlTable Advanced Demo</title>
+    <link rel="stylesheet" href="../src/styles/fl-table.css">
+    <style>
+        body { font-family: sans-serif; padding: 20px; color: #333; }
+        #wrapper { max-width: 960px; margin: auto; }
+        #table-container { margin-bottom: 20px; }
+        .controls { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .controls button { padding: 8px 12px; border: 1px solid #ccc; background: #f0f0f0; cursor: pointer; border-radius: 4px; }
+        .controls button:hover { background: #e0e0e0; }
+        #log-container { background: #f8f8f8; border: 1px solid #ddd; padding: 10px; border-radius: 4px; }
+        #log-container h3 { margin-top: 0; }
+        #log { white-space: pre-wrap; font-family: monospace; max-height: 200px; overflow-y: auto; }
+        .type-badge { padding: 2px 6px; border-radius: 10px; color: white; font-size: 0.8em; }
+        .type-badge.fruit { background-color: #e54d42; }
+        .type-badge.vegetable { background-color: #5d9d52; }
+        .type-badge.meat { background-color: #c0392b; }
+        .type-badge.misc { background-color: #7f8c8d; }
+    </style>
+</head>
+<body>
+
+    <div id="wrapper">
+        <h1>FlTable Advanced Demo</h1>
+        <p>A demonstration of FlTable's advanced features like custom rendering, custom sorting, API interaction, and event handling.</p>
+
+        <div class="controls">
+            <button id="get-selected">Get Selected Rows</button>
+            <button id="select-first">Select First Row</button>
+            <button id="deselect-all">Deselect All</button>
+            <button id="load-empty">Load Empty Data</button>
+            <button id="reload-data">Reload Initial Data</button>
+        </div>
+
+        <div id="table-container"></div>
+
+        <div id="log-container">
+            <h3>Event Log</h3>
+            <pre id="log"></pre>
+        </div>
+    </div>
+
+    <script src="../src/fl-table.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var sampleData = [
+                { id: 1, name: 'Apple', type: 'Fruit', price: 1.2, stock: 150 },
+                { id: 2, name: 'Banana', type: 'Fruit', price: 0.8, stock: 200 },
+                { id: 3, name: 'Carrot', type: 'Vegetable', price: 0.5, stock: 300 },
+                { id: 4, name: 'Duck', type: 'Meat', price: 12.5, stock: 20 },
+                { id: 5, name: 'Eggplant', type: 'Vegetable', price: 2.1, stock: 80 },
+                { id: 6, name: 'Fish', type: 'Meat', price: 8.0, stock: 50 },
+                { id: 7, name: 'Grape', type: 'Fruit', price: 3.0, stock: 120 },
+                { id: 8, name: 'Honey', type: 'Misc', price: 5.5, stock: 90 },
+                { id: 9, name: 'Ice Cream', type: 'Misc', price: 4.0, stock: 110 },
+                { id: 10, name: 'Jalapeno', type: 'Vegetable', price: 0.2, stock: 500 }
+            ];
+
+            var table;
+            var logEl = document.getElementById('log');
+
+            function logEvent(message) {
+                logEl.textContent = message + '\n' + logEl.textContent;
+            }
+
+            function initializeTable(data) {
+                if (table) {
+                    table.destroy();
+                }
+
+                table = new FlTable({
+                    target: '#table-container',
+                    className: 'advanced-demo-table',
+                    searchable: true,
+                    pagination: {
+                        pageSize: 4
+                    },
+                    selection: {
+                        enabled: true,
+                        multiple: true,
+                        rowClickEnabled: true,
+                        initialSelection: [2, 5] // Pre-select rows with id 2 and 5
+                    },
+                    columns: [
+                        { name: 'ID', field: 'id', sortable: true },
+                        {
+                            name: 'Name',
+                            field: 'name',
+                            sortable: true,
+                            searchable: true,
+                            // Custom sort function: sort by name length
+                            sortFn: function(a, b, direction) {
+                                var aLen = a.name.length;
+                                var bLen = b.name.length;
+                                return direction === 'asc' ? aLen - bLen : bLen - aLen;
+                            }
+                        },
+                        {
+                            name: 'Type',
+                            field: 'type',
+                            sortable: true,
+                            searchable: true,
+                            // Custom render function: display type as a colored badge
+                            render: function(data) {
+                                var type = data.type.toLowerCase();
+                                return '<span class="type-badge ' + type + '">' + data.type + '</span>';
+                            }
+                        },
+                        {
+                            name: 'Price',
+                            field: 'price',
+                            sortable: true,
+                            // Custom render function: format as currency
+                            render: function(data) {
+                                return '$' + data.price.toFixed(2);
+                            }
+                        },
+                        {
+                            name: 'Stock',
+                            field: 'stock',
+                            sortable: true
+                        },
+                        {
+                            name: 'Actions',
+                            // Custom render function for action buttons
+                            render: function(data) {
+                                return '<button onclick="alert(\'Viewing details for item ID: ' + data.id + '\')">View</button>';
+                            }
+                        }
+                    ],
+                    data: data
+                });
+
+                // --- Event Listeners ---
+                table.on('selection:change', function(detail) {
+                    logEvent('Event: selection:change. Selected IDs: ' + JSON.stringify(detail.selected));
+                });
+                table.on('row:click', function(detail) {
+                    logEvent('Event: row:click. Row data: ' + JSON.stringify(detail.data));
+                });
+                table.on('sort:change', function(detail) {
+                    logEvent('Event: sort:change. Column: ' + detail.field + ', Direction: ' + detail.direction);
+                });
+                table.on('search', function(detail) {
+                    logEvent('Event: search. Query: "' + detail.query + '"');
+                });
+                table.on('page:change', function(detail) {
+                    logEvent('Event: page:change. New page: ' + detail.page);
+                });
+            }
+
+            // --- Control Button Handlers ---
+            document.getElementById('get-selected').addEventListener('click', function() {
+                var selectedRows = table.getSelectedRows();
+                logEvent('API: getSelectedRows() -> ' + JSON.stringify(selectedRows.map(function(r) { return r.id; })));
+                console.log('Selected Rows Data:', selectedRows);
+            });
+
+            document.getElementById('select-first').addEventListener('click', function() {
+                var data = table.getData();
+                if (data.length > 0) {
+                    var firstRow = data[0];
+                    table.selectRow(firstRow);
+                    logEvent('API: selectRow(' + firstRow.id + ') called.');
+                } else {
+                    logEvent('API: selectRow() skipped, no data.');
+                }
+            });
+
+            document.getElementById('deselect-all').addEventListener('click', function() {
+                table.deselectAll();
+                logEvent('API: deselectAll() called.');
+            });
+
+            document.getElementById('load-empty').addEventListener('click', function() {
+                logEvent('Action: Loading table with empty data.');
+                initializeTable([]);
+            });
+
+            document.getElementById('reload-data').addEventListener('click', function() {
+                logEvent('Action: Reloading table with initial data.');
+                initializeTable(sampleData);
+            });
+
+            // Initial load
+            initializeTable(sampleData);
+        });
+    </script>
+
+</body>
+</html>

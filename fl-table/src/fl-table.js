@@ -101,6 +101,7 @@ FlTable.prototype.search = function(term) {
     });
   }
 
+  this.fire('search:change', { term: term, data: this.options.data });
   this.renderBody();
 };
 
@@ -352,6 +353,10 @@ FlTable.prototype.deselectRow = function(rowData) {
 
 FlTable.prototype.getSelectedRows = function() {
   return this.selection;
+};
+
+FlTable.prototype.getData = function() {
+  return this.options.data;
 };
 
 FlTable.prototype.selectAll = function() {

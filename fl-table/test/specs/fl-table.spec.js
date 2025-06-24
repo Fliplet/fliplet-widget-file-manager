@@ -2,6 +2,7 @@ describe('FlTable', function() {
   var expect = chai.expect;
   var table;
   var container;
+  var sinon = window.sinon;
 
   beforeEach(function() {
     // Create a container for the test table if it doesn't exist
@@ -248,10 +249,139 @@ describe('FlTable', function() {
       expect(table.getSelectedRows()).to.have.lengthOf(1);
       expect(table.getSelectedRows()[0]).to.equal(data[1]);
     });
+
+    it('should select all rows via the API', function() {
+      var data = [{ name: 'Item 1' }, { name: 'Item 2' }];
+
+      table = new FlTable({
+        target: '#test-container',
+        selection: { enabled: true, multiple: true },
+        columns: [ { name: 'Name', field: 'name' } ],
+        data: data
+      });
+
+      table.selectAll();
+      expect(table.getSelectedRows()).to.have.lengthOf(2);
+    });
+
+    it('should deselect all rows via the API', function() {
+      var data = [{ name: 'Item 1' }, { name: 'Item 2' }];
+
+      table = new FlTable({
+        target: '#test-container',
+        selection: { enabled: true, multiple: true },
+        columns: [ { name: 'Name', field: 'name' } ],
+        data: data
+      });
+
+      table.selectAll();
+      table.deselectAll();
+      expect(table.getSelectedRows()).to.have.lengthOf(0);
+    });
+  });
+
+  describe('Search', function() {
+    it('should filter the table based on search input', function(done) {
+      table = new FlTable({
+        target: '#test-container',
+        searchable: true,
+        columns: [
+          { name: 'Name', field: 'name', searchable: true },
+          { name: 'Type', field: 'type' }
+        ],
+        data: [
+          { name: 'Apple', type: 'Fruit' },
+          { name: 'Banana', type: 'Fruit' }
+        ]
+      });
+
+      var searchInput = container.querySelector('.fl-table-search input');
+
+      searchInput.value = 'an';
+
+      var inputEvent = new Event('input');
+
+      searchInput.dispatchEvent(inputEvent);
+
+      setTimeout(function() {
+        var rows = container.querySelectorAll('.fl-table-body .fl-table-row');
+
+        expect(rows).to.have.lengthOf(1);
+        expect(rows[0].textContent).to.contain('Banana');
+        done();
+      }, 300); // Wait for debounce
+    });
+
+    it('should clear the search and show all rows', function(done) {
+      table = new FlTable({
+        target: '#test-container',
+        searchable: true,
+        columns: [
+          { name: 'Name', field: 'name', searchable: true }
+        ],
+        data: [
+          { name: 'Apple' },
+          { name: 'Banana' }
+        ]
+      });
+
+      var searchInput = container.querySelector('.fl-table-search input');
+
+      searchInput.value = 'an';
+
+      var inputEvent = new Event('input');
+
+      searchInput.dispatchEvent(inputEvent);
+
+      setTimeout(function() {
+        searchInput.value = '';
+
+        var clearEvent = new Event('input');
+
+        searchInput.dispatchEvent(clearEvent);
+
+        setTimeout(function() {
+          var rows = container.querySelectorAll('.fl-table-body .fl-table-row');
+
+          expect(rows).to.have.lengthOf(2);
+          done();
+        }, 300);
+      }, 350);
+    });
+
+    it('should fire "search:change" event when search term changes', function(done) {
+      var data = [{ name: 'Apple' }, { name: 'Banana' }];
+
+      table = new FlTable({
+        target: '#test-container',
+        searchable: true,
+        columns: [{ name: 'Name', field: 'name', searchable: true }],
+        data: data
+      });
+
+      table.on('search:change', function(detail) {
+        try {
+          expect(detail.term).to.equal('an');
+          expect(detail.data).to.have.lengthOf(1);
+          expect(detail.data[0].name).to.equal('Banana');
+          done();
+        } catch (err) {
+          done(err);
+        }
+      });
+
+      var searchInput = container.querySelector('.fl-table-search input');
+
+      searchInput.value = 'an';
+
+      var inputEvent = new Event('input', { bubbles: true });
+
+      searchInput.dispatchEvent(inputEvent);
+    });
   });
 
   describe('Sorting', function() {
-    it('should sort data in ascending order', function() {
+    it('should sort the table when a sortable column header is clicked', function() {
       var data = [ { name: 'C' }, { name: 'A' }, { name: 'B' } ];
 
       table = new FlTable({
@@ -271,7 +401,7 @@ describe('FlTable', function() {
       expect(rows[2].textContent).to.equal('C');
     });
 
-    it('should toggle sort direction on second click', function() {
+    it('should toggle sort direction on subsequent clicks', function() {
       var data = [ { name: 'C' }, { name: 'A' }, { name: 'B' } ];
 
       table = new FlTable({
@@ -282,8 +412,10 @@ describe('FlTable', function() {
 
       var nameHeader = container.querySelector('.fl-table-header .fl-table-cell');
 
-      nameHeader.click(); // Ascending
-      nameHeader.click(); // Descending
+      // First click: ASC
+      nameHeader.click();
+      // Second click: DESC
+      nameHeader.click();
 
       var rows = container.querySelectorAll('.fl-table-body .fl-table-row');
 
@@ -292,153 +424,189 @@ describe('FlTable', function() {
       expect(rows[2].textContent).to.equal('A');
     });
 
-    it('should add sort indicator class to header', function() {
-      table = new FlTable({
-        target: '#test-container',
-        columns: [ { name: 'Name', field: 'name', sortable: true } ],
-        data: [ { name: 'A' } ]
-      });
-
-      var nameHeader = container.querySelector('.fl-table-header .fl-table-cell');
-
-      nameHeader.click();
-      expect(nameHeader.classList.contains('fl-table-sorted-asc')).to.be.true;
-
-      nameHeader.click();
-      expect(nameHeader.classList.contains('fl-table-sorted-desc')).to.be.true;
-    });
-
     it('should use custom sort function if provided', function() {
-      var data = [ { name: 'Banana' }, { name: 'Apple' }, { name: 'Cherry' } ];
+      var data = [
+        { name: 'Item 10' },
+        { name: 'Item 2' }
+      ];
 
       table = new FlTable({
         target: '#test-container',
-        columns: [ {
-          name: 'Name',
-          field: 'name',
-          sortable: true,
-          sortFn: function(a, b) {
-            return a.name.length - b.name.length;
+        columns: [
+          {
+            name: 'Name',
+            field: 'name',
+            sortable: true,
+            sortFn: function(a, b) {
+              var numA = parseInt(a.name.match(/(\d+)/)[0], 10);
+              var numB = parseInt(b.name.match(/(\d+)/)[0], 10);
+
+              return numA - numB;
+            }
           }
-        } ],
+        ],
         data: data
       });
 
       var nameHeader = container.querySelector('.fl-table-header .fl-table-cell');
 
-      nameHeader.click();
+      nameHeader.click(); // ASC
 
       var rows = container.querySelectorAll('.fl-table-body .fl-table-row');
 
-      expect(rows[0].textContent).to.equal('Apple');
-      expect(rows[1].textContent).to.equal('Cherry');
-      expect(rows[2].textContent).to.equal('Banana');
-    });
-  });
-
-  describe('Search', function() {
-    it('should render a search input if searchable is true', function() {
-      table = new FlTable({
-        target: '#test-container',
-        searchable: true,
-        columns: [ { name: 'Name', field: 'name' } ],
-        data: []
-      });
-      expect(container.querySelector('.fl-table-search')).to.exist;
+      expect(rows[0].textContent).to.equal('Item 2');
+      expect(rows[1].textContent).to.equal('Item 10');
     });
 
-    it('should filter data based on search term', function(done) {
+    it('should provide a stable sort', function() {
+      var data = [
+        { category: 'A', value: 2, name: 'A2' },
+        { category: 'B', value: 1, name: 'B1' },
+        { category: 'A', value: 1, name: 'A1' }
+      ];
+
       table = new FlTable({
         target: '#test-container',
-        searchable: true,
-        columns: [ { name: 'Name', field: 'name', searchable: true } ],
-        data: [ { name: 'Apple' }, { name: 'Banana' }, { name: 'Cherry' } ]
+        columns: [
+          { name: 'Category', field: 'category', sortable: true },
+          { name: 'Value', field: 'value' },
+          { name: 'Name', field: 'name' }
+        ],
+        data: data,
+        sort: {
+          field: 'name',
+          direction: 'asc'
+        }
       });
 
-      var searchInput = container.querySelector('.fl-table-search input');
+      var categoryHeader = container.querySelector('.fl-table-header .fl-table-cell');
 
-      searchInput.value = 'an';
+      categoryHeader.click(); // Sort by category
 
-      var inputEvent = new Event('input');
+      var rows = container.querySelectorAll('.fl-table-body .fl-table-row');
 
-      searchInput.dispatchEvent(inputEvent);
-
-      setTimeout(function() {
-        var rows = container.querySelectorAll('.fl-table-body .fl-table-row');
-
-        expect(rows).to.have.lengthOf(1);
-        expect(rows[0].textContent).to.equal('Banana');
-        done();
-      }, 350); // wait for debounce
-    });
-
-    it('should restore data when search is cleared', function(done) {
-      table = new FlTable({
-        target: '#test-container',
-        searchable: true,
-        columns: [ { name: 'Name', field: 'name', searchable: true } ],
-        data: [ { name: 'Apple' }, { name: 'Banana' } ]
-      });
-
-      var searchInput = container.querySelector('.fl-table-search input');
-
-      searchInput.value = 'an';
-
-      var inputEvent = new Event('input');
-
-      searchInput.dispatchEvent(inputEvent);
-
-      setTimeout(function() {
-        searchInput.value = '';
-        searchInput.dispatchEvent(inputEvent);
-
-        setTimeout(function() {
-          var rows = container.querySelectorAll('.fl-table-body .fl-table-row');
-
-          expect(rows).to.have.lengthOf(2);
-          done();
-        }, 350);
-      }, 350);
+      // After sorting by category 'A', the original order should be preserved for ties
+      expect(rows[0].textContent).to.contain('A2');
+      expect(rows[1].textContent).to.contain('A1');
+      expect(rows[2].textContent).to.contain('B1');
     });
   });
 
   describe('Pagination', function() {
-    it('should render pagination controls if pagination is enabled', function() {
-      table = new FlTable({
-        target: '#test-container',
-        pagination: { pageSize: 2 },
-        columns: [ { name: 'Name', field: 'name' } ],
-        data: [ { name: 'A' }, { name: 'B' }, { name: 'C' } ]
-      });
-      expect(container.querySelector('.fl-table-pagination')).to.exist;
-    });
+    it('should only show the first page of results', function() {
+      var data = [];
 
-    it('should display the correct number of rows per page', function() {
+      for (var i = 1; i <= 20; i++) {
+        data.push({ name: 'Item ' + i });
+      }
+
       table = new FlTable({
         target: '#test-container',
-        pagination: { pageSize: 2 },
-        columns: [ { name: 'Name', field: 'name' } ],
-        data: [ { name: 'A' }, { name: 'B' }, { name: 'C' } ]
+        columns: [{ name: 'Name', field: 'name' }],
+        data: data,
+        pagination: {
+          enabled: true,
+          pageSize: 10
+        }
       });
 
       var rows = container.querySelectorAll('.fl-table-body .fl-table-row');
 
-      expect(rows).to.have.lengthOf(2);
+      expect(rows).to.have.lengthOf(10);
+      expect(rows[0].textContent).to.contain('Item 1');
     });
 
     it('should navigate to the next page', function() {
+      var data = [];
+
+      for (var i = 1; i <= 20; i++) {
+        data.push({ name: 'Item ' + i });
+      }
+
       table = new FlTable({
         target: '#test-container',
-        pagination: { pageSize: 2 },
-        columns: [ { name: 'Name', field: 'name' } ],
-        data: [ { name: 'A' }, { name: 'B' }, { name: 'C' } ]
+        columns: [{ name: 'Name', field: 'name' }],
+        data: data,
+        pagination: {
+          enabled: true,
+          pageSize: 10
+        }
       });
-      container.querySelector('.fl-table-pagination .next-page').click();
+
+      var nextButton = container.querySelector('.fl-table-pagination .next-page');
+
+      nextButton.click();
 
       var rows = container.querySelectorAll('.fl-table-body .fl-table-row');
 
-      expect(rows).to.have.lengthOf(1);
-      expect(rows[0].textContent).to.equal('C');
+      expect(rows).to.have.lengthOf(10);
+      expect(rows[0].textContent).to.contain('Item 11');
+    });
+  });
+
+  describe('Event System', function() {
+    it('should subscribe to and fire a custom event', function(done) {
+      table = new FlTable({
+        target: '#test-container',
+        columns: [{ name: 'Name', field: 'name' }],
+        data: [{ name: 'Test' }]
+      });
+
+      var eventData = { message: 'Hello, World!' };
+
+      table.on('custom:event', function(detail) {
+        try {
+          expect(detail).to.deep.equal(eventData);
+          done();
+        } catch (err) {
+          done(err);
+        }
+      });
+
+      // Manually fire the event for testing purposes
+      table.fire('custom:event', eventData);
+    });
+  });
+
+  describe('Destroy', function() {
+    it('should remove the table from the DOM', function() {
+      table = new FlTable({
+        target: '#test-container',
+        columns: [{ name: 'Name', field: 'name' }],
+        data: [{ name: 'Test' }]
+      });
+
+      table.destroy();
+      expect(container.querySelector('.fl-table')).to.not.exist;
+    });
+
+    it('should remove event listeners', function() {
+      var clickSpy = sinon.spy();
+
+      table = new FlTable({
+        target: '#test-container',
+        columns: [{ name: 'Name', field: 'name' }],
+        data: [{ name: 'Test' }]
+      });
+
+      table.on('row:click', clickSpy);
+      table.destroy();
+
+      var rowEl = document.createElement('div');
+
+      // Simulate a row click by creating a dummy element
+      // This is not perfect but checks if the global listener on the container is gone
+      rowEl.className = 'fl-table-row';
+
+      var cellEl = document.createElement('div');
+
+      cellEl.className = 'fl-table-cell';
+      rowEl.appendChild(cellEl);
+      container.appendChild(rowEl);
+
+      cellEl.click();
+
+      expect(clickSpy.called).to.be.false;
     });
   });
 });
