@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlTable Demo</title>
+    <link rel="stylesheet" href="../src/styles/fl-table.css">
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        #table-container { max-width: 800px; margin: auto; }
+    </style>
+</head>
+<body>
+
+    <h1>FlTable Demo</h1>
+    <p>A demonstration of the FlTable library with various features enabled.</p>
+    <div id="table-container"></div>
+
+    <script src="../src/fl-table.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var sampleData = [
+                { id: 1, name: 'Apple', type: 'Fruit', price: 1.2, stock: 150 },
+                { id: 2, name: 'Banana', type: 'Fruit', price: 0.8, stock: 200 },
+                { id: 3, name: 'Carrot', type: 'Vegetable', price: 0.5, stock: 300 },
+                { id: 4, name: 'Duck', type: 'Meat', price: 12.5, stock: 20 },
+                { id: 5, name: 'Eggplant', type: 'Vegetable', price: 2.1, stock: 80 },
+                { id: 6, name: 'Fish', type: 'Meat', price: 8.0, stock: 50 },
+                { id: 7, name: 'Grape', type: 'Fruit', price: 3.0, stock: 120 },
+                { id: 8, name: 'Honey', type: 'Misc', price: 5.5, stock: 90 },
+                { id: 9, name: 'Ice Cream', type: 'Misc', price: 4.0, stock: 110 },
+                { id: 10, name: 'Jalapeno', type: 'Vegetable', price: 0.2, stock: 500 }
+            ];
+
+            var table = new FlTable({
+                target: '#table-container',
+                className: 'my-demo-table',
+                searchable: true,
+                pagination: {
+                    pageSize: 5
+                },
+                selection: {
+                    enabled: true,
+                    multiple: true,
+                    rowClickEnabled: true
+                },
+                columns: [
+                    { name: 'ID', field: 'id', sortable: true },
+                    { name: 'Name', field: 'name', sortable: true, searchable: true },
+                    { name: 'Type', field: 'type', sortable: true, searchable: true },
+                    { name: 'Price', field: 'price', sortable: true },
+                    { name: 'Stock', field: 'stock', sortable: true }
+                ],
+                data: sampleData
+            });
+
+            table.on('selection:change', function(detail) {
+                console.log('Selection changed:', detail.selected);
+            });
+        });
+    </script>
+
+</body>
+</html>

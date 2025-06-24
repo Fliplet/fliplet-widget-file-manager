@@ -1,0 +1,134 @@
+/* Main CSS for FlTable */
+
+/* FL-Table General Styles */
+.fl-table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e4e9eb;
+  background-color: #fff;
+  border-radius: 3px;
+  font-family: sans-serif;
+}
+
+/* Search Bar */
+.fl-table-search {
+  padding: 10px;
+  border-bottom: 1px solid #e4e9eb;
+}
+
+.fl-table-search input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+/* Header */
+.fl-table-header {
+  font-weight: bold;
+  background-color: #f2f6f7;
+  border-bottom: 1px solid #e4e9eb;
+}
+
+/* Body */
+.fl-table-body {
+  flex-grow: 1;
+}
+
+/* Rows */
+.fl-table-row {
+  display: flex;
+  border-bottom: 1px solid #e4e9eb;
+}
+
+.fl-table-body .fl-table-row:last-child {
+  border-bottom: none;
+}
+
+.fl-table-body .fl-table-row:hover {
+  background-color: #f8f9fa;
+}
+
+.fl-table-row.fl-table-selected {
+  background-color: #e6f7ff !important;
+  font-weight: 500;
+}
+
+/* Cells */
+.fl-table-cell {
+  padding: 12px 15px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fl-table-header .fl-table-cell {
+  cursor: default;
+}
+
+.fl-table-cell.fl-table-checkbox {
+  flex: 0 0 50px;
+  justify-content: center;
+}
+
+/* Sorting */
+.fl-table-sortable {
+  cursor: pointer;
+  position: relative;
+}
+
+.fl-table-sortable:after {
+  content: '';
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  margin-top: -6px;
+  border: 4px solid transparent;
+  opacity: 0.5;
+}
+
+.fl-table-sortable:hover:after {
+  opacity: 1;
+}
+
+.fl-table-sorted-asc:after,
+.fl-table-sortable:hover.fl-table-sorted-asc:after {
+  content: '';
+  border-bottom-color: #333;
+}
+
+.fl-table-sorted-desc:after,
+.fl-table-sortable:hover.fl-table-sorted-desc:after {
+  content: '';
+  border-top-color: #333;
+}
+
+
+/* Pagination */
+.fl-table-pagination {
+  padding: 10px;
+  text-align: center;
+  border-top: 1px solid #e4e9eb;
+}
+
+.fl-table-pagination button {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  margin: 0 5px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.fl-table-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.fl-table-pagination button:hover:not(:disabled) {
+  background-color: #f2f6f7;
+}

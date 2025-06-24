@@ -33,10 +33,10 @@ Each task should be completed following Test-Driven Development (TDD) principles
 
 ## 1. Project Setup
 
-- [ ] Create basic project structure
-  - Create `/src`, `/dist`, `/demo`, `/test` directories
-  - Set up test environment with Mocha and Chai
-  - Create initial HTML test runner
+- [x] Create basic project structure
+  - [x] Create `/src`, `/dist`, `/demo`, `/test` directories
+  - [x] Set up test environment with Mocha and Chai
+  - [x] Create initial HTML test runner
 
 - [ ] Set up build process
   - Create build script for JS minification
@@ -46,14 +46,14 @@ Each task should be completed following Test-Driven Development (TDD) principles
 ## 2. Core Table Structure
 
 ### 2.1 Basic Table Rendering
-- [ ] Test: Table initialization with basic configuration
-- [ ] Test: Table renders correct number of columns
-- [ ] Test: Table renders correct number of rows
-- [ ] Test: Table applies custom className
-- [ ] Implement: Basic table structure rendering
-- [ ] Implement: Column header rendering
-- [ ] Implement: Row rendering
-- [ ] Implement: Cell rendering
+- [x] Test: Table initialization with basic configuration
+- [x] Test: Table renders correct number of columns
+- [x] Test: Table renders correct number of rows
+- [x] Test: Table applies custom className
+- [x] Implement: Basic table structure rendering
+- [x] Implement: Column header rendering
+- [x] Implement: Row rendering
+- [x] Implement: Cell rendering
 
 ### 2.2 Templates
 - [ ] Test: Basic cell content rendering
@@ -68,43 +68,43 @@ Each task should be completed following Test-Driven Development (TDD) principles
 ## 3. Selection System
 
 ### 3.1 Single Selection
-- [ ] Test: Row selection via checkbox
-- [ ] Test: Row selection via click (when enabled)
-- [ ] Test: Selection event firing
-- [ ] Test: onBeforeSelect handler
-- [ ] Implement: Single selection logic
-- [ ] Implement: Selection events
-- [ ] Implement: Selection validation
+- [x] Test: Row selection via checkbox
+- [x] Test: Row selection via click (when enabled)
+- [x] Test: Selection event firing
+- [x] Test: onBeforeSelect handler
+- [x] Implement: Single selection logic
+- [x] Implement: Selection events
+- [x] Implement: Selection validation
 
 ### 3.2 Multiple Selection
-- [ ] Test: Multiple row selection
-- [ ] Test: Select all checkbox functionality
-- [ ] Test: Deselect all functionality
-- [ ] Test: Selection state persistence
-- [ ] Implement: Multiple selection logic
-- [ ] Implement: Select all functionality
-- [ ] Implement: Selection state management
+- [x] Test: Multiple row selection
+- [x] Test: Select all checkbox functionality
+- [x] Test: Deselect all functionality
+- [x] Test: Selection state persistence
+- [x] Implement: Multiple selection logic
+- [x] Implement: Select all functionality
+- [x] Implement: Selection state management
 
 ### 3.3 Selection API
-- [ ] Test: selectRow method
-- [ ] Test: deselectRow method
-- [ ] Test: selectAll method
-- [ ] Test: deselectAll method
-- [ ] Test: getSelectedRows method
-- [ ] Test: isSelected method
-- [ ] Implement: Selection API methods
-- [ ] Implement: Selection state queries
+- [x] Test: selectRow method
+- [x] Test: deselectRow method
+- [x] Test: selectAll method
+- [x] Test: deselectAll method
+- [x] Test: getSelectedRows method
+- [x] Test: isSelected method
+- [x] Implement: Selection API methods
+- [x] Implement: Selection state queries
 
 ## 4. Sorting System
 
 ### 4.1 Basic Sorting
-- [ ] Test: Column sort on header click
-- [ ] Test: Sort direction toggle
-- [ ] Test: Sort indicator rendering
-- [ ] Test: Default sort state
-- [ ] Implement: Basic sort functionality
-- [ ] Implement: Sort direction cycling
-- [ ] Implement: Sort indicators
+- [x] Test: Column sort on header click
+- [x] Test: Sort direction toggle
+- [x] Test: Sort indicator rendering
+- [x] Test: Default sort state
+- [x] Implement: Basic sort functionality
+- [x] Implement: Sort direction cycling
+- [x] Implement: Sort indicators
 
 ### 4.2 Advanced Sorting
 - [ ] Test: Custom sort functions
@@ -118,13 +118,13 @@ Each task should be completed following Test-Driven Development (TDD) principles
 ## 5. Search System
 
 ### 5.1 Basic Search
-- [ ] Test: Search input rendering
-- [ ] Test: Basic search functionality
-- [ ] Test: Search result rendering
-- [ ] Test: Search clear functionality
-- [ ] Implement: Search input handling
-- [ ] Implement: Basic search logic
-- [ ] Implement: Search result display
+- [x] Test: Search input rendering
+- [x] Test: Basic search functionality
+- [x] Test: Search result rendering
+- [x] Test: Search clear functionality
+- [x] Implement: Search input handling
+- [x] Implement: Basic search logic
+- [x] Implement: Search result display
 
 ### 5.2 Advanced Search
 - [ ] Test: Custom search implementation
