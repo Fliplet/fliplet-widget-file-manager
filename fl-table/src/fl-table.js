@@ -101,8 +101,16 @@ FlTable.prototype.search = function(term) {
     });
   }
 
+  if (this.options.pagination) {
+    this.pagination.currentPage = 1;
+  }
+
   this.fire('search:change', { term: term, data: this.options.data });
   this.renderBody();
+
+  if (this.options.pagination) {
+    this.renderPagination();
+  }
 };
 
 FlTable.prototype.renderPagination = function() {
