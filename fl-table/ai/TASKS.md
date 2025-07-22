@@ -56,14 +56,29 @@ Each task should be completed following Test-Driven Development (TDD) principles
 - [x] Implement: Cell rendering
 
 ### 2.2 Templates
-- [ ] Test: Basic cell content rendering
-- [ ] Test: Custom template registration
-- [ ] Test: Template removal
-- [ ] Test: Dynamic template selection
-- [ ] Test: Template context/data passing
-- [ ] Implement: Template registration system
-- [ ] Implement: Template rendering engine
-- [ ] Implement: Dynamic template selection
+- [x] Test: Basic cell content rendering
+- [x] Test: Custom template registration
+- [x] Test: Template removal
+- [x] Test: Dynamic template selection
+- [x] Test: Template context/data passing
+- [x] Implement: Template registration system
+- [x] Implement: Template rendering engine
+- [x] Implement: Dynamic template selection
+
+### 2.3 Expandable Rows (Nested Tables)
+- [ ] Test: Row expands and collapses on trigger click
+- [ ] Test: onBeforeExpand handler prevents expansion
+- [ ] Test: onExpand loads asynchronous content and `expand:complete` fires
+- [ ] Test: `expand:start` fires before async content is loaded
+- [ ] Test: `expand:error` fires on async failure
+- [ ] Test: `collapse:complete` fires after row is collapsed
+- [ ] Test: expandRow and collapseRow API methods trigger correct events
+- [ ] Test: Expanded content displays correctly
+- [ ] Implement: `expandable` configuration options
+- [ ] Implement: Row expansion logic
+- [ ] Implement: Asynchronous content loading for expanded rows
+- [ ] Implement: `expandRow` and `collapseRow` API methods
+- [ ] Implement: Expansion event lifecycle (`before:expand`, `expand:start`, `expand:complete`, `expand:error`, `before:collapse`, `collapse:complete`)
 
 ## 3. Selection System
 
@@ -81,8 +96,10 @@ Each task should be completed following Test-Driven Development (TDD) principles
 - [x] Test: Select all checkbox functionality
 - [x] Test: Deselect all functionality
 - [x] Test: Selection state persistence
+- [ ] Test: Partial selection checkbox UI (indeterminate state)
 - [x] Implement: Multiple selection logic
 - [x] Implement: Select all functionality
+- [ ] Implement: Partial selection UI and state logic
 - [x] Implement: Selection state management
 
 ### 3.3 Selection API
@@ -168,13 +185,16 @@ Each task should be completed following Test-Driven Development (TDD) principles
 
 ### 7.2 Specific Events
 - [x] Test: Row click events
-- [ ] Test: Row double-click events
-- [ ] Test: Selection events
-- [ ] Test: Sort events
-- [ ] Test: Search events
-- [ ] Test: Pagination events
-- [ ] Implement: Row interaction events
+- [x] Test: Row double-click events
+- [x] Test: Selection events
+- [x] Test: Sort events
+- [x] Test: Search events
+- [x] Test: Pagination events
+- [ ] Test: Expansion event lifecycle
+- [ ] Test: `cell:interaction` event for custom UI
+- [x] Implement: Row interaction events
 - [ ] Implement: State change events
+- [ ] Implement: `cell:interaction` event dispatch
 
 ## 8. Data Management
 
@@ -201,13 +221,19 @@ Each task should be completed following Test-Driven Development (TDD) principles
 ### 9.1 Core Styles
 - [ ] Test: Default class application
 - [ ] Test: Custom class application
-- [ ] Test: State-based styling
-- [ ] Test: Responsive behavior
+- [ ] Test: State-based styling (`.fl-table-selected`, `.fl-table-row-expanded`)
 - [ ] Implement: Core CSS
 - [ ] Implement: State classes
-- [ ] Implement: Responsive styles
+- [ ] Implement: FontAwesome for selection checkboxes in demos
 
-### 9.2 Theme Support
+### 9.2 Responsive Design
+- [ ] Test: Columns are hidden based on `hideOn` and breakpoints
+- [ ] Test: Breakpoint classes are applied to the table wrapper
+- [ ] Implement: Breakpoint configuration system
+- [ ] Implement: `hideOn` column logic
+- [ ] Implement: CSS for responsive column visibility
+
+### 9.3 Theme Support
 - [ ] Test: Theme class application
 - [ ] Test: Custom CSS properties
 - [ ] Test: Style overrides
@@ -259,19 +285,21 @@ Each task should be completed following Test-Driven Development (TDD) principles
 ## 12. Documentation
 
 ### 12.1 API Documentation
-- [ ] Document: Configuration options
-- [ ] Document: Public methods
-- [ ] Document: Events
-- [ ] Document: CSS classes
-- [ ] Create: TypeScript definitions
+- [ ] Document: Configuration options (including `breakpoints`, `expandable`)
+- [ ] Document: Public methods (including `expandRow`, `collapseRow`)
+- [ ] Document: Events (including `row:expand`, `row:collapse`, `cell:interaction`)
+- [ ] Document: CSS classes (including responsive and expandable classes)
+- [ ] Create: TypeScript definitions for all new interfaces
 - [ ] Create: JSDoc comments
-- [ ] Create: README updates
+- [ ] Update: `README.md` with all new features
 
 ### 12.2 Examples
 - [ ] Create: Basic usage example
-- [ ] Create: Advanced features example
-- [ ] Create: Custom styling example
-- [ ] Create: Integration example
+- [ ] Create: Advanced features example (including selection, search, pagination)
+- [ ] Create: Responsive design example
+- [ ] Create: Expandable rows (nested tables) example
+- [ ] Create: Partial selection example
+- [ ] Create: Custom UI in cells example (using `cell:interaction`)
 - [ ] Document: Best practices
 - [ ] Document: Common patterns
 - [ ] Document: Performance tips

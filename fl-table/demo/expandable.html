@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlTable Expandable Rows Demo</title>
+    <link rel="stylesheet" href="../src/styles/fl-table.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background-color: #f5f5f5; 
+            margin: 0;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .controls { 
+            margin: 20px 0; 
+            display: flex; 
+            gap: 10px; 
+            flex-wrap: wrap; 
+        }
+        .controls button { 
+            padding: 10px 16px; 
+            border: 1px solid #007bff; 
+            background: #007bff; 
+            color: white;
+            cursor: pointer; 
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .controls button:hover { 
+            background: #0056b3; 
+            border-color: #0056b3;
+        }
+        .controls button.secondary {
+            background: #6c757d;
+            border-color: #6c757d;
+        }
+        .controls button.secondary:hover {
+            background: #545b62;
+            border-color: #545b62;
+        }
+        #table-container { 
+            margin: 20px 0; 
+        }
+        .event-log { 
+            background: #f8f9fa; 
+            border: 1px solid #dee2e6; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin-top: 20px;
+        }
+        .event-log h3 { 
+            margin-top: 0; 
+            color: #495057;
+        }
+        .event-log pre { 
+            background: white;
+            padding: 10px;
+            border-radius: 3px;
+            border-left: 4px solid #007bff;
+            max-height: 300px; 
+            overflow-y: auto; 
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        /* Custom expand trigger styling */
+        .expand-icon {
+            transition: transform 0.2s ease;
+        }
+        .expand-icon.expanded {
+            transform: rotate(90deg);
+        }
+        
+        /* User details styling */
+        .user-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 10px 0;
+        }
+        .detail-section h4 {
+            color: #007bff;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .detail-value {
+            color: #6c757d;
+        }
+        
+        /* Status badges */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-inactive { background: #f8d7da; color: #721c24; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        
+        /* Department badges */
+        .dept-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .dept-engineering { background: #e3f2fd; color: #1565c0; }
+        .dept-design { background: #f3e5f5; color: #7b1fa2; }
+        .dept-marketing { background: #e8f5e8; color: #2e7d32; }
+        .dept-sales { background: #fff3e0; color: #ef6c00; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fa fa-table"></i> FlTable Expandable Rows Demo</h1>
+        <p>This demo showcases FlTable's expandable rows feature with async content loading, custom expand triggers, partial selection UI, and comprehensive event handling.</p>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <h3 style="margin-top: 0;">Partial Selection UI</h3>
+            <p>Header checkbox states: <i class="fa fa-square-o" style="color: #6c757d;"></i> Empty <i class="fa fa-minus-square" style="color: #007bff;"></i> Partial <i class="fa fa-check-square" style="color: #007bff;"></i> Full</p>
+        </div>
+        
+        <div class="controls">
+            <button id="expand-first">Expand First Row (API)</button>
+            <button id="collapse-all">Collapse All</button>
+            <button id="toggle-async">Toggle Async Loading</button>
+            <button id="simulate-error" class="secondary">Simulate Error</button>
+            <button id="reload-data" class="secondary">Reload Data</button>
+        </div>
+        
+        <div style="background: #e9ecef; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #007bff;">
+            <h4 style="margin-top: 0; color: #007bff;"><i class="fa fa-info-circle"></i> Selection State Initialization</h4>
+            <p>This demo shows three ways to initialize selection states:</p>
+            <ul style="margin: 10px 0;">
+                <li><strong>Data-driven:</strong> Alice is pre-selected via <code>_selected: true</code> in row data</li>
+                <li><strong>Data-driven:</strong> Carol is pre-marked partial via <code>_partiallySelected: true</code></li>
+                <li><strong>Configuration:</strong> Eve is pre-selected via <code>initialSelection: [{ id: 5 }]</code></li>
+                <li><strong>Configuration:</strong> David is pre-marked partial via <code>initialPartialSelection: [{ id: 4 }]</code></li>
+            </ul>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button id="set-alice-partial">Toggle Alice Partial</button>
+                <button id="set-bob-partial">Toggle Bob Partial</button>
+                <button id="clear-partial">Clear All Partial</button>
+            </div>
+        </div>
+
+        <div id="table-container"></div>
+
+        <div class="event-log">
+            <h3><i class="fa fa-list"></i> Event Log</h3>
+            <pre id="log"></pre>
+        </div>
+    </div>
+
+    <script src="../src/fl-table.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let table;
+            let useAsyncLoading = true;
+            let simulateError = false;
+            const logEl = document.getElementById('log');
+
+            // Sample user data with initial selection states
+            const userData = [
+                {
+                    id: 1,
+                    name: 'Alice Johnson',
+                    email: 'alice@example.com',
+                    department: 'Engineering',
+                    status: 'Active',
+                    joinDate: '2022-01-15',
+                    phone: '+1 (555) 123-4567',
+                    location: 'San Francisco, CA',
+                    manager: 'Bob Wilson',
+                    projects: ['Project Alpha', 'Project Beta'],
+                    skills: ['JavaScript', 'React', 'Node.js'],
+                    salary: '$120,000',
+                    _selected: true // Pre-selected using data-driven approach
+                },
+                {
+                    id: 2,
+                    name: 'Bob Wilson',
+                    email: 'bob@example.com',
+                    department: 'Engineering',
+                    status: 'Active',
+                    joinDate: '2021-03-10',
+                    phone: '+1 (555) 234-5678',
+                    location: 'New York, NY',
+                    manager: 'None',
+                    projects: ['Project Gamma'],
+                    skills: ['Python', 'Django', 'PostgreSQL'],
+                    salary: '$150,000'
+                },
+                {
+                    id: 3,
+                    name: 'Carol Davis',
+                    email: 'carol@example.com',
+                    department: 'Design',
+                    status: 'Inactive',
+                    joinDate: '2021-07-22',
+                    phone: '+1 (555) 345-6789',
+                    location: 'Austin, TX',
+                    manager: 'Alice Johnson',
+                    projects: ['Project Delta', 'Project Epsilon'],
+                    skills: ['Figma', 'Sketch', 'Adobe Creative Suite'],
+                    salary: '$95,000',
+                    _partiallySelected: true // Pre-marked as partially selected
+                },
+                {
+                    id: 4,
+                    name: 'David Brown',
+                    email: 'david@example.com',
+                    department: 'Marketing',
+                    status: 'Pending',
+                    joinDate: '2023-09-01',
+                    phone: '+1 (555) 456-7890',
+                    location: 'Los Angeles, CA',
+                    manager: 'Eve Martinez',
+                    projects: ['Campaign Q3', 'Brand Refresh'],
+                    skills: ['SEO', 'Content Marketing', 'Analytics'],
+                    salary: '$85,000'
+                },
+                {
+                    id: 5,
+                    name: 'Eve Martinez',
+                    email: 'eve@example.com',
+                    department: 'Sales',
+                    status: 'Active',
+                    joinDate: '2020-11-30',
+                    phone: '+1 (555) 567-8901',
+                    location: 'Chicago, IL',
+                    manager: 'Frank Garcia',
+                    projects: ['Q4 Sales Push', 'Client Onboarding'],
+                    skills: ['CRM', 'Negotiation', 'Lead Generation'],
+                    salary: '$110,000'
+                }
+            ];
+
+            function logEvent(message) {
+                const timestamp = new Date().toLocaleTimeString();
+                logEl.textContent = `[${timestamp}] ${message}\n` + logEl.textContent;
+            }
+
+            function generateUserDetails(user) {
+                const deptClass = 'dept-' + user.department.toLowerCase();
+                const statusClass = 'status-' + user.status.toLowerCase();
+                
+                return `
+                    <div class="user-details">
+                        <div class="detail-section">
+                            <h4><i class="fa fa-user"></i> Personal Information</h4>
+                            <div class="detail-item">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value">${user.email}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Phone:</span>
+                                <span class="detail-value">${user.phone}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Location:</span>
+                                <span class="detail-value">${user.location}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Join Date:</span>
+                                <span class="detail-value">${user.joinDate}</span>
+                            </div>
+                        </div>
+                        <div class="detail-section">
+                            <h4><i class="fa fa-briefcase"></i> Work Information</h4>
+                            <div class="detail-item">
+                                <span class="detail-label">Department:</span>
+                                <span class="detail-value"><span class="dept-badge ${deptClass}">${user.department}</span></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Status:</span>
+                                <span class="detail-value"><span class="status-badge ${statusClass}">${user.status}</span></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Manager:</span>
+                                <span class="detail-value">${user.manager}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Salary:</span>
+                                <span class="detail-value">${user.salary}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <h4><i class="fa fa-tasks"></i> Projects & Skills</h4>
+                        <div class="detail-item">
+                            <span class="detail-label">Current Projects:</span>
+                            <span class="detail-value">${user.projects.join(', ')}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Skills:</span>
+                            <span class="detail-value">${user.skills.join(', ')}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function initializeTable() {
+                if (table) {
+                    table.destroy();
+                }
+
+                table = new FlTable({
+                    target: '#table-container',
+                    className: 'expandable-demo-table',
+                    selection: {
+                        enabled: true,
+                        multiple: true,
+                        // Pre-select Eve Martinez using configuration approach
+                        initialSelection: [{ id: 5 }],
+                        // Mark David Brown as partially selected using configuration
+                        initialPartialSelection: [{ id: 4 }]
+                    },
+                    pagination: {
+                        pageSize: 3
+                    },
+                    columns: [
+                        {
+                            name: 'Name',
+                            field: 'name',
+                            sortable: true,
+                            render: function(row) {
+                                const expandIcon = table && table.isRowExpanded(row) ? '🔽' : '▶️';
+                                return row.name + ' <span data-expand class="inline-expand-trigger" style="cursor: pointer; margin-left: 8px; color: #007bff;">' + expandIcon + '</span>';
+                            }
+                        },
+                        {
+                            name: 'Email',
+                            field: 'email',
+                            sortable: true
+                        },
+                        {
+                            name: 'Department',
+                            field: 'department',
+                            sortable: true
+                        },
+                        {
+                            name: 'Status',
+                            field: 'status',
+                            sortable: true
+                        }
+                    ],
+                    expandable: {
+                        enabled: true,
+                        onBeforeExpand: function(row) {
+                            // Allow expansion for all users, but log if it's an inactive user
+                            if (row.status === 'Inactive') {
+                                logEvent(`⚠️ Expanding details for inactive user ${row.name}`);
+                            }
+                            return true; // Allow expansion for all users
+                        },
+                        onExpand: function(row) {
+                            if (useAsyncLoading) {
+                                return new Promise((resolve, reject) => {
+                                    logEvent(`🔄 Loading details for ${row.name}...`);
+                                    
+                                    setTimeout(() => {
+                                        if (simulateError && row.id === 1) {
+                                            reject(new Error('Network error: Failed to load user details'));
+                                        } else {
+                                            resolve(generateUserDetails(row));
+                                        }
+                                    }, 800 + Math.random() * 1200); // Simulate network delay
+                                });
+                            } else {
+                                return generateUserDetails(row);
+                            }
+                        }
+                    },
+                    data: userData
+                });
+
+                // Event listeners for demo
+                table.on('expand:start', function(detail) {
+                    logEvent(`📂 Expansion started for ${detail.row.name}`);
+                    
+                    // Update inline expand icon to loading state
+                    const inlineExpandTrigger = detail.rowEl.querySelector('.inline-expand-trigger');
+                    if (inlineExpandTrigger) {
+                        inlineExpandTrigger.innerHTML = '<i class="fa fa-spinner fa-spin" style="font-size: 12px;"></i>';
+                    }
+                });
+
+                table.on('expand:complete', function(detail) {
+                    logEvent(`✅ Expansion completed for ${detail.row.name}`);
+                    
+                    // Update inline expand icon to expanded state
+                    const inlineExpandTrigger = detail.rowEl.querySelector('.inline-expand-trigger');
+                    if (inlineExpandTrigger) {
+                        inlineExpandTrigger.textContent = '🔽';
+                    }
+                });
+
+                table.on('expand:error', function(detail) {
+                    logEvent(`❌ Expansion failed for ${detail.row.name}: ${detail.error.message}`);
+                    
+                    // Update inline expand icon to error state
+                    const inlineExpandTrigger = detail.rowEl.querySelector('.inline-expand-trigger');
+                    if (inlineExpandTrigger) {
+                        inlineExpandTrigger.innerHTML = '<i class="fa fa-exclamation-triangle" style="color: red; font-size: 12px;"></i>';
+                    }
+                });
+
+                table.on('collapse:complete', function(detail) {
+                    logEvent(`📁 Collapsed details for ${detail.row.name}`);
+                    
+                    // Update inline expand icon to collapsed state
+                    const inlineExpandTrigger = detail.rowEl.querySelector('.inline-expand-trigger');
+                    if (inlineExpandTrigger) {
+                        inlineExpandTrigger.textContent = '▶️';
+                    }
+                });
+
+                table.on('selection:change', function(detail) {
+                    const selectedNames = detail.selected.map(row => row.name);
+                    logEvent(`🔘 Selection changed: ${selectedNames.length} selected (${selectedNames.join(', ')})`);
+                });
+
+                // Add cell interaction event handler for custom triggers
+                table.on('cell:interaction', function(detail) {
+                    logEvent(`🎯 Cell interaction: ${detail.action} triggered on ${detail.row.name} in ${detail.column.name} column`);
+                });
+
+                logEvent('🚀 Table initialized with expandable rows feature');
+            }
+
+            // Control button handlers
+            document.getElementById('expand-first').addEventListener('click', function() {
+                if (userData.length > 0) {
+                    table.expandRow(userData[0]);
+                    logEvent(`🔧 API call: expandRow() for ${userData[0].name}`);
+                }
+            });
+
+            document.getElementById('collapse-all').addEventListener('click', function() {
+                userData.forEach(user => {
+                    if (table.isRowExpanded(user)) {
+                        table.collapseRow(user);
+                    }
+                });
+                logEvent('🔧 API call: collapseRow() for all expanded rows');
+            });
+
+            document.getElementById('toggle-async').addEventListener('click', function() {
+                useAsyncLoading = !useAsyncLoading;
+                const button = document.getElementById('toggle-async');
+                button.textContent = useAsyncLoading ? 'Switch to Sync Loading' : 'Switch to Async Loading';
+                logEvent(`⚙️ Content loading mode changed to: ${useAsyncLoading ? 'Async' : 'Sync'}`);
+            });
+
+            document.getElementById('simulate-error').addEventListener('click', function() {
+                simulateError = !simulateError;
+                const button = document.getElementById('simulate-error');
+                button.textContent = simulateError ? 'Disable Error Simulation' : 'Simulate Error';
+                button.className = simulateError ? 'secondary' : '';
+                logEvent(`⚙️ Error simulation: ${simulateError ? 'Enabled (affects Alice Johnson)' : 'Disabled'}`);
+            });
+
+            document.getElementById('reload-data').addEventListener('click', function() {
+                logEvent('🔄 Reloading table data...');
+                initializeTable();
+            });
+
+            // Partial selection demo handlers
+            document.getElementById('set-alice-partial').addEventListener('click', function() {
+                const alice = userData.find(user => user.name === 'Alice Johnson');
+                if (alice) {
+                    const isCurrentlyPartial = table.isRowPartiallySelected(alice);
+                    table.setRowPartialSelection(alice, !isCurrentlyPartial);
+                    logEvent(`🔧 API call: setRowPartialSelection() for Alice Johnson (${!isCurrentlyPartial ? 'partial' : 'normal'} state)`);
+                }
+            });
+
+            document.getElementById('set-bob-partial').addEventListener('click', function() {
+                const bob = userData.find(user => user.name === 'Bob Wilson');
+                if (bob) {
+                    const isCurrentlyPartial = table.isRowPartiallySelected(bob);
+                    table.setRowPartialSelection(bob, !isCurrentlyPartial);
+                    logEvent(`🔧 API call: setRowPartialSelection() for Bob Wilson (${!isCurrentlyPartial ? 'partial' : 'normal'} state)`);
+                }
+            });
+
+            document.getElementById('clear-partial').addEventListener('click', function() {
+                table.clearAllPartialSelection();
+                logEvent('🔧 API call: clearAllPartialSelection() - cleared all partial states');
+            });
+
+            // Initialize the table
+            initializeTable();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlTable - Partial Selection Demo</title>
+    <link rel="stylesheet" href="../src/styles/fl-table.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background-color: #f5f5f5; 
+            margin: 0;
+        }
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .demo-section {
+            margin: 40px 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .demo-section h2 {
+            color: #007bff;
+            margin-top: 0;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 8px;
+        }
+        .controls { 
+            margin: 20px 0; 
+            display: flex; 
+            gap: 10px; 
+            flex-wrap: wrap; 
+        }
+        .controls button { 
+            padding: 8px 12px; 
+            border: 1px solid #007bff; 
+            background: #007bff; 
+            color: white;
+            cursor: pointer; 
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .controls button:hover { 
+            background: #0056b3; 
+            border-color: #0056b3;
+        }
+        .controls button.secondary {
+            background: #6c757d;
+            border-color: #6c757d;
+        }
+        .controls button.secondary:hover {
+            background: #545b62;
+            border-color: #545b62;
+        }
+        .table-container { 
+            margin: 20px 0; 
+        }
+        .status-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status-item {
+            text-align: center;
+        }
+        .status-item h4 {
+            margin: 0 0 5px 0;
+            color: #495057;
+            font-size: 14px;
+        }
+        .status-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #007bff;
+        }
+        .checkbox-state {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+        }
+        .checkbox-icon {
+            font-size: 24px;
+        }
+        .state-empty { color: #6c757d; }
+        .state-partial { color: #007bff; }
+        .state-full { color: #007bff; }
+        
+        .explanation {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #007bff;
+        }
+        .explanation h4 {
+            margin: 0 0 10px 0;
+            color: #007bff;
+        }
+        
+        /* Custom styles for different item types */
+        .type-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .type-document { background: #e3f2fd; color: #1565c0; }
+        .type-image { background: #f3e5f5; color: #7b1fa2; }
+        .type-video { background: #e8f5e8; color: #2e7d32; }
+        .type-audio { background: #fff3e0; color: #ef6c00; }
+        
+        .priority-badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .priority-high { background: #ffebee; color: #c62828; }
+        .priority-medium { background: #fff3e0; color: #ef6c00; }
+        .priority-low { background: #e8f5e8; color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fa fa-check-square"></i> FlTable - Partial Selection UI</h1>
+        <p>This demo showcases FlTable's partial selection UI with indeterminate checkbox states using FontAwesome icons.</p>
+        
+        <div class="explanation">
+            <h4><i class="fa fa-info-circle"></i> Partial Selection States</h4>
+            <p>The select-all checkbox in the header shows three different states:</p>
+            <ul>
+                <li><i class="fa fa-square-o state-empty"></i> <strong>Empty (fa-square-o):</strong> No rows selected</li>
+                <li><i class="fa fa-minus-square state-partial"></i> <strong>Partial (fa-minus-square):</strong> Some rows selected</li>
+                <li><i class="fa fa-check-square state-full"></i> <strong>Full (fa-check-square):</strong> All visible rows selected</li>
+            </ul>
+        </div>
+
+        <div class="demo-section">
+            <h2>1. Basic Partial Selection</h2>
+            <p>Select individual rows and observe how the header checkbox state changes automatically.</p>
+            
+            <div class="controls">
+                <button id="select-none-1">Select None</button>
+                <button id="select-first-1">Select First</button>
+                <button id="select-first-two-1">Select First Two</button>
+                <button id="select-all-1">Select All</button>
+                <button id="random-select-1" class="secondary">Random Selection</button>
+            </div>
+
+            <div class="status-display">
+                <div class="status-item">
+                    <h4>Total Rows</h4>
+                    <div class="status-value" id="total-count-1">0</div>
+                </div>
+                <div class="status-item">
+                    <h4>Selected</h4>
+                    <div class="status-value" id="selected-count-1">0</div>
+                </div>
+                <div class="status-item">
+                    <h4>Header Checkbox State</h4>
+                    <div class="checkbox-state" id="checkbox-state-1">
+                        <i class="fa fa-square-o checkbox-icon state-empty"></i>
+                        <span>Empty</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-container" id="table-1"></div>
+        </div>
+
+        <div class="demo-section">
+            <h2>2. Partial Selection with Pagination</h2>
+            <p>With pagination, the header checkbox reflects the selection state of visible rows only.</p>
+            
+            <div class="controls">
+                <button id="select-page-1-2">Select Page 1</button>
+                <button id="select-page-2-2">Select Page 2</button>
+                <button id="select-cross-page-2">Select Across Pages</button>
+                <button id="clear-all-2" class="secondary">Clear All</button>
+            </div>
+
+            <div class="status-display">
+                <div class="status-item">
+                    <h4>Current Page</h4>
+                    <div class="status-value" id="current-page-2">1</div>
+                </div>
+                <div class="status-item">
+                    <h4>Page Selection</h4>
+                    <div class="status-value" id="page-selection-2">0/0</div>
+                </div>
+                <div class="status-item">
+                    <h4>Total Selected</h4>
+                    <div class="status-value" id="total-selected-2">0</div>
+                </div>
+                <div class="status-item">
+                    <h4>Header State</h4>
+                    <div class="checkbox-state" id="checkbox-state-2">
+                        <i class="fa fa-square-o checkbox-icon state-empty"></i>
+                        <span>Empty</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-container" id="table-2"></div>
+        </div>
+
+        <div class="demo-section">
+            <h2>3. Partial Selection with Search</h2>
+            <p>When searching, the header checkbox state is based on visible/filtered rows.</p>
+            
+            <div class="controls">
+                <button id="search-document-3">Search "Document"</button>
+                <button id="search-image-3">Search "Image"</button>
+                <button id="clear-search-3">Clear Search</button>
+                <button id="select-visible-3">Select Visible</button>
+                <button id="select-all-3">Select All Data</button>
+            </div>
+
+            <div class="status-display">
+                <div class="status-item">
+                    <h4>Visible Rows</h4>
+                    <div class="status-value" id="visible-count-3">0</div>
+                </div>
+                <div class="status-item">
+                    <h4>Selected Visible</h4>
+                    <div class="status-value" id="selected-visible-3">0</div>
+                </div>
+                <div class="status-item">
+                    <h4>Total Selected</h4>
+                    <div class="status-value" id="total-selected-3">0</div>
+                </div>
+                <div class="status-item">
+                    <h4>Search Term</h4>
+                    <div class="status-value" id="search-term-3">-</div>
+                </div>
+                <div class="status-item">
+                    <h4>Header State</h4>
+                    <div class="checkbox-state" id="checkbox-state-3">
+                        <i class="fa fa-square-o checkbox-icon state-empty"></i>
+                        <span>Empty</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-container" id="table-3"></div>
+        </div>
+    </div>
+
+    <script src="../src/fl-table.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Demo 1: Basic Partial Selection
+            const basicData = [
+                { id: 1, name: 'John Doe', department: 'Engineering', role: 'Developer' },
+                { id: 2, name: 'Jane Smith', department: 'Design', role: 'Designer' },
+                { id: 3, name: 'Bob Johnson', department: 'Marketing', role: 'Manager' },
+                { id: 4, name: 'Alice Brown', department: 'Sales', role: 'Representative' },
+                { id: 5, name: 'Charlie Wilson', department: 'Engineering', role: 'Architect' }
+            ];
+
+            const table1 = new FlTable({
+                target: '#table-1',
+                selection: {
+                    enabled: true,
+                    multiple: true
+                },
+                columns: [
+                    { name: 'Name', field: 'name', sortable: true },
+                    { name: 'Department', field: 'department', sortable: true },
+                    { name: 'Role', field: 'role', sortable: true }
+                ],
+                data: basicData
+            });
+
+            // Demo 2: Pagination
+            const paginationData = [];
+            for (let i = 1; i <= 15; i++) {
+                paginationData.push({
+                    id: i,
+                    item: `Item ${i}`,
+                    category: i <= 5 ? 'Category A' : i <= 10 ? 'Category B' : 'Category C',
+                    priority: i % 3 === 0 ? 'High' : i % 3 === 1 ? 'Medium' : 'Low'
+                });
+            }
+
+            const table2 = new FlTable({
+                target: '#table-2',
+                selection: {
+                    enabled: true,
+                    multiple: true
+                },
+                pagination: {
+                    pageSize: 5
+                },
+                columns: [
+                    { name: 'Item', field: 'item', sortable: true },
+                    { name: 'Category', field: 'category', sortable: true },
+                    {
+                        name: 'Priority',
+                        field: 'priority',
+                        render: function(row) {
+                            return '<span class="priority-badge priority-' + row.priority.toLowerCase() + '">' + row.priority + '</span>';
+                        }
+                    }
+                ],
+                data: paginationData
+            });
+
+            // Demo 3: Search
+            const searchData = [
+                { id: 1, name: 'Document 1.pdf', type: 'Document', size: '2.1 MB' },
+                { id: 2, name: 'Image 1.jpg', type: 'Image', size: '1.5 MB' },
+                { id: 3, name: 'Document 2.docx', type: 'Document', size: '890 KB' },
+                { id: 4, name: 'Video 1.mp4', type: 'Video', size: '15.2 MB' },
+                { id: 5, name: 'Image 2.png', type: 'Image', size: '3.1 MB' },
+                { id: 6, name: 'Audio 1.mp3', type: 'Audio', size: '4.5 MB' },
+                { id: 7, name: 'Document 3.pdf', type: 'Document', size: '1.2 MB' },
+                { id: 8, name: 'Image 3.gif', type: 'Image', size: '2.8 MB' }
+            ];
+
+            const table3 = new FlTable({
+                target: '#table-3',
+                searchable: true,
+                selection: {
+                    enabled: true,
+                    multiple: true
+                },
+                columns: [
+                    { name: 'Name', field: 'name', sortable: true, searchable: true },
+                    {
+                        name: 'Type',
+                        field: 'type',
+                        sortable: true,
+                        render: function(row) {
+                            return '<span class="type-badge type-' + row.type.toLowerCase() + '">' + row.type + '</span>';
+                        }
+                    },
+                    { name: 'Size', field: 'size', sortable: true }
+                ],
+                data: searchData
+            });
+
+            // Update status displays
+            function updateStatus1() {
+                const selected = table1.getSelectedRows();
+                const total = table1.getData().length;
+                
+                document.getElementById('total-count-1').textContent = total;
+                document.getElementById('selected-count-1').textContent = selected.length;
+                
+                updateCheckboxStateDisplay('checkbox-state-1', selected.length, total);
+            }
+
+            function updateStatus2() {
+                const selected = table2.getSelectedRows();
+                const currentPageData = table2.getCurrentPageData();
+                const selectedOnPage = currentPageData.filter(row => selected.includes(row));
+                
+                document.getElementById('current-page-2').textContent = table2.pagination.currentPage;
+                document.getElementById('page-selection-2').textContent = selectedOnPage.length + '/' + currentPageData.length;
+                document.getElementById('total-selected-2').textContent = selected.length;
+                
+                updateCheckboxStateDisplay('checkbox-state-2', selectedOnPage.length, currentPageData.length);
+            }
+
+            function updateStatus3() {
+                const selected = table3.getSelectedRows();
+                const visible = table3.getCurrentPageData();
+                const selectedVisible = visible.filter(row => selected.includes(row));
+                
+                document.getElementById('visible-count-3').textContent = visible.length;
+                document.getElementById('selected-visible-3').textContent = selectedVisible.length;
+                document.getElementById('total-selected-3').textContent = selected.length;
+                
+                updateCheckboxStateDisplay('checkbox-state-3', selectedVisible.length, visible.length);
+            }
+
+            function updateCheckboxStateDisplay(elementId, selected, total) {
+                const element = document.getElementById(elementId);
+                const icon = element.querySelector('.checkbox-icon');
+                const text = element.querySelector('span');
+                
+                if (selected === 0) {
+                    icon.className = 'fa fa-square-o checkbox-icon state-empty';
+                    text.textContent = 'Empty';
+                } else if (selected === total) {
+                    icon.className = 'fa fa-check-square checkbox-icon state-full';
+                    text.textContent = 'Full';
+                } else {
+                    icon.className = 'fa fa-minus-square checkbox-icon state-partial';
+                    text.textContent = 'Partial';
+                }
+            }
+
+            // Event listeners
+            table1.on('selection:change', updateStatus1);
+            table2.on('selection:change', updateStatus2);
+            table2.on('page:change', updateStatus2);
+            table3.on('selection:change', updateStatus3);
+            table3.on('search:change', function(detail) {
+                document.getElementById('search-term-3').textContent = detail.term || '-';
+                updateStatus3();
+            });
+
+            // Control handlers for demo 1
+            document.getElementById('select-none-1').addEventListener('click', () => {
+                table1.deselectAll();
+            });
+
+            document.getElementById('select-first-1').addEventListener('click', () => {
+                table1.deselectAll();
+                table1.selectRow(basicData[0]);
+            });
+
+            document.getElementById('select-first-two-1').addEventListener('click', () => {
+                table1.deselectAll();
+                table1.selectRow(basicData[0]);
+                table1.selectRow(basicData[1]);
+            });
+
+            document.getElementById('select-all-1').addEventListener('click', () => {
+                table1.selectAll();
+            });
+
+            document.getElementById('random-select-1').addEventListener('click', () => {
+                table1.deselectAll();
+                const count = Math.floor(Math.random() * basicData.length) + 1;
+                const indices = [];
+                while (indices.length < count) {
+                    const index = Math.floor(Math.random() * basicData.length);
+                    if (indices.indexOf(index) === -1) {
+                        indices.push(index);
+                    }
+                }
+                indices.forEach(index => table1.selectRow(basicData[index]));
+            });
+
+            // Control handlers for demo 2
+            document.getElementById('select-page-1-2').addEventListener('click', () => {
+                table2.setPage(1);
+                setTimeout(() => {
+                    table2.selectAll();
+                }, 50);
+            });
+
+            document.getElementById('select-page-2-2').addEventListener('click', () => {
+                table2.setPage(2);
+                setTimeout(() => {
+                    table2.selectAll();
+                }, 50);
+            });
+
+            document.getElementById('select-cross-page-2').addEventListener('click', () => {
+                table2.deselectAll();
+                // Select items across different pages
+                table2.selectRow(paginationData[1]); // Page 1
+                table2.selectRow(paginationData[7]); // Page 2
+                table2.selectRow(paginationData[12]); // Page 3
+            });
+
+            document.getElementById('clear-all-2').addEventListener('click', () => {
+                table2.deselectAll();
+            });
+
+            // Control handlers for demo 3
+            document.getElementById('search-document-3').addEventListener('click', () => {
+                table3.search('Document');
+            });
+
+            document.getElementById('search-image-3').addEventListener('click', () => {
+                table3.search('Image');
+            });
+
+            document.getElementById('clear-search-3').addEventListener('click', () => {
+                table3.search('');
+            });
+
+            document.getElementById('select-visible-3').addEventListener('click', () => {
+                const visible = table3.getCurrentPageData();
+                visible.forEach(row => table3.selectRow(row));
+            });
+
+            document.getElementById('select-all-3').addEventListener('click', () => {
+                searchData.forEach(row => table3.selectRow(row));
+            });
+
+            // Initialize status displays
+            updateStatus1();
+            updateStatus2();
+            updateStatus3();
+        });
+    </script>
+</body>
+</html>

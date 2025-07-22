@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Test Select All with Partial Selection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="src/styles/fl-table.css">
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .test-section { background: #f9f9f9; padding: 15px; margin: 15px 0; border-radius: 6px; }
+        .test-controls { margin: 10px 0; }
+        button { margin: 5px; padding: 8px 16px; }
+        .status { font-family: monospace; background: #fff; padding: 10px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <h1>Select All with Partial Selection Test</h1>
+    
+    <div class="test-section">
+        <h3>Test: Paginated Table with Partial Selections</h3>
+        <div class="test-controls">
+            <button onclick="setupPartialSelections()">Setup Partial Selections (Page 1: partial row, Page 2: selected row)</button>
+            <button onclick="clickSelectAll()">Click Select All</button>
+            <button onclick="updateStatus()">Update Status</button>
+        </div>
+        <div id="table-container"></div>
+        <div id="status" class="status"></div>
+    </div>
+
+    <script src="src/fl-table.js"></script>
+    <script>
+        // Create table with pagination
+        const table = new FlTable({
+            target: '#table-container',
+            selection: { enabled: true, multiple: true },
+            pagination: { pageSize: 3 },
+            columns: [
+                { name: 'ID', field: 'id' },
+                { name: 'Name', field: 'name' },
+                { name: 'Page', field: 'page' }
+            ],
+            data: [
+                { id: 1, name: 'Item 1', page: 'Page 1' },
+                { id: 2, name: 'Item 2', page: 'Page 1' }, // Will be partial
+                { id: 3, name: 'Item 3', page: 'Page 1' },
+                { id: 4, name: 'Item 4', page: 'Page 2' }, // Will be selected
+                { id: 5, name: 'Item 5', page: 'Page 2' },
+                { id: 6, name: 'Item 6', page: 'Page 2' }
+            ]
+        });
+
+        function setupPartialSelections() {
+            // Clear all selections first
+            table.deselectAll();
+            table.clearAllPartialSelection();
+            
+            // Go to page 1 and set item 2 as partial
+            table.setPage(1);
+            setTimeout(() => {
+                const item2 = table.getData().find(row => row.id === 2);
+                table.setRowPartialSelection(item2, true);
+                
+                // Set item 4 as selected (on page 2)
+                const item4 = table.getData().find(row => row.id === 4);
+                table.selectRow(item4);
+                
+                updateStatus();
+            }, 100);
+        }
+
+        function clickSelectAll() {
+            const selectAllCheckbox = document.querySelector('.fl-table-select-all-checkbox');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.click();
+                setTimeout(updateStatus, 100);
+            }
+        }
+
+        function updateStatus() {
+            const selectedRows = table.getSelectedRows();
+            const allData = table.getData();
+            let partialRows = [];
+            
+            // Check which rows are partial
+            allData.forEach(row => {
+                if (table.isRowPartiallySelected(row)) {
+                    partialRows.push(row);
+                }
+            });
+            
+            const currentPage = table.pagination.currentPage;
+            const selectAllCheckbox = document.querySelector('.fl-table-select-all-checkbox');
+            const checkboxClasses = selectAllCheckbox ? Array.from(selectAllCheckbox.classList).join(', ') : 'Not found';
+            
+            document.getElementById('status').innerHTML = `
+                <strong>Current Status:</strong><br>
+                Current Page: ${currentPage}<br>
+                Selected Rows: ${selectedRows.map(r => `ID ${r.id}`).join(', ')} (${selectedRows.length} total)<br>
+                Partial Rows: ${partialRows.map(r => `ID ${r.id}`).join(', ')} (${partialRows.length} total)<br>
+                Header Checkbox Classes: ${checkboxClasses}<br>
+                <br>
+                <strong>Expected Behavior:</strong><br>
+                - When clicking Select All with partial rows present, those partial rows should become fully selected<br>
+                - This should work across all pages, not just current page
+            `;
+        }
+
+        // Initial status
+        setTimeout(() => {
+            updateStatus();
+        }, 100);
+
+        // Listen for selection changes
+        table.on('selection:change', function(detail) {
+            console.log('Selection changed:', detail);
+        });
+    </script>
+</body>
+</html>

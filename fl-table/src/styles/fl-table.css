@@ -75,6 +75,41 @@
   justify-content: center;
 }
 
+.fl-table-header-checkbox {
+  user-select: none;
+}
+
+.fl-table-select-all-checkbox {
+  font-size: 16px;
+  color: #6c757d;
+  transition: color 0.2s ease;
+}
+
+.fl-table-select-all-checkbox:hover {
+  color: #495057;
+}
+
+.fl-table-select-all-checkbox.fl-table-header-checkbox-selected {
+  color: #007bff;
+}
+
+.fl-table-select-all-checkbox.fl-table-header-checkbox-selected:hover {
+  color: #0056b3;
+}
+
+.fl-table-header-checkbox-partial {
+  color: #007bff !important;
+}
+
+.fl-table-row-checkbox-partial {
+  color: #007bff;
+  transition: color 0.2s ease;
+}
+
+.fl-table-row-checkbox-partial:hover {
+  color: #0056b3;
+}
+
 /* Sorting */
 .fl-table-sortable {
   cursor: pointer;
@@ -131,4 +166,40 @@
 
 .fl-table-pagination button:hover:not(:disabled) {
   background-color: #f2f6f7;
+}
+
+/* Expandable Rows */
+.fl-table-expand-trigger {
+  cursor: pointer !important;
+  user-select: none;
+}
+
+.fl-table-expand-trigger:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.fl-table-row-expanded {
+  border-bottom: 1px solid #e4e9eb;
+  background-color: #f9f9f9;
+  padding: 15px;
+  animation: expandRow 0.2s ease-out;
+}
+
+.fl-table-row-expanded:last-child {
+  border-bottom: none;
+}
+
+@keyframes expandRow {
+  from {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 200px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
 }

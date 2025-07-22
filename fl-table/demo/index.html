@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FlTable Demo</title>
     <link rel="stylesheet" href="../src/styles/fl-table.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
         body { font-family: sans-serif; padding: 20px; }
         #table-container { max-width: 800px; margin: auto; }
@@ -13,7 +14,18 @@
 <body>
 
     <h1>FlTable Demo</h1>
-    <p>A demonstration of the FlTable library with various features enabled.</p>
+    <p>A demonstration of the FlTable library with various features enabled including partial selection UI.</p>
+    
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0;">Selection States</h3>
+        <p>The header checkbox shows three states:</p>
+        <div style="display: flex; gap: 20px;">
+            <div><i class="fa fa-square-o" style="color: #6c757d;"></i> Empty (no selection)</div>
+            <div><i class="fa fa-minus-square" style="color: #007bff;"></i> Partial (some selected)</div>
+            <div><i class="fa fa-check-square" style="color: #007bff;"></i> Full (all selected)</div>
+        </div>
+    </div>
+    
     <div id="table-container"></div>
 
     <script src="../src/fl-table.js"></script>

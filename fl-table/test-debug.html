@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Debug Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="src/styles/fl-table.css">
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Debug Test for Checkbox States</h1>
+    
+    <div class="debug">
+        <h3>Test 1: Empty State</h3>
+        <div id="test1"></div>
+        <div id="status1"></div>
+    </div>
+
+    <div class="debug">
+        <h3>Test 2: Row Click Selection</h3>
+        <div id="test2"></div>
+        <div id="status2"></div>
+        <button onclick="testRowClick()">Test Row Click</button>
+    </div>
+
+    <script src="src/fl-table.js"></script>
+    <script>
+        // Test 1: Empty state
+        const table1 = new FlTable({
+            target: '#test1',
+            selection: { enabled: true, multiple: true },
+            columns: [{ name: 'Name', field: 'name' }],
+            data: [{ name: 'Item 1' }, { name: 'Item 2' }]
+        });
+
+        function updateStatus1() {
+            const checkbox = document.querySelector('#test1 .fl-table-select-all-checkbox');
+            const status = document.getElementById('status1');
+            if (checkbox) {
+                status.innerHTML = `
+                    Classes: ${Array.from(checkbox.classList).join(', ')}<br>
+                    Has fa-square-o: ${checkbox.classList.contains('fa-square-o')}<br>
+                    Has fa-check-square: ${checkbox.classList.contains('fa-check-square')}<br>
+                    Has fa-minus-square: ${checkbox.classList.contains('fa-minus-square')}
+                `;
+            } else {
+                status.innerHTML = 'Checkbox not found!';
+            }
+        }
+
+        // Test 2: Row click
+        const table2 = new FlTable({
+            target: '#test2',
+            selection: { enabled: true, multiple: true, rowClickEnabled: true },
+            columns: [{ name: 'Name', field: 'name' }],
+            data: [{ name: 'Item 1' }, { name: 'Item 2' }]
+        });
+
+        function testRowClick() {
+            const row = document.querySelector('#test2 .fl-table-body .fl-table-row');
+            if (row) {
+                row.click();
+                setTimeout(() => {
+                    const checkbox = document.querySelector('#test2 .fl-table-select-all-checkbox');
+                    const status = document.getElementById('status2');
+                    if (checkbox) {
+                        status.innerHTML = `
+                            After clicking first row:<br>
+                            Classes: ${Array.from(checkbox.classList).join(', ')}<br>
+                            Has fa-square-o: ${checkbox.classList.contains('fa-square-o')}<br>
+                            Has fa-minus-square: ${checkbox.classList.contains('fa-minus-square')}<br>
+                            Selected count: ${table2.getSelectedRows().length}
+                        `;
+                    }
+                }, 10);
+            }
+        }
+
+        // Initial status
+        setTimeout(() => {
+            updateStatus1();
+        }, 10);
+    </script>
+</body>
+</html>

@@ -11,6 +11,7 @@ function FlTable(options) {
   }
 
   this.selection = [];
+  this.partialSelection = new Map(); // Track partial selection states for individual rows
   this.sort = {};
   this.pagination = {
     currentPage: 1,
@@ -18,6 +19,8 @@ function FlTable(options) {
   };
   this.originalData = options.data.slice(0);
   this._searchDebounce = null;
+  this._expandedRows = new Map(); // Track expanded rows
+  this._expandingRows = new Set(); // Track rows currently being expanded
 
   // Private properties
   this._events = {};
@@ -60,6 +63,9 @@ FlTable.prototype.init = function() {
 
   // Render initial data
   this.render();
+
+  // Handle initial selection states
+  this.initializeSelectionStates();
 
   // Append to target
   this.target.appendChild(this.table);
@@ -111,6 +117,9 @@ FlTable.prototype.search = function(term) {
   if (this.options.pagination) {
     this.renderPagination();
   }
+
+  // Update select-all checkbox state after search
+  this.updateSelectAllCheckbox();
 };
 
 FlTable.prototype.renderPagination = function() {
@@ -157,6 +166,7 @@ FlTable.prototype.setPage = function(page) {
   this.pagination.currentPage = page;
   this.renderBody();
   this.renderPagination();
+  this.updateSelectAllCheckbox();
 };
 
 FlTable.prototype.render = function() {
@@ -177,19 +187,55 @@ FlTable.prototype.renderHeader = function() {
   if (this.options.selection && this.options.selection.multiple) {
     var checkboxCell = document.createElement('div');
 
-    checkboxCell.className = 'fl-table-cell fl-table-checkbox';
+    checkboxCell.className = 'fl-table-cell fl-table-checkbox fl-table-header-checkbox';
 
-    var checkbox = document.createElement('input');
+    var checkboxIcon = document.createElement('i');
 
-    checkbox.type = 'checkbox';
-    checkbox.addEventListener('click', function(event) {
-      if (event.target.checked) {
-        this.selectAll();
+    checkboxIcon.className = 'fa fa-square-o fl-table-select-all-checkbox';
+    checkboxIcon.style.cursor = 'pointer';
+
+    checkboxIcon.addEventListener('click', function() {
+      var currentPageData = self.getCurrentPageData();
+      var selectedOnCurrentPage = currentPageData.filter(function(row) {
+        return self.selection.indexOf(row) > -1;
+      });
+      var partialOnCurrentPage = currentPageData.filter(function(row) {
+        return self.partialSelection.has(row);
+      });
+
+      var selectedCount = selectedOnCurrentPage.length;
+      var partialCount = partialOnCurrentPage.length;
+      var totalCount = currentPageData.length;
+
+      if (selectedCount === totalCount && partialCount === 0) {
+        // All rows on current page are fully selected, no partial selections - deselect current page
+        self.deselectCurrentPage();
       } else {
-        this.deselectAll();
+        // Either some rows are unselected, some are partial, or mixed - select current page and convert partials to selected
+        // First, collect all partially selected rows (across all pages) and convert them to selected
+        var allPartialRows = [];
+
+        self.partialSelection.forEach(function(value, row) {
+          allPartialRows.push(row);
+        });
+
+        // Clear all partial selection states and select those rows
+        self.partialSelection.clear();
+        allPartialRows.forEach(function(row) {
+          if (self.selection.indexOf(row) === -1) {
+            self.selection.push(row);
+          }
+        });
+
+        // Re-render to update UI after clearing partial selections
+        self.renderBody();
+
+        // Then select all rows on current page (this handles the current page)
+        self.selectCurrentPage();
       }
-    }.bind(this));
-    checkboxCell.appendChild(checkbox);
+    });
+
+    checkboxCell.appendChild(checkboxIcon);
     headerRow.appendChild(checkboxCell);
   }
 
@@ -249,15 +295,35 @@ FlTable.prototype.renderBody = function() {
 
       checkboxCell.className = 'fl-table-cell fl-table-checkbox';
 
-      var checkbox = document.createElement('input');
+      // Check if this row has a partial selection state
+      var isPartial = self.partialSelection.has(rowData);
 
-      checkbox.type = 'checkbox';
-      checkbox.checked = isSelected;
-      checkbox.addEventListener('click', function(event) {
-        event.stopPropagation();
-        self.toggleRowSelection(rowData, row, 'checkbox');
-      });
-      checkboxCell.appendChild(checkbox);
+      if (isPartial) {
+        // Use FontAwesome icon for partial selection
+        var checkboxIcon = document.createElement('i');
+
+        checkboxIcon.className = 'fa fa-minus-square fl-table-row-checkbox-partial';
+        checkboxIcon.style.cursor = 'pointer';
+        checkboxIcon.style.color = '#007bff';
+        checkboxIcon.style.fontSize = '16px';
+        checkboxIcon.addEventListener('click', function(event) {
+          event.stopPropagation();
+          self.toggleRowSelection(rowData, row, 'checkbox');
+        });
+        checkboxCell.appendChild(checkboxIcon);
+      } else {
+        // Use regular checkbox for normal selection
+        var checkbox = document.createElement('input');
+
+        checkbox.type = 'checkbox';
+        checkbox.checked = isSelected;
+        checkbox.addEventListener('click', function(event) {
+          event.stopPropagation();
+          self.toggleRowSelection(rowData, row, 'checkbox');
+        });
+        checkboxCell.appendChild(checkbox);
+      }
+
       row.appendChild(checkboxCell);
     }
 
@@ -265,11 +331,72 @@ FlTable.prototype.renderBody = function() {
       var cell = document.createElement('div');
 
       cell.className = 'fl-table-cell';
-      cell.textContent = rowData[column.field];
+
+      // Handle expand trigger columns
+      if (column.isExpandTrigger && self.options.expandable && self.options.expandable.enabled) {
+        cell.classList.add('fl-table-expand-trigger');
+        cell.setAttribute('data-expand-trigger', 'true');
+        cell.style.cursor = 'pointer';
+
+        // Add expand/collapse handler
+        cell.addEventListener('click', function(event) {
+          event.stopPropagation();
+          self.toggleRowExpansion(rowData, row);
+        });
+      }
+
+      // Handle custom rendering
+      if (column.render && typeof column.render === 'function') {
+        var renderedContent = column.render(rowData);
+
+        if (typeof renderedContent === 'string') {
+          cell.innerHTML = renderedContent;
+        } else if (renderedContent instanceof HTMLElement) {
+          cell.appendChild(renderedContent);
+        }
+      } else {
+        cell.textContent = rowData[column.field];
+      }
+
+      // Add cell interaction handler for expandable rows
+      if (self.options.expandable && self.options.expandable.enabled) {
+        cell.addEventListener('click', function(event) {
+          // Check if clicked element or its parents have data-expand attribute
+          var expandTrigger = event.target.closest('[data-expand]');
+
+          if (expandTrigger) {
+            event.stopPropagation();
+            self.toggleRowExpansion(rowData, row);
+
+            // Fire cell:interaction event
+            self.fire('cell:interaction', {
+              row: rowData,
+              column: column,
+              event: event,
+              target: event.target,
+              action: 'expand'
+            });
+          }
+        });
+      }
+
       row.appendChild(cell);
     });
 
     self.body.appendChild(row);
+
+    // Re-expand row if it was previously expanded
+    if (self.isRowExpanded(rowData)) {
+      var expandedContent = self._expandedRows.get(rowData);
+
+      if (expandedContent) {
+        // Clone the expanded content and reinsert
+        var clonedContent = expandedContent.cloneNode(true);
+
+        self.body.appendChild(clonedContent);
+        self._expandedRows.set(rowData, clonedContent);
+      }
+    }
   });
 };
 
@@ -277,6 +404,30 @@ FlTable.prototype.toggleRowSelection = function(rowData, rowElement, source) {
   var self = this;
 
   source = source || 'row-click';
+
+  // Handle partial selection state first
+  if (this.partialSelection.has(rowData)) {
+    // Remove partial selection state and select the row
+    this.partialSelection.delete(rowData);
+
+    // Add to selection if not already selected
+    if (this.selection.indexOf(rowData) === -1) {
+      this.selection.push(rowData);
+    }
+
+    // Re-render to update checkbox display
+    this.renderBody();
+    this.updateSelectAllCheckbox();
+
+    // Fire selection change event
+    this.fire('selection:change', {
+      selected: this.selection,
+      deselected: [],
+      source: source
+    });
+
+    return;
+  }
 
   var onBeforeSelect = this.options.selection && this.options.selection.onBeforeSelect;
 
@@ -337,31 +488,95 @@ FlTable.prototype.performSelection = function(rowData, rowElement, source) {
     source: source
   };
 
+  // Update select-all checkbox state
+  this.updateSelectAllCheckbox();
+
   // Fire the event for the event emitter
   this.fire('selection:change', detail);
 };
 
+FlTable.prototype._findRow = function(rowData) {
+  // First, try to find by reference (if full object is passed)
+  var rowIndex = this.originalData.indexOf(rowData);
+
+  if (rowIndex > -1) {
+    return this.originalData[rowIndex];
+  }
+
+  // If not found by reference, try to find by partial match.
+  return this.originalData.find(function(row) {
+    return Object.keys(rowData).every(function(key) {
+      return row.hasOwnProperty(key) && row[key] === rowData[key];
+    });
+  });
+};
+
 FlTable.prototype.selectRow = function(rowData) {
-  var rowIndex = this.options.data.indexOf(rowData);
+  var rowToSelect = this._findRow(rowData);
 
-  if (rowIndex === -1) return;
+  if (!rowToSelect) return;
 
-  var rowElement = this.body.querySelectorAll('.fl-table-row')[rowIndex];
+  if (this.options.pagination) {
+    var itemIndex = this.originalData.indexOf(rowToSelect);
+    var page = Math.floor(itemIndex / this.pagination.pageSize) + 1;
 
-  if (this.selection.indexOf(rowData) === -1) {
-    this.performSelection(rowData, rowElement, 'api');
+    if (page !== this.pagination.currentPage) {
+      this.setPage(page);
+    }
+  }
+
+  var dataToRender = this.options.data;
+
+  if (this.options.pagination) {
+    var start = (this.pagination.currentPage - 1) * this.pagination.pageSize;
+    var end = start + this.pagination.pageSize;
+
+    dataToRender = this.options.data.slice(start, end);
+  }
+
+  var renderedRowIndex = dataToRender.indexOf(rowToSelect);
+
+  if (renderedRowIndex === -1) return;
+
+  var rowElement = this.body.querySelectorAll('.fl-table-row')[renderedRowIndex];
+
+  if (this.selection.indexOf(rowToSelect) === -1) {
+    this.performSelection(rowToSelect, rowElement, 'api');
   }
 };
 
 FlTable.prototype.deselectRow = function(rowData) {
-  var rowIndex = this.options.data.indexOf(rowData);
+  var rowToDeselect = this._findRow(rowData);
 
-  if (rowIndex === -1) return;
+  if (!rowToDeselect) return;
 
-  var rowElement = this.body.querySelectorAll('.fl-table-row')[rowIndex];
+  var selectionIndex = this.selection.indexOf(rowToDeselect);
 
-  if (this.selection.indexOf(rowData) > -1) {
-    this.performSelection(rowData, rowElement, 'api');
+  if (selectionIndex > -1) {
+    var dataToRender = this.options.data;
+
+    if (this.options.pagination) {
+      var start = (this.pagination.currentPage - 1) * this.pagination.pageSize;
+      var end = start + this.pagination.pageSize;
+
+      dataToRender = this.options.data.slice(start, end);
+    }
+
+    var renderedRowIndex = dataToRender.indexOf(rowToDeselect);
+
+    if (renderedRowIndex > -1) {
+      var rowElement = this.body.querySelectorAll('.fl-table-row')[renderedRowIndex];
+
+      this.performSelection(rowToDeselect, rowElement, 'api');
+    } else {
+      // Row is not on the current page, so just remove from selection
+      this.selection.splice(selectionIndex, 1);
+      this.fire('selection:change', {
+        selected: this.selection,
+        deselected: [rowToDeselect],
+        source: 'api'
+      });
+    }
   }
 };
 
@@ -394,6 +609,9 @@ FlTable.prototype.selectAll = function() {
     }
   });
 
+  // Update select-all checkbox state
+  this.updateSelectAllCheckbox();
+
   this.fire('selection:change', {
     selected: this.selection,
     source: 'api'
@@ -416,12 +634,84 @@ FlTable.prototype.deselectAll = function(options) {
     }
   });
 
+  // Update select-all checkbox state
+  this.updateSelectAllCheckbox();
+
   if (!options.silent) {
     this.fire('selection:change', {
       selected: [],
       source: 'api'
     });
   }
+};
+
+FlTable.prototype.selectCurrentPage = function() {
+  var self = this;
+  var currentPageData = this.getCurrentPageData();
+  var previousSelected = this.selection.slice();
+
+  currentPageData.forEach(function(rowData, index) {
+    if (self.selection.indexOf(rowData) === -1) {
+      self.selection.push(rowData);
+    }
+
+    var rowElement = self.body.querySelectorAll('.fl-table-row')[index];
+
+    if (rowElement) {
+      rowElement.classList.add('fl-table-selected');
+
+      var checkbox = rowElement.querySelector('input[type="checkbox"]');
+
+      if (checkbox) {
+        checkbox.checked = true;
+      }
+    }
+  });
+
+  // Update select-all checkbox state
+  this.updateSelectAllCheckbox();
+
+  this.fire('selection:change', {
+    selected: this.selection,
+    deselected: [],
+    source: 'api'
+  });
+};
+
+FlTable.prototype.deselectCurrentPage = function() {
+  var self = this;
+  var currentPageData = this.getCurrentPageData();
+  var deselected = [];
+
+  currentPageData.forEach(function(rowData, index) {
+    var selectionIndex = self.selection.indexOf(rowData);
+
+    if (selectionIndex > -1) {
+      self.selection.splice(selectionIndex, 1);
+      deselected.push(rowData);
+    }
+
+    var rowElement = self.body.querySelectorAll('.fl-table-row')[index];
+
+    if (rowElement) {
+      rowElement.classList.remove('fl-table-selected');
+
+      var checkbox = rowElement.querySelector('input[type="checkbox"]');
+
+      if (checkbox) {
+        checkbox.checked = false;
+      }
+    }
+  });
+
+  // Update select-all checkbox state
+  this.updateSelectAllCheckbox();
+
+  this.fire('selection:change', {
+    selected: this.selection,
+    deselected: deselected,
+    source: 'api'
+  });
 };
 
 FlTable.prototype.on = function(eventName, handler) {
@@ -455,6 +745,13 @@ FlTable.prototype.fire = function(eventName, detail) {
 };
 
 FlTable.prototype.destroy = function() {
+  // Clean up expanding state
+  this._expandingRows.clear();
+  this._expandedRows.clear();
+
+  // Clean up partial selection state
+  this.partialSelection.clear();
+
   if (this.table && this.table.parentNode) {
     this.table.parentNode.removeChild(this.table);
   }
@@ -519,4 +816,284 @@ FlTable.prototype.sortColumn = function(field, cell) {
   }
 
   this.renderBody();
+};
+
+// Expandable row methods
+FlTable.prototype.toggleRowExpansion = function(rowData, rowElement) {
+  if (this.isRowExpanded(rowData)) {
+    this.collapseRow(rowData);
+  } else {
+    this.expandRow(rowData);
+  }
+};
+
+FlTable.prototype.expandRow = function(rowData) {
+  var self = this;
+
+  if (!this.options.expandable || !this.options.expandable.enabled) {
+    return;
+  }
+
+  // Check if already expanded
+  if (this.isRowExpanded(rowData)) {
+    return;
+  }
+
+  // Check if currently being expanded (prevent race conditions)
+  if (this._expandingRows.has(rowData)) {
+    return;
+  }
+
+  // Check onBeforeExpand
+  if (this.options.expandable.onBeforeExpand) {
+    var canExpand = this.options.expandable.onBeforeExpand(rowData);
+
+    if (canExpand === false) {
+      return;
+    }
+  }
+
+  var rowElement = this.findRowElement(rowData);
+
+  if (!rowElement) {
+    return;
+  }
+
+  // Mark as expanding to prevent race conditions
+  this._expandingRows.add(rowData);
+
+  // Fire expand:start event
+  this.fire('expand:start', { row: rowData, rowEl: rowElement });
+
+  // Get content from onExpand
+  var content = this.options.expandable.onExpand(rowData);
+
+  if (content && typeof content.then === 'function') {
+    // Handle Promise
+    content.then(function(resolvedContent) {
+      // Check if still in expanding state (user might have collapsed while loading)
+      if (self._expandingRows.has(rowData) && !self.isRowExpanded(rowData)) {
+        self.insertExpandedContent(rowData, rowElement, resolvedContent);
+        self.fire('expand:complete', {
+          row: rowData,
+          rowEl: rowElement,
+          contentEl: rowElement.nextSibling
+        });
+      }
+
+      // Remove from expanding set
+      self._expandingRows.delete(rowData);
+    }).catch(function(error) {
+      // Remove from expanding set on error
+      self._expandingRows.delete(rowData);
+      self.fire('expand:error', { row: rowData, rowEl: rowElement, error: error });
+    });
+  } else {
+    // Handle synchronous content
+    this.insertExpandedContent(rowData, rowElement, content);
+    this.fire('expand:complete', {
+      row: rowData,
+      rowEl: rowElement,
+      contentEl: rowElement.nextSibling
+    });
+    // Remove from expanding set
+    this._expandingRows.delete(rowData);
+  }
+};
+
+FlTable.prototype.collapseRow = function(rowData) {
+  // If currently expanding, cancel the expansion
+  if (this._expandingRows.has(rowData)) {
+    this._expandingRows.delete(rowData);
+
+    return;
+  }
+
+  if (!this.isRowExpanded(rowData)) {
+    return;
+  }
+
+  var rowElement = this.findRowElement(rowData);
+
+  if (!rowElement) {
+    return;
+  }
+
+  // Remove expanded content
+  var expandedElement = rowElement.nextSibling;
+
+  if (expandedElement && expandedElement.classList.contains('fl-table-row-expanded')) {
+    expandedElement.remove();
+  }
+
+  // Update tracking
+  this._expandedRows.delete(rowData);
+
+  // Fire collapse:complete event
+  this.fire('collapse:complete', { row: rowData, rowEl: rowElement });
+};
+
+FlTable.prototype.insertExpandedContent = function(rowData, rowElement, content) {
+  // Create expanded content element
+  var expandedElement = document.createElement('div');
+
+  expandedElement.className = 'fl-table-row-expanded';
+
+  if (typeof content === 'string') {
+    expandedElement.innerHTML = content;
+  } else if (content instanceof HTMLElement) {
+    expandedElement.appendChild(content);
+  }
+
+  // Insert after the row
+  rowElement.parentNode.insertBefore(expandedElement, rowElement.nextSibling);
+
+  // Track expanded state
+  this._expandedRows.set(rowData, expandedElement);
+};
+
+FlTable.prototype.isRowExpanded = function(rowData) {
+  return this._expandedRows.has(rowData);
+};
+
+FlTable.prototype.isRowExpanding = function(rowData) {
+  return this._expandingRows.has(rowData);
+};
+
+FlTable.prototype.getCurrentPageData = function() {
+  var dataToRender = this.options.data;
+
+  if (this.options.pagination) {
+    var start = (this.pagination.currentPage - 1) * this.pagination.pageSize;
+    var end = start + this.pagination.pageSize;
+
+    dataToRender = this.options.data.slice(start, end);
+  }
+
+  return dataToRender;
+};
+
+FlTable.prototype.updateSelectAllCheckbox = function() {
+  if (!this.options.selection || !this.options.selection.multiple) {
+    return;
+  }
+
+  var selectAllCheckbox = this.header.querySelector('.fl-table-select-all-checkbox');
+
+  if (!selectAllCheckbox) {
+    return;
+  }
+
+  var currentPageData = this.getCurrentPageData();
+  var selectedOnCurrentPage = currentPageData.filter(function(row) {
+    return this.selection.indexOf(row) > -1;
+  }.bind(this));
+
+  // Check for partial selections on current page
+  var partialOnCurrentPage = currentPageData.filter(function(row) {
+    return this.partialSelection.has(row);
+  }.bind(this));
+
+  var selectedCount = selectedOnCurrentPage.length;
+  var partialCount = partialOnCurrentPage.length;
+  var totalCount = currentPageData.length;
+
+  // Update the checkbox icon based on selection state
+  if (selectedCount === 0 && partialCount === 0) {
+    // No rows selected - empty square, gray color
+    selectAllCheckbox.className = 'fa fa-square-o fl-table-select-all-checkbox';
+    selectAllCheckbox.classList.remove('fl-table-header-checkbox-partial', 'fl-table-header-checkbox-selected');
+  } else if (selectedCount === totalCount && partialCount === 0) {
+    // All rows selected - filled square, blue color
+    selectAllCheckbox.className = 'fa fa-check-square fl-table-select-all-checkbox fl-table-header-checkbox-selected';
+    selectAllCheckbox.classList.remove('fl-table-header-checkbox-partial');
+  } else {
+    // Some rows selected or partial selections exist (partial state) - minus square, blue color
+    selectAllCheckbox.className = 'fa fa-minus-square fl-table-select-all-checkbox fl-table-header-checkbox-partial';
+    selectAllCheckbox.classList.remove('fl-table-header-checkbox-selected');
+  }
+};
+
+FlTable.prototype.findRowElement = function(rowData) {
+  var dataToRender = this.getCurrentPageData();
+
+  var renderedRowIndex = dataToRender.indexOf(rowData);
+
+  if (renderedRowIndex === -1) {
+    return null;
+  }
+
+  var rowElements = this.body.querySelectorAll('.fl-table-row');
+
+  return rowElements[renderedRowIndex] || null;
+};
+
+// Partial selection API methods
+FlTable.prototype.setRowPartialSelection = function(rowData, isPartial) {
+  var rowToUpdate = this._findRow(rowData);
+
+  if (!rowToUpdate) return;
+
+  if (isPartial) {
+    this.partialSelection.set(rowToUpdate, true);
+  } else {
+    this.partialSelection.delete(rowToUpdate);
+  }
+
+  // Re-render the table to update the checkbox display
+  this.renderBody();
+  this.updateSelectAllCheckbox();
+};
+
+FlTable.prototype.isRowPartiallySelected = function(rowData) {
+  var rowToCheck = this._findRow(rowData);
+
+  return rowToCheck ? this.partialSelection.has(rowToCheck) : false;
+};
+
+FlTable.prototype.clearAllPartialSelection = function() {
+  this.partialSelection.clear();
+  this.renderBody();
+  this.updateSelectAllCheckbox();
+};
+
+FlTable.prototype.initializeSelectionStates = function() {
+  var self = this;
+
+  // Handle initial selection from configuration
+  if (this.options.selection && this.options.selection.initialSelection) {
+    this.options.selection.initialSelection.forEach(function(item) {
+      var row = self._findRow(typeof item === 'object' ? item : { id: item });
+
+      if (row && self.selection.indexOf(row) === -1) {
+        self.selection.push(row);
+      }
+    });
+  }
+
+  // Handle initial partial selection from configuration
+  if (this.options.selection && this.options.selection.initialPartialSelection) {
+    this.options.selection.initialPartialSelection.forEach(function(item) {
+      var row = self._findRow(typeof item === 'object' ? item : { id: item });
+
+      if (row) {
+        self.partialSelection.set(row, true);
+      }
+    });
+  }
+
+  // Handle selection states from row data objects
+  this.originalData.forEach(function(rowData) {
+    if (rowData._selected === true && self.selection.indexOf(rowData) === -1) {
+      self.selection.push(rowData);
+    }
+
+    if (rowData._partiallySelected === true) {
+      self.partialSelection.set(rowData, true);
+    }
+  });
+
+  // Re-render to apply initial states
+  this.renderBody();
+  this.updateSelectAllCheckbox();
 };

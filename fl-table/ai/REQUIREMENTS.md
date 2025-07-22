@@ -261,6 +261,16 @@ interface FlTableOptions {
     [key: string]: HandlebarsTemplateDelegate;
   };
   className?: string;          // Additional CSS class for the table
+  breakpoints?: {              // Breakpoint definitions for responsive design
+    [key: string]: string;      // e.g., { sm: '576px', md: '768px' }
+  };
+  expandable?: {
+    enabled: boolean;
+    template?: string; // Handlebars template for the expanded area
+    templateSelector?: (row: any) => string;
+    onBeforeExpand?: (row: any) => boolean | Promise<boolean>;
+    onExpand?: (row: any) => Promise<string | HTMLElement>; // For async content
+  };
 }
 ```
 
@@ -277,6 +287,8 @@ interface ColumnDefinition {
   sortFn?: (a: any, b: any) => number;     // Custom sort function
   searchable?: boolean;        // Include this column in search
   className?: string;          // Additional CSS class for the column
+  isExpandTrigger?: boolean;   // If true, clicking this cell toggles row expansion
+  hideOn?: string[];           // Array of breakpoint names to hide column on
 }
 ```
 
@@ -335,6 +347,14 @@ interface FlTableEvents {
   'search:input': { term: string };
   'search:complete': { results: any[] };
   'page:change': { page: number; pageSize: number };
+  'row:expand': { row: any };
+  'row:collapse': { row: any };
+  'cell:interaction': {
+    row: any;
+    column: ColumnDefinition;
+    event: Event;
+    target: HTMLElement;
+  };
 }
 
 // Example: Different ways to handle selection
@@ -394,6 +414,8 @@ interface FlTable {
   deselectAll(options?: SelectionOptions): void;
   isSelected(row: any): boolean;
   getSelectedRows(): any[];
+  expandRow(row: any): void;
+  collapseRow(row: any): void;
 
   // Selection options
   interface SelectionOptions {
@@ -460,6 +482,9 @@ FlTable provides a set of CSS classes for styling. All classes are prefixed with
 .fl-table-sorted-desc {}     /* Column sorted descending */
 .fl-table-selected {}        /* Selected row */
 .fl-table-checkbox {}        /* Checkbox cell */
+.fl-table-header-checkbox-partial {} /* Select-all checkbox in a partial state */
+.fl-table-row-expanded {}    /* Wrapper for an expanded row's content */
+.fl-table-expand-trigger {}  /* Cell that triggers row expansion */
 .fl-table-empty {}           /* Empty state */
 .fl-table-loading {}         /* Loading state */
 .fl-table-search {}          /* Search input container */
@@ -473,8 +498,10 @@ FlTable provides a set of CSS classes for styling. All classes are prefixed with
 ```javascript
 const table = new FlTable({
   target: '#table',
-  selectable: true,
-  multiSelect: true,
+  selection: {
+    enabled: true,
+    multiple: true
+  },
   columns: [
     {
       name: 'Name',
@@ -524,6 +551,31 @@ table.on('row:doubleclick', (event) => {
 });
 ```
 
+### Partial Selection UI
+
+When multiple selection is enabled, the select-all checkbox should reflect a "partial" or "indeterminate" state. This implementation should use FontAwesome icons, which are assumed to be available.
+
+- **Unselected**: `fa-square`
+- **Partially selected**: `fa-minus-square`
+- **All selected**: `fa-check-square`
+
+```javascript
+// Example logic for updating the select-all checkbox state
+table.on('selection:change', (event) => {
+  const totalRows = table.getData().length;
+  const selectedCount = table.getSelectedRows().length;
+  const selectAllCheckbox = document.querySelector('.fl-table-select-all-checkbox i');
+
+  if (selectedCount === 0) {
+    selectAllCheckbox.className = 'fa fa-square';
+  } else if (selectedCount === totalRows) {
+    selectAllCheckbox.className = 'fa fa-check-square';
+  } else {
+    selectAllCheckbox.className = 'fa fa-minus-square';
+  }
+});
+```
+
 ### Search and Pagination
 
 ```javascript
@@ -552,6 +604,75 @@ table.on('search:input', async (event) => {
 table.on('page:change', (event) => {
   const { page, pageSize } = event.detail;
   loadData(page, pageSize);
+});
+```
+
+### Expandable Rows
+
+Rows can be configured to expand and show more details, with content loaded asynchronously. The event lifecycle for expansion allows for showing loading states and initializing content after it has been loaded.
+
+```javascript
+const table = new FlTable({
+  target: '#table',
+  columns: [
+    { name: '', field: 'expander', isExpandTrigger: true, width: '40px', template: 'expander' },
+    { name: 'User', field: 'name' }
+  ],
+  expandable: {
+    enabled: true,
+    // onExpand can return a string of HTML, a DOM element, or a Promise
+    onExpand: async (row) => {
+      // This function is responsible for fetching the content
+      const userDetails = await fetchUserDetails(row.id);
+      // Return HTML to be injected into the expanded area
+      return `<div><strong>Details for ${userDetails.name}:</strong> ${userDetails.bio}</div>`;
+    }
+  },
+  templates: {
+    'expander': Handlebars.compile('<i class="fa fa-chevron-right"></i>')
+  }
+});
+
+// Listen for the start of expansion to show a loading spinner
+table.on('expand:start', (event) => {
+  const { rowEl } = event.detail;
+  const icon = rowEl.querySelector('.fa-chevron-right');
+  if (icon) {
+    icon.className = 'fa fa-spinner fa-spin';
+  }
+});
+
+// Listen for completion to initialize UI and update icon
+table.on('expand:complete', (event) => {
+  const { rowEl, contentEl } = event.detail;
+
+  // Update icon from spinner to expanded state
+  const icon = rowEl.querySelector('.fa-spinner');
+  if (icon) {
+    icon.className = 'fa fa-chevron-down';
+  }
+
+  // Initialize any new UI inside the loaded content
+  // (e.g., add event listeners to buttons in `contentEl`)
+});
+
+// Listen for collapse to reset the icon
+table.on('collapse:complete', (event) => {
+  const { rowEl } = event.detail;
+  const icon = rowEl.querySelector('.fa-chevron-down');
+  if (icon) {
+    icon.className = 'fa fa-chevron-right';
+  }
+});
+
+// Handle errors during async loading
+table.on('expand:error', (event) => {
+    const { rowEl, error } = event.detail;
+    console.error('Failed to load expanded content:', error);
+    const icon = rowEl.querySelector('.fa-spinner');
+    if (icon) {
+        icon.className = 'fa fa-exclamation-triangle';
+    }
 });
 ```
 
@@ -595,30 +716,49 @@ const table = new FlTable({
 
 ## Best Practices
 
-1. **Template Management**
-   - Keep templates focused on presentation
-   - Use template selectors for dynamic template selection
-   - Register all templates during initialization when possible
+1.  **Template Management**
+    -   Keep templates focused on presentation
+    -   Use template selectors for dynamic template selection
+    -   Register all templates during initialization when possible
 
-2. **Event Handling**
-   - Use event delegation for dynamic content
-   - Remove event listeners when destroying the table
-   - Keep event handlers lightweight
+2.  **Event Handling**
+    -   Use event delegation for dynamic content inside cells. The `cell:interaction` event can simplify this.
+    -   Remove event listeners when destroying the table
+    -   Keep event handlers lightweight
 
-3. **Performance**
-   - Use pagination for large datasets
-   - Implement virtual scrolling for very large datasets
-   - Minimize DOM updates during sorting/filtering
+3.  **Performance**
+    -   Use pagination for large datasets
+    -   Use the `expandable` rows feature with async loading (`onExpand`) for details-on-demand to keep initial load fast.
+    -   Minimize DOM updates during sorting/filtering
 
-4. **Accessibility**
-   - Use ARIA attributes for better screen reader support
-   - Ensure keyboard navigation works
-   - Maintain proper focus management
+4.  **Accessibility**
+    -   Use ARIA attributes for better screen reader support
+    -   Ensure keyboard navigation works
+    -   Maintain proper focus management
 
-5. **Styling**
-   - Use provided CSS classes for consistency
-   - Override styles using CSS custom properties when possible
-   - Follow BEM naming convention for custom styles
+5.  **Styling**
+    -   Use provided CSS classes for consistency
+    -   Override styles using CSS custom properties when possible
+    -   Follow BEM naming convention for custom styles
+
+## Responsive Design
+
+Define breakpoints in the table configuration and specify column visibility per breakpoint. The library will automatically add classes to hide columns when the viewport matches the condition.
+
+```javascript
+const table = new FlTable({
+  target: '#table',
+  breakpoints: {
+    'mobile': '768px'
+  },
+  columns: [
+    { name: 'ID', field: 'id' },
+    { name: 'Name', field: 'name' },
+    { name: 'Email', field: 'email', hideOn: ['mobile'] }, // Hides on screens <= 768px
+    { name: 'Last Login', field: 'lastLogin', hideOn: ['mobile'] }
+  ]
+});
+```
 
 ## Browser Support
 

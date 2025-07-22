@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FlTable Advanced Demo</title>
     <link rel="stylesheet" href="../src/styles/fl-table.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
         body { font-family: sans-serif; padding: 20px; color: #333; }
         #wrapper { max-width: 960px; margin: auto; }
@@ -26,12 +27,23 @@
 
     <div id="wrapper">
         <h1>FlTable Advanced Demo</h1>
-        <p>A demonstration of FlTable's advanced features like custom rendering, custom sorting, API interaction, and event handling.</p>
+        <p>A demonstration of FlTable's advanced features like custom rendering, custom sorting, API interaction, event handling, and partial selection UI.</p>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <h3 style="margin-top: 0;">Partial Selection UI</h3>
+            <p>Header checkbox states: <i class="fa fa-square-o" style="color: #6c757d;"></i> Empty <i class="fa fa-minus-square" style="color: #007bff;"></i> Partial <i class="fa fa-check-square" style="color: #007bff;"></i> Full</p>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button id="select-first-two">Select First Two</button>
+                <button id="select-page">Select Current Page</button>
+                <button id="random-selection">Random Selection</button>
+            </div>
+        </div>
 
         <div class="controls">
             <button id="get-selected">Get Selected Rows</button>
-            <button id="select-first">Select First Row</button>
+            <button id="select-apple">Select 'Apple' by ID</button>
             <button id="deselect-all">Deselect All</button>
+            <button id="expand-first">Expand First Row</button>
             <button id="load-empty">Load Empty Data</button>
             <button id="reload-data">Reload Initial Data</button>
         </div>
@@ -86,6 +98,7 @@
                         initialSelection: [2, 5] // Pre-select rows with id 2 and 5
                     },
                     columns: [
+                        { name: '', field: 'expand', isExpandTrigger: true, width: '30px' },
                         { name: 'ID', field: 'id', sortable: true },
                         {
                             name: 'Name',
@@ -132,6 +145,19 @@
                             }
                         }
                     ],
+                    expandable: {
+                        enabled: true,
+                        onExpand: function(row) {
+                            return '<div style="padding: 10px; background: #f0f8ff; border-left: 4px solid #007bff;">' +
+                                   '<h4>Details for ' + row.name + '</h4>' +
+                                   '<p><strong>ID:</strong> ' + row.id + '</p>' +
+                                   '<p><strong>Type:</strong> ' + row.type + '</p>' +
+                                   '<p><strong>Price:</strong> $' + row.price + '</p>' +
+                                   '<p><strong>Stock:</strong> ' + row.stock + ' units</p>' +
+                                   '<p><strong>Description:</strong> This is a sample ' + row.type.toLowerCase() + ' item with various nutritional benefits.</p>' +
+                                   '</div>';
+                        }
+                    },
                     data: data
                 });
 
@@ -151,6 +177,15 @@
                 table.on('page:change', function(detail) {
                     logEvent('Event: page:change. New page: ' + detail.page);
                 });
+                table.on('expand:start', function(detail) {
+                    logEvent('Event: expand:start. Row: ' + detail.row.name);
+                });
+                table.on('expand:complete', function(detail) {
+                    logEvent('Event: expand:complete. Row: ' + detail.row.name);
+                });
+                table.on('collapse:complete', function(detail) {
+                    logEvent('Event: collapse:complete. Row: ' + detail.row.name);
+                });
             }
 
             // --- Control Button Handlers ---
@@ -160,20 +195,21 @@
                 console.log('Selected Rows Data:', selectedRows);
             });
 
-            document.getElementById('select-first').addEventListener('click', function() {
-                var data = table.getData();
-                if (data.length > 0) {
-                    var firstRow = data[0];
-                    table.selectRow(firstRow);
-                    logEvent('API: selectRow(' + firstRow.id + ') called.');
-                } else {
-                    logEvent('API: selectRow() skipped, no data.');
-                }
+            document.getElementById('select-apple').addEventListener('click', function() {
+                table.selectRow({ id: 1 });
+                logEvent("API: selectRow({ id: 1 }) called to select 'Apple'.");
             });
 
             document.getElementById('deselect-all').addEventListener('click', function() {
                 table.deselectAll();
                 logEvent('API: deselectAll() called.');
+            });
+
+            document.getElementById('expand-first').addEventListener('click', function() {
+                if (table.getData().length > 0) {
+                    table.expandRow(table.getData()[0]);
+                    logEvent('API: expandRow() called for first row.');
+                }
             });
 
             document.getElementById('load-empty').addEventListener('click', function() {
@@ -184,6 +220,43 @@
             document.getElementById('reload-data').addEventListener('click', function() {
                 logEvent('Action: Reloading table with initial data.');
                 initializeTable(sampleData);
+            });
+
+            // Partial selection demo controls
+            document.getElementById('select-first-two').addEventListener('click', function() {
+                table.deselectAll();
+                if (table.getData().length >= 2) {
+                    table.selectRow(table.getData()[0]);
+                    table.selectRow(table.getData()[1]);
+                    logEvent('Demo: Selected first two rows to show partial state.');
+                }
+            });
+
+            document.getElementById('select-page').addEventListener('click', function() {
+                var currentPageData = table.getCurrentPageData();
+                currentPageData.forEach(function(row) {
+                    table.selectRow(row);
+                });
+                logEvent('Demo: Selected all rows on current page.');
+            });
+
+            document.getElementById('random-selection').addEventListener('click', function() {
+                table.deselectAll();
+                var data = table.getData();
+                if (data.length > 0) {
+                    var count = Math.floor(Math.random() * data.length) + 1;
+                    var selectedIndices = [];
+                    while (selectedIndices.length < count) {
+                        var index = Math.floor(Math.random() * data.length);
+                        if (selectedIndices.indexOf(index) === -1) {
+                            selectedIndices.push(index);
+                        }
+                    }
+                    selectedIndices.forEach(function(index) {
+                        table.selectRow(data[index]);
+                    });
+                    logEvent('Demo: Random selection of ' + count + ' rows.');
+                }
             });
 
             // Initial load

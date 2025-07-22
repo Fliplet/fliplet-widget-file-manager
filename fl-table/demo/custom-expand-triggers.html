@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlTable - Custom Expand Triggers Demo</title>
+    <link rel="stylesheet" href="../src/styles/fl-table.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background-color: #f5f5f5; 
+            margin: 0;
+        }
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .demo-section {
+            margin: 40px 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .demo-section h2 {
+            color: #007bff;
+            margin-top: 0;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 8px;
+        }
+        .controls { 
+            margin: 20px 0; 
+            display: flex; 
+            gap: 10px; 
+            flex-wrap: wrap; 
+        }
+        .controls button { 
+            padding: 8px 12px; 
+            border: 1px solid #007bff; 
+            background: #007bff; 
+            color: white;
+            cursor: pointer; 
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .controls button:hover { 
+            background: #0056b3; 
+            border-color: #0056b3;
+        }
+        .table-container { 
+            margin: 20px 0; 
+        }
+        .event-log { 
+            background: #f8f9fa; 
+            border: 1px solid #dee2e6; 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .event-log h4 { 
+            margin: 0 0 10px 0; 
+            color: #495057;
+            font-size: 14px;
+        }
+        .event-log pre { 
+            background: white;
+            padding: 8px;
+            border-radius: 3px;
+            border-left: 3px solid #007bff;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.3;
+            margin: 0;
+        }
+        
+        /* Custom styling for different expand triggers */
+        .name-with-chevron {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .expand-chevron {
+            cursor: pointer;
+            color: #007bff;
+            font-size: 14px;
+            transition: transform 0.2s ease;
+            user-select: none;
+        }
+        
+        .expand-chevron:hover {
+            color: #0056b3;
+            transform: scale(1.2);
+        }
+        
+        .expand-chevron.expanded {
+            transform: rotate(90deg);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .action-btn {
+            padding: 4px 8px;
+            border: 1px solid #ccc;
+            background: #f8f9fa;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+        
+        .action-btn:hover {
+            background: #e9ecef;
+            border-color: #007bff;
+        }
+        
+        .expand-btn {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-color: #1976d2;
+        }
+        
+        .expand-btn:hover {
+            background: #bbdefb;
+        }
+        
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-inactive { background: #f8d7da; color: #721c24; }
+        .status-pending { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-mouse-pointer"></i> FlTable - Custom Expand Triggers</h1>
+        <p>This demo showcases different ways to implement expandable rows with custom UI elements as triggers, rather than dedicated expand columns.</p>
+        
+        <div class="demo-section">
+            <h2>1. Inline Chevron Triggers</h2>
+            <p>Each name cell contains a chevron that users can click to expand the row. The chevron rotates when expanded.</p>
+            
+            <div class="controls">
+                <button id="expand-first-1">Expand First Row</button>
+                <button id="collapse-all-1">Collapse All</button>
+                <button id="rapid-click-test-1" style="background: #dc3545; border-color: #dc3545;">Test Rapid Clicks</button>
+            </div>
+            
+            <div class="table-container" id="table-1"></div>
+            
+            <div class="event-log">
+                <h4><i class="fas fa-list"></i> Event Log</h4>
+                <pre id="log-1"></pre>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>2. Multiple Trigger Types</h2>
+            <p>Multiple columns can contain expand triggers: names have icons, and actions have dedicated expand buttons.</p>
+            
+            <div class="controls">
+                <button id="expand-first-2">Expand First Row</button>
+                <button id="collapse-all-2">Collapse All</button>
+            </div>
+            
+            <div class="table-container" id="table-2"></div>
+            
+            <div class="event-log">
+                <h4><i class="fas fa-list"></i> Event Log</h4>
+                <pre id="log-2"></pre>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>3. Status Badge Triggers</h2>
+            <p>Status badges themselves act as expand triggers, showing that any element can become interactive.</p>
+            
+            <div class="controls">
+                <button id="expand-first-3">Expand First Row</button>
+                <button id="collapse-all-3">Collapse All</button>
+            </div>
+            
+            <div class="table-container" id="table-3"></div>
+            
+            <div class="event-log">
+                <h4><i class="fas fa-list"></i> Event Log</h4>
+                <pre id="log-3"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="../src/fl-table.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sample data
+            const userData = [
+                {
+                    id: 1,
+                    name: 'Alice Johnson',
+                    email: 'alice@example.com',
+                    department: 'Engineering',
+                    status: 'Active',
+                    role: 'Senior Developer'
+                },
+                {
+                    id: 2,
+                    name: 'Bob Wilson',
+                    email: 'bob@example.com',
+                    department: 'Design',
+                    status: 'Active',
+                    role: 'UI/UX Designer'
+                },
+                {
+                    id: 3,
+                    name: 'Carol Davis',
+                    email: 'carol@example.com',
+                    department: 'Marketing',
+                    status: 'Inactive',
+                    role: 'Content Manager'
+                },
+                {
+                    id: 4,
+                    name: 'David Brown',
+                    email: 'david@example.com',
+                    department: 'Sales',
+                    status: 'Pending',
+                    role: 'Account Manager'
+                }
+            ];
+
+            // Helper function to log events
+            function createLogger(logId) {
+                return function(message) {
+                    const logEl = document.getElementById(logId);
+                    const timestamp = new Date().toLocaleTimeString();
+                    logEl.textContent = `[${timestamp}] ${message}\n` + logEl.textContent;
+                };
+            }
+
+            // Helper function to generate user details
+            function generateUserDetails(user) {
+                return `
+                    <div style="padding: 15px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 8px; margin: 5px 0;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div>
+                                <h4 style="margin: 0 0 10px 0; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 5px;">
+                                    <i class="fas fa-user"></i> ${user.name}
+                                </h4>
+                                <p style="margin: 5px 0;"><strong>Email:</strong> ${user.email}</p>
+                                <p style="margin: 5px 0;"><strong>Department:</strong> ${user.department}</p>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0 0 10px 0; color: #333; border-bottom: 2px solid #28a745; padding-bottom: 5px;">
+                                    <i class="fas fa-briefcase"></i> Work Details
+                                </h4>
+                                <p style="margin: 5px 0;"><strong>Role:</strong> ${user.role}</p>
+                                <p style="margin: 5px 0;"><strong>Status:</strong> 
+                                    <span class="status-badge status-${user.status.toLowerCase()}">${user.status}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.3);">
+                            <p style="margin: 0; font-style: italic; color: #666;">
+                                <i class="fas fa-info-circle"></i> Additional details loaded for ${user.name}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Demo 1: Inline Chevron Triggers
+            const log1 = createLogger('log-1');
+            const table1 = new FlTable({
+                target: '#table-1',
+                columns: [
+                    {
+                        name: 'Name',
+                        field: 'name',
+                        render: function(row) {
+                            return `
+                                <div class="name-with-chevron">
+                                    <span>${row.name}</span>
+                                    <span data-expand class="expand-chevron">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </span>
+                                </div>
+                            `;
+                        }
+                    },
+                    {
+                        name: 'Email',
+                        field: 'email'
+                    },
+                    {
+                        name: 'Department',
+                        field: 'department'
+                    },
+                    {
+                        name: 'Status',
+                        field: 'status',
+                        render: function(row) {
+                            return `<span class="status-badge status-${row.status.toLowerCase()}">${row.status}</span>`;
+                        }
+                    }
+                ],
+                expandable: {
+                    enabled: true,
+                    onExpand: function(row) {
+                        // Simulate async loading with a delay to test race conditions
+                        return new Promise((resolve) => {
+                            setTimeout(() => {
+                                resolve(generateUserDetails(row));
+                            }, 800 + Math.random() * 400); // Random delay 800-1200ms
+                        });
+                    }
+                },
+                data: userData
+            });
+
+            // Event handlers for table 1
+            table1.on('expand:start', function(detail) {
+                log1(`🔄 Starting expansion for ${detail.row.name}`);
+                const chevron = detail.rowEl.querySelector('.expand-chevron i');
+                if (chevron) {
+                    chevron.className = 'fas fa-spinner fa-spin';
+                }
+            });
+
+            table1.on('expand:complete', function(detail) {
+                log1(`✅ ${detail.row.name} expanded`);
+                const chevron = detail.rowEl.querySelector('.expand-chevron i');
+                if (chevron) {
+                    chevron.className = 'fas fa-chevron-down';
+                    chevron.parentElement.classList.add('expanded');
+                }
+            });
+
+            table1.on('collapse:complete', function(detail) {
+                log1(`📁 ${detail.row.name} collapsed`);
+                const chevron = detail.rowEl.querySelector('.expand-chevron i');
+                if (chevron) {
+                    chevron.className = 'fas fa-chevron-right';
+                    chevron.parentElement.classList.remove('expanded');
+                }
+            });
+
+            table1.on('cell:interaction', function(detail) {
+                log1(`🎯 Chevron clicked in ${detail.row.name} row`);
+            });
+
+            // Demo 2: Multiple Trigger Types
+            const log2 = createLogger('log-2');
+            const table2 = new FlTable({
+                target: '#table-2',
+                columns: [
+                    {
+                        name: 'Name',
+                        field: 'name',
+                        render: function(row) {
+                            return `
+                                <div style="display: flex; align-items: center;">
+                                    <i data-expand class="fas fa-plus-circle" style="color: #007bff; cursor: pointer; margin-right: 8px;"></i>
+                                    <span>${row.name}</span>
+                                </div>
+                            `;
+                        }
+                    },
+                    {
+                        name: 'Role',
+                        field: 'role'
+                    },
+                    {
+                        name: 'Status',
+                        field: 'status',
+                        render: function(row) {
+                            return `<span class="status-badge status-${row.status.toLowerCase()}">${row.status}</span>`;
+                        }
+                    },
+                    {
+                        name: 'Actions',
+                        render: function(row) {
+                            return `
+                                <div class="action-buttons">
+                                    <button class="action-btn">Edit</button>
+                                    <button data-expand class="action-btn expand-btn">
+                                        <i class="fas fa-eye"></i> Details
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }
+                ],
+                expandable: {
+                    enabled: true,
+                    onExpand: function(row) {
+                        return generateUserDetails(row);
+                    }
+                },
+                data: userData
+            });
+
+            // Event handlers for table 2
+            table2.on('expand:complete', function(detail) {
+                log2(`✅ ${detail.row.name} expanded via trigger`);
+                const icon = detail.rowEl.querySelector('[data-expand] i');
+                if (icon && icon.classList.contains('fa-plus-circle')) {
+                    icon.className = 'fas fa-minus-circle';
+                }
+            });
+
+            table2.on('collapse:complete', function(detail) {
+                log2(`📁 ${detail.row.name} collapsed`);
+                const icon = detail.rowEl.querySelector('[data-expand] i');
+                if (icon && icon.classList.contains('fa-minus-circle')) {
+                    icon.className = 'fas fa-plus-circle';
+                }
+            });
+
+            table2.on('cell:interaction', function(detail) {
+                const triggerType = detail.target.closest('[data-expand]').tagName === 'BUTTON' ? 'Details Button' : 'Plus Icon';
+                log2(`🎯 ${triggerType} clicked for ${detail.row.name}`);
+            });
+
+            // Demo 3: Status Badge Triggers
+            const log3 = createLogger('log-3');
+            const table3 = new FlTable({
+                target: '#table-3',
+                columns: [
+                    {
+                        name: 'Name',
+                        field: 'name'
+                    },
+                    {
+                        name: 'Email',
+                        field: 'email'
+                    },
+                    {
+                        name: 'Department',
+                        field: 'department'
+                    },
+                    {
+                        name: 'Status (Click to Expand)',
+                        field: 'status',
+                        render: function(row) {
+                            return `
+                                <span data-expand class="status-badge status-${row.status.toLowerCase()}" 
+                                      style="cursor: pointer; transition: all 0.2s ease;"
+                                      title="Click to view details">
+                                    ${row.status} <i class="fas fa-info-circle" style="font-size: 10px; opacity: 0.7;"></i>
+                                </span>
+                            `;
+                        }
+                    }
+                ],
+                expandable: {
+                    enabled: true,
+                    onExpand: function(row) {
+                        return generateUserDetails(row);
+                    }
+                },
+                data: userData
+            });
+
+            // Event handlers for table 3
+            table3.on('expand:complete', function(detail) {
+                log3(`✅ ${detail.row.name} expanded via status badge`);
+                const badge = detail.rowEl.querySelector('[data-expand]');
+                if (badge) {
+                    badge.style.transform = 'scale(1.05)';
+                    badge.style.boxShadow = '0 2px 4px rgba(0,123,255,0.3)';
+                }
+            });
+
+            table3.on('collapse:complete', function(detail) {
+                log3(`📁 ${detail.row.name} collapsed`);
+                const badge = detail.rowEl.querySelector('[data-expand]');
+                if (badge) {
+                    badge.style.transform = 'scale(1)';
+                    badge.style.boxShadow = 'none';
+                }
+            });
+
+            table3.on('cell:interaction', function(detail) {
+                log3(`🎯 Status badge (${detail.row.status}) clicked for ${detail.row.name}`);
+            });
+
+            // Control button handlers
+            document.getElementById('expand-first-1').addEventListener('click', () => {
+                table1.expandRow(userData[0]);
+                log1('🔧 API: expandRow() called for first row');
+            });
+
+            document.getElementById('collapse-all-1').addEventListener('click', () => {
+                userData.forEach(user => {
+                    if (table1.isRowExpanded(user)) {
+                        table1.collapseRow(user);
+                    }
+                });
+                log1('🔧 API: collapseRow() called for all expanded rows');
+            });
+
+            document.getElementById('rapid-click-test-1').addEventListener('click', () => {
+                log1('🚨 Testing rapid clicks - clicking first row chevron 5 times quickly');
+                const firstChevron = document.querySelector('#table-1 .expand-chevron');
+                if (firstChevron) {
+                    // Simulate rapid clicking
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => firstChevron.click(), i * 10);
+                    }
+                    log1('🚨 Rapid clicks completed - should only see one expansion');
+                }
+            });
+
+            document.getElementById('expand-first-2').addEventListener('click', () => {
+                table2.expandRow(userData[0]);
+                log2('🔧 API: expandRow() called for first row');
+            });
+
+            document.getElementById('collapse-all-2').addEventListener('click', () => {
+                userData.forEach(user => {
+                    if (table2.isRowExpanded(user)) {
+                        table2.collapseRow(user);
+                    }
+                });
+                log2('🔧 API: collapseRow() called for all expanded rows');
+            });
+
+            document.getElementById('expand-first-3').addEventListener('click', () => {
+                table3.expandRow(userData[0]);
+                log3('🔧 API: expandRow() called for first row');
+            });
+
+            document.getElementById('collapse-all-3').addEventListener('click', () => {
+                userData.forEach(user => {
+                    if (table3.isRowExpanded(user)) {
+                        table3.collapseRow(user);
+                    }
+                });
+                log3('🔧 API: collapseRow() called for all expanded rows');
+            });
+
+            // Initial log messages
+            log1('🚀 Demo 1 initialized - Click chevrons next to names to expand');
+            log2('🚀 Demo 2 initialized - Click plus icons or Details buttons to expand');
+            log3('🚀 Demo 3 initialized - Click status badges to expand rows');
+        });
+    </script>
+</body>
+</html>
