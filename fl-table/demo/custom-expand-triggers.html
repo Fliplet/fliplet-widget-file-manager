@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlTable - Custom Expand Triggers Demo</title>
+    <title>Fliplet.UI.Table - Custom Expand Triggers Demo</title>
     <link rel="stylesheet" href="../src/styles/fl-table.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            padding: 20px; 
-            background-color: #f5f5f5; 
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
             margin: 0;
         }
-        .container { 
-            max-width: 1400px; 
-            margin: 0 auto; 
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
             background: white;
             padding: 30px;
             border-radius: 8px;
@@ -38,43 +38,43 @@
             border-bottom: 2px solid #007bff;
             padding-bottom: 8px;
         }
-        .controls { 
-            margin: 20px 0; 
-            display: flex; 
-            gap: 10px; 
-            flex-wrap: wrap; 
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
-        .controls button { 
-            padding: 8px 12px; 
-            border: 1px solid #007bff; 
-            background: #007bff; 
+        .controls button {
+            padding: 8px 12px;
+            border: 1px solid #007bff;
+            background: #007bff;
             color: white;
-            cursor: pointer; 
+            cursor: pointer;
             border-radius: 4px;
             font-size: 12px;
         }
-        .controls button:hover { 
-            background: #0056b3; 
+        .controls button:hover {
+            background: #0056b3;
             border-color: #0056b3;
         }
-        .table-container { 
-            margin: 20px 0; 
+        .table-container {
+            margin: 20px 0;
         }
-        .event-log { 
-            background: #f8f9fa; 
-            border: 1px solid #dee2e6; 
-            padding: 10px; 
-            border-radius: 4px; 
+        .event-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            border-radius: 4px;
             margin-top: 15px;
             max-height: 200px;
             overflow-y: auto;
         }
-        .event-log h4 { 
-            margin: 0 0 10px 0; 
+        .event-log h4 {
+            margin: 0 0 10px 0;
             color: #495057;
             font-size: 14px;
         }
-        .event-log pre { 
+        .event-log pre {
             background: white;
             padding: 8px;
             border-radius: 3px;
@@ -84,14 +84,14 @@
             line-height: 1.3;
             margin: 0;
         }
-        
+
         /* Custom styling for different expand triggers */
         .name-with-chevron {
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
-        
+
         .expand-chevron {
             cursor: pointer;
             color: #007bff;
@@ -99,21 +99,21 @@
             transition: transform 0.2s ease;
             user-select: none;
         }
-        
+
         .expand-chevron:hover {
             color: #0056b3;
             transform: scale(1.2);
         }
-        
+
         .expand-chevron.expanded {
             transform: rotate(90deg);
         }
-        
+
         .action-buttons {
             display: flex;
             gap: 5px;
         }
-        
+
         .action-btn {
             padding: 4px 8px;
             border: 1px solid #ccc;
@@ -123,22 +123,22 @@
             font-size: 11px;
             transition: all 0.2s ease;
         }
-        
+
         .action-btn:hover {
             background: #e9ecef;
             border-color: #007bff;
         }
-        
+
         .expand-btn {
             background: #e3f2fd;
             color: #1976d2;
             border-color: #1976d2;
         }
-        
+
         .expand-btn:hover {
             background: #bbdefb;
         }
-        
+
         .status-badge {
             padding: 3px 8px;
             border-radius: 12px;
@@ -153,21 +153,21 @@
 </head>
 <body>
     <div class="container">
-        <h1><i class="fas fa-mouse-pointer"></i> FlTable - Custom Expand Triggers</h1>
+        <h1><i class="fas fa-mouse-pointer"></i> Fliplet.UI.Table - Custom Expand Triggers</h1>
         <p>This demo showcases different ways to implement expandable rows with custom UI elements as triggers, rather than dedicated expand columns.</p>
-        
+
         <div class="demo-section">
             <h2>1. Inline Chevron Triggers</h2>
             <p>Each name cell contains a chevron that users can click to expand the row. The chevron rotates when expanded.</p>
-            
+
             <div class="controls">
                 <button id="expand-first-1">Expand First Row</button>
                 <button id="collapse-all-1">Collapse All</button>
                 <button id="rapid-click-test-1" style="background: #dc3545; border-color: #dc3545;">Test Rapid Clicks</button>
             </div>
-            
+
             <div class="table-container" id="table-1"></div>
-            
+
             <div class="event-log">
                 <h4><i class="fas fa-list"></i> Event Log</h4>
                 <pre id="log-1"></pre>
@@ -177,14 +177,14 @@
         <div class="demo-section">
             <h2>2. Multiple Trigger Types</h2>
             <p>Multiple columns can contain expand triggers: names have icons, and actions have dedicated expand buttons.</p>
-            
+
             <div class="controls">
                 <button id="expand-first-2">Expand First Row</button>
                 <button id="collapse-all-2">Collapse All</button>
             </div>
-            
+
             <div class="table-container" id="table-2"></div>
-            
+
             <div class="event-log">
                 <h4><i class="fas fa-list"></i> Event Log</h4>
                 <pre id="log-2"></pre>
@@ -194,14 +194,14 @@
         <div class="demo-section">
             <h2>3. Status Badge Triggers</h2>
             <p>Status badges themselves act as expand triggers, showing that any element can become interactive.</p>
-            
+
             <div class="controls">
                 <button id="expand-first-3">Expand First Row</button>
                 <button id="collapse-all-3">Collapse All</button>
             </div>
-            
+
             <div class="table-container" id="table-3"></div>
-            
+
             <div class="event-log">
                 <h4><i class="fas fa-list"></i> Event Log</h4>
                 <pre id="log-3"></pre>
@@ -274,7 +274,7 @@
                                     <i class="fas fa-briefcase"></i> Work Details
                                 </h4>
                                 <p style="margin: 5px 0;"><strong>Role:</strong> ${user.role}</p>
-                                <p style="margin: 5px 0;"><strong>Status:</strong> 
+                                <p style="margin: 5px 0;"><strong>Status:</strong>
                                     <span class="status-badge status-${user.status.toLowerCase()}">${user.status}</span>
                                 </p>
                             </div>
@@ -290,7 +290,7 @@
 
             // Demo 1: Inline Chevron Triggers
             const log1 = createLogger('log-1');
-            const table1 = new FlTable({
+            const table1 = new Fliplet.UI.Table({
                 target: '#table-1',
                 columns: [
                     {
@@ -370,7 +370,7 @@
 
             // Demo 2: Multiple Trigger Types
             const log2 = createLogger('log-2');
-            const table2 = new FlTable({
+            const table2 = new Fliplet.UI.Table({
                 target: '#table-2',
                 columns: [
                     {
@@ -443,7 +443,7 @@
 
             // Demo 3: Status Badge Triggers
             const log3 = createLogger('log-3');
-            const table3 = new FlTable({
+            const table3 = new Fliplet.UI.Table({
                 target: '#table-3',
                 columns: [
                     {
@@ -463,7 +463,7 @@
                         field: 'status',
                         render: function(row) {
                             return `
-                                <span data-expand class="status-badge status-${row.status.toLowerCase()}" 
+                                <span data-expand class="status-badge status-${row.status.toLowerCase()}"
                                       style="cursor: pointer; transition: all 0.2s ease;"
                                       title="Click to view details">
                                     ${row.status} <i class="fas fa-info-circle" style="font-size: 10px; opacity: 0.7;"></i>

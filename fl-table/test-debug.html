@@ -12,7 +12,7 @@
 </head>
 <body>
     <h1>Debug Test for Checkbox States</h1>
-    
+
     <div class="debug">
         <h3>Test 1: Empty State</h3>
         <div id="test1"></div>
@@ -29,7 +29,7 @@
     <script src="src/fl-table.js"></script>
     <script>
         // Test 1: Empty state
-        const table1 = new FlTable({
+        const table1 = new Fliplet.UI.Table({
             target: '#test1',
             selection: { enabled: true, multiple: true },
             columns: [{ name: 'Name', field: 'name' }],
@@ -52,7 +52,7 @@
         }
 
         // Test 2: Row click
-        const table2 = new FlTable({
+        const table2 = new Fliplet.UI.Table({
             target: '#test2',
             selection: { enabled: true, multiple: true, rowClickEnabled: true },
             columns: [{ name: 'Name', field: 'name' }],

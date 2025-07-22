@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlTable - Partial Selection Demo</title>
+    <title>Fliplet.UI.Table - Partial Selection Demo</title>
     <link rel="stylesheet" href="../src/styles/fl-table.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            padding: 20px; 
-            background-color: #f5f5f5; 
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
             margin: 0;
         }
-        .container { 
-            max-width: 1400px; 
-            margin: 0 auto; 
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
             background: white;
             padding: 30px;
             border-radius: 8px;
@@ -38,23 +38,23 @@
             border-bottom: 2px solid #007bff;
             padding-bottom: 8px;
         }
-        .controls { 
-            margin: 20px 0; 
-            display: flex; 
-            gap: 10px; 
-            flex-wrap: wrap; 
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
-        .controls button { 
-            padding: 8px 12px; 
-            border: 1px solid #007bff; 
-            background: #007bff; 
+        .controls button {
+            padding: 8px 12px;
+            border: 1px solid #007bff;
+            background: #007bff;
             color: white;
-            cursor: pointer; 
+            cursor: pointer;
             border-radius: 4px;
             font-size: 12px;
         }
-        .controls button:hover { 
-            background: #0056b3; 
+        .controls button:hover {
+            background: #0056b3;
             border-color: #0056b3;
         }
         .controls button.secondary {
@@ -65,8 +65,8 @@
             background: #545b62;
             border-color: #545b62;
         }
-        .table-container { 
-            margin: 20px 0; 
+        .table-container {
+            margin: 20px 0;
         }
         .status-display {
             background: #f8f9fa;
@@ -103,7 +103,7 @@
         .state-empty { color: #6c757d; }
         .state-partial { color: #007bff; }
         .state-full { color: #007bff; }
-        
+
         .explanation {
             background: #e9ecef;
             padding: 15px;
@@ -115,7 +115,7 @@
             margin: 0 0 10px 0;
             color: #007bff;
         }
-        
+
         /* Custom styles for different item types */
         .type-badge {
             padding: 3px 8px;
@@ -128,7 +128,7 @@
         .type-image { background: #f3e5f5; color: #7b1fa2; }
         .type-video { background: #e8f5e8; color: #2e7d32; }
         .type-audio { background: #fff3e0; color: #ef6c00; }
-        
+
         .priority-badge {
             padding: 2px 6px;
             border-radius: 3px;
@@ -142,9 +142,9 @@
 </head>
 <body>
     <div class="container">
-        <h1><i class="fa fa-check-square"></i> FlTable - Partial Selection UI</h1>
-        <p>This demo showcases FlTable's partial selection UI with indeterminate checkbox states using FontAwesome icons.</p>
-        
+        <h1><i class="fa fa-check-square"></i> Fliplet.UI.Table - Partial Selection UI</h1>
+        <p>This demo showcases Fliplet.UI.Table's partial selection UI with indeterminate checkbox states using FontAwesome icons.</p>
+
         <div class="explanation">
             <h4><i class="fa fa-info-circle"></i> Partial Selection States</h4>
             <p>The select-all checkbox in the header shows three different states:</p>
@@ -158,7 +158,7 @@
         <div class="demo-section">
             <h2>1. Basic Partial Selection</h2>
             <p>Select individual rows and observe how the header checkbox state changes automatically.</p>
-            
+
             <div class="controls">
                 <button id="select-none-1">Select None</button>
                 <button id="select-first-1">Select First</button>
@@ -184,14 +184,14 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="table-container" id="table-1"></div>
         </div>
 
         <div class="demo-section">
             <h2>2. Partial Selection with Pagination</h2>
             <p>With pagination, the header checkbox reflects the selection state of visible rows only.</p>
-            
+
             <div class="controls">
                 <button id="select-page-1-2">Select Page 1</button>
                 <button id="select-page-2-2">Select Page 2</button>
@@ -220,14 +220,14 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="table-container" id="table-2"></div>
         </div>
 
         <div class="demo-section">
             <h2>3. Partial Selection with Search</h2>
             <p>When searching, the header checkbox state is based on visible/filtered rows.</p>
-            
+
             <div class="controls">
                 <button id="search-document-3">Search "Document"</button>
                 <button id="search-image-3">Search "Image"</button>
@@ -261,7 +261,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="table-container" id="table-3"></div>
         </div>
     </div>
@@ -278,7 +278,7 @@
                 { id: 5, name: 'Charlie Wilson', department: 'Engineering', role: 'Architect' }
             ];
 
-            const table1 = new FlTable({
+            const table1 = new Fliplet.UI.Table({
                 target: '#table-1',
                 selection: {
                     enabled: true,
@@ -303,7 +303,7 @@
                 });
             }
 
-            const table2 = new FlTable({
+            const table2 = new Fliplet.UI.Table({
                 target: '#table-2',
                 selection: {
                     enabled: true,
@@ -338,7 +338,7 @@
                 { id: 8, name: 'Image 3.gif', type: 'Image', size: '2.8 MB' }
             ];
 
-            const table3 = new FlTable({
+            const table3 = new Fliplet.UI.Table({
                 target: '#table-3',
                 searchable: true,
                 selection: {
@@ -364,10 +364,10 @@
             function updateStatus1() {
                 const selected = table1.getSelectedRows();
                 const total = table1.getData().length;
-                
+
                 document.getElementById('total-count-1').textContent = total;
                 document.getElementById('selected-count-1').textContent = selected.length;
-                
+
                 updateCheckboxStateDisplay('checkbox-state-1', selected.length, total);
             }
 
@@ -375,11 +375,11 @@
                 const selected = table2.getSelectedRows();
                 const currentPageData = table2.getCurrentPageData();
                 const selectedOnPage = currentPageData.filter(row => selected.includes(row));
-                
+
                 document.getElementById('current-page-2').textContent = table2.pagination.currentPage;
                 document.getElementById('page-selection-2').textContent = selectedOnPage.length + '/' + currentPageData.length;
                 document.getElementById('total-selected-2').textContent = selected.length;
-                
+
                 updateCheckboxStateDisplay('checkbox-state-2', selectedOnPage.length, currentPageData.length);
             }
 
@@ -387,11 +387,11 @@
                 const selected = table3.getSelectedRows();
                 const visible = table3.getCurrentPageData();
                 const selectedVisible = visible.filter(row => selected.includes(row));
-                
+
                 document.getElementById('visible-count-3').textContent = visible.length;
                 document.getElementById('selected-visible-3').textContent = selectedVisible.length;
                 document.getElementById('total-selected-3').textContent = selected.length;
-                
+
                 updateCheckboxStateDisplay('checkbox-state-3', selectedVisible.length, visible.length);
             }
 
@@ -399,7 +399,7 @@
                 const element = document.getElementById(elementId);
                 const icon = element.querySelector('.checkbox-icon');
                 const text = element.querySelector('span');
-                
+
                 if (selected === 0) {
                     icon.className = 'fa fa-square-o checkbox-icon state-empty';
                     text.textContent = 'Empty';

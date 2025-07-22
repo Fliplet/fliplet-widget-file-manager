@@ -15,7 +15,7 @@
 </head>
 <body>
     <h1>Select All with Partial Selection Test</h1>
-    
+
     <div class="test-section">
         <h3>Test: Paginated Table with Partial Selections</h3>
         <div class="test-controls">
@@ -30,7 +30,7 @@
     <script src="src/fl-table.js"></script>
     <script>
         // Create table with pagination
-        const table = new FlTable({
+        const table = new Fliplet.UI.Table({
             target: '#table-container',
             selection: { enabled: true, multiple: true },
             pagination: { pageSize: 3 },
@@ -53,17 +53,17 @@
             // Clear all selections first
             table.deselectAll();
             table.clearAllPartialSelection();
-            
+
             // Go to page 1 and set item 2 as partial
             table.setPage(1);
             setTimeout(() => {
                 const item2 = table.getData().find(row => row.id === 2);
                 table.setRowPartialSelection(item2, true);
-                
+
                 // Set item 4 as selected (on page 2)
                 const item4 = table.getData().find(row => row.id === 4);
                 table.selectRow(item4);
-                
+
                 updateStatus();
             }, 100);
         }
@@ -80,18 +80,18 @@
             const selectedRows = table.getSelectedRows();
             const allData = table.getData();
             let partialRows = [];
-            
+
             // Check which rows are partial
             allData.forEach(row => {
                 if (table.isRowPartiallySelected(row)) {
                     partialRows.push(row);
                 }
             });
-            
+
             const currentPage = table.pagination.currentPage;
             const selectAllCheckbox = document.querySelector('.fl-table-select-all-checkbox');
             const checkboxClasses = selectAllCheckbox ? Array.from(selectAllCheckbox.classList).join(', ') : 'Not found';
-            
+
             document.getElementById('status').innerHTML = `
                 <strong>Current Status:</strong><br>
                 Current Page: ${currentPage}<br>

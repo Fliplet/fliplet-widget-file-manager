@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlTable Expandable Rows Demo</title>
+    <title>Fliplet.UI.Table Expandable Rows Demo</title>
     <link rel="stylesheet" href="../src/styles/fl-table.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            padding: 20px; 
-            background-color: #f5f5f5; 
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
             margin: 0;
         }
-        .container { 
-            max-width: 1200px; 
-            margin: 0 auto; 
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             background: white;
             padding: 30px;
             border-radius: 8px;
@@ -26,23 +26,23 @@
             border-bottom: 3px solid #007bff;
             padding-bottom: 10px;
         }
-        .controls { 
-            margin: 20px 0; 
-            display: flex; 
-            gap: 10px; 
-            flex-wrap: wrap; 
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
-        .controls button { 
-            padding: 10px 16px; 
-            border: 1px solid #007bff; 
-            background: #007bff; 
+        .controls button {
+            padding: 10px 16px;
+            border: 1px solid #007bff;
+            background: #007bff;
             color: white;
-            cursor: pointer; 
+            cursor: pointer;
             border-radius: 5px;
             font-size: 14px;
         }
-        .controls button:hover { 
-            background: #0056b3; 
+        .controls button:hover {
+            background: #0056b3;
             border-color: #0056b3;
         }
         .controls button.secondary {
@@ -53,32 +53,32 @@
             background: #545b62;
             border-color: #545b62;
         }
-        #table-container { 
-            margin: 20px 0; 
+        #table-container {
+            margin: 20px 0;
         }
-        .event-log { 
-            background: #f8f9fa; 
-            border: 1px solid #dee2e6; 
-            padding: 15px; 
-            border-radius: 5px; 
+        .event-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
             margin-top: 20px;
         }
-        .event-log h3 { 
-            margin-top: 0; 
+        .event-log h3 {
+            margin-top: 0;
             color: #495057;
         }
-        .event-log pre { 
+        .event-log pre {
             background: white;
             padding: 10px;
             border-radius: 3px;
             border-left: 4px solid #007bff;
-            max-height: 300px; 
-            overflow-y: auto; 
+            max-height: 300px;
+            overflow-y: auto;
             font-family: 'Courier New', monospace;
             font-size: 12px;
             line-height: 1.4;
         }
-        
+
         /* Custom expand trigger styling */
         .expand-icon {
             transition: transform 0.2s ease;
@@ -86,7 +86,7 @@
         .expand-icon.expanded {
             transform: rotate(90deg);
         }
-        
+
         /* User details styling */
         .user-details {
             display: grid;
@@ -115,7 +115,7 @@
         .detail-value {
             color: #6c757d;
         }
-        
+
         /* Status badges */
         .status-badge {
             padding: 4px 8px;
@@ -127,7 +127,7 @@
         .status-active { background: #d4edda; color: #155724; }
         .status-inactive { background: #f8d7da; color: #721c24; }
         .status-pending { background: #fff3cd; color: #856404; }
-        
+
         /* Department badges */
         .dept-badge {
             padding: 4px 8px;
@@ -143,14 +143,14 @@
 </head>
 <body>
     <div class="container">
-        <h1><i class="fa fa-table"></i> FlTable Expandable Rows Demo</h1>
-        <p>This demo showcases FlTable's expandable rows feature with async content loading, custom expand triggers, partial selection UI, and comprehensive event handling.</p>
-        
+        <h1><i class="fa fa-table"></i> Fliplet.UI.Table Expandable Rows Demo</h1>
+        <p>This demo showcases Fliplet.UI.Table's expandable rows feature with async content loading, custom expand triggers, partial selection UI, and comprehensive event handling.</p>
+
         <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
             <h3 style="margin-top: 0;">Partial Selection UI</h3>
             <p>Header checkbox states: <i class="fa fa-square-o" style="color: #6c757d;"></i> Empty <i class="fa fa-minus-square" style="color: #007bff;"></i> Partial <i class="fa fa-check-square" style="color: #007bff;"></i> Full</p>
         </div>
-        
+
         <div class="controls">
             <button id="expand-first">Expand First Row (API)</button>
             <button id="collapse-all">Collapse All</button>
@@ -158,7 +158,7 @@
             <button id="simulate-error" class="secondary">Simulate Error</button>
             <button id="reload-data" class="secondary">Reload Data</button>
         </div>
-        
+
         <div style="background: #e9ecef; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #007bff;">
             <h4 style="margin-top: 0; color: #007bff;"><i class="fa fa-info-circle"></i> Selection State Initialization</h4>
             <p>This demo shows three ways to initialize selection states:</p>
@@ -275,7 +275,7 @@
             function generateUserDetails(user) {
                 const deptClass = 'dept-' + user.department.toLowerCase();
                 const statusClass = 'status-' + user.status.toLowerCase();
-                
+
                 return `
                     <div class="user-details">
                         <div class="detail-section">
@@ -336,7 +336,7 @@
                     table.destroy();
                 }
 
-                table = new FlTable({
+                table = new Fliplet.UI.Table({
                     target: '#table-container',
                     className: 'expandable-demo-table',
                     selection: {
@@ -389,7 +389,7 @@
                             if (useAsyncLoading) {
                                 return new Promise((resolve, reject) => {
                                     logEvent(`🔄 Loading details for ${row.name}...`);
-                                    
+
                                     setTimeout(() => {
                                         if (simulateError && row.id === 1) {
                                             reject(new Error('Network error: Failed to load user details'));
@@ -409,7 +409,7 @@
                 // Event listeners for demo
                 table.on('expand:start', function(detail) {
                     logEvent(`📂 Expansion started for ${detail.row.name}`);
-                    
+
                     // Update inline expand icon to loading state
                     const inlineExpandTrigger = detail.rowEl.querySelector('.inline-expand-trigger');
                     if (inlineExpandTrigger) {
@@ -419,7 +419,7 @@
 
                 table.on('expand:complete', function(detail) {
                     logEvent(`✅ Expansion completed for ${detail.row.name}`);
-                    
+
                     // Update inline expand icon to expanded state
                     const inlineExpandTrigger = detail.rowEl.querySelector('.inline-expand-trigger');
                     if (inlineExpandTrigger) {
@@ -429,7 +429,7 @@
 
                 table.on('expand:error', function(detail) {
                     logEvent(`❌ Expansion failed for ${detail.row.name}: ${detail.error.message}`);
-                    
+
                     // Update inline expand icon to error state
                     const inlineExpandTrigger = detail.rowEl.querySelector('.inline-expand-trigger');
                     if (inlineExpandTrigger) {
@@ -439,7 +439,7 @@
 
                 table.on('collapse:complete', function(detail) {
                     logEvent(`📁 Collapsed details for ${detail.row.name}`);
-                    
+
                     // Update inline expand icon to collapsed state
                     const inlineExpandTrigger = detail.rowEl.querySelector('.inline-expand-trigger');
                     if (inlineExpandTrigger) {

@@ -1,6 +1,6 @@
-# FlTable
+# Fliplet.UI.Table
 
-FlTable is a powerful and flexible table component that provides features like sorting, searching, pagination, row selection, expandable rows, and custom rendering capabilities.
+Fliplet.UI.Table is a powerful and flexible table component that provides features like sorting, searching, pagination, row selection, expandable rows, and custom rendering capabilities.
 
 ## Installation
 
@@ -14,7 +14,7 @@ Include the required CSS and JavaScript files in your HTML:
 ## Basic Usage
 
 ```javascript
-const table = new FlTable({
+const table = new Fliplet.UI.Table({
     target: '#table-container',
     columns: [
         { name: 'ID', field: 'id' },
@@ -102,7 +102,7 @@ Each column in the `columns` array can have the following properties:
 
 ## Events
 
-FlTable emits various events that you can listen to:
+Fliplet.UI.Table emits various events that you can listen to:
 
 | Event | Detail | Description |
 |-------|--------|-------------|
@@ -211,7 +211,7 @@ Define custom sort logic using the `sortFn` in column definition:
 ## Complete Example
 
 ```javascript
-const table = new FlTable({
+const table = new Fliplet.UI.Table({
     target: '#table-container',
     className: 'my-table',
     searchable: true,
@@ -298,15 +298,15 @@ table.on('expand:complete', function(detail) {
 
 ## Expandable Rows
 
-FlTable supports expandable rows that can display additional content when expansion triggers are clicked. This feature supports both synchronous and asynchronous content loading, with built-in race condition prevention for rapid clicking scenarios.
+Fliplet.UI.Table supports expandable rows that can display additional content when expansion triggers are clicked. This feature supports both synchronous and asynchronous content loading, with built-in race condition prevention for rapid clicking scenarios.
 
 ### Basic Expandable Rows
 
-FlTable supports two approaches for expandable rows:
+Fliplet.UI.Table supports two approaches for expandable rows:
 
 #### 1. Dedicated Trigger Column
 ```javascript
-const table = new FlTable({
+const table = new Fliplet.UI.Table({
     target: '#table',
     columns: [
         { name: '', field: 'expand', isExpandTrigger: true, width: '40px' },
@@ -332,7 +332,7 @@ const table = new FlTable({
 
 #### 2. Custom Triggers Within Any Cell
 ```javascript
-const table = new FlTable({
+const table = new Fliplet.UI.Table({
     target: '#table',
     columns: [
         {
@@ -371,7 +371,7 @@ const table = new FlTable({
 ### Async Content Loading
 
 ```javascript
-const table = new FlTable({
+const table = new Fliplet.UI.Table({
     // ... other config
     expandable: {
         enabled: true,
@@ -395,7 +395,7 @@ const table = new FlTable({
 ### Preventing Expansion
 
 ```javascript
-const table = new FlTable({
+const table = new Fliplet.UI.Table({
     // ... other config
     expandable: {
         enabled: true,
@@ -467,7 +467,7 @@ if (table.isRowExpanding(rowData)) {
 
 #### Multiple Triggers in Different Columns
 ```javascript
-const table = new FlTable({
+const table = new Fliplet.UI.Table({
     target: '#table',
     columns: [
         {
@@ -526,7 +526,7 @@ table.on('cell:interaction', function(detail) {
 
 #### Dynamic Trigger Content
 ```javascript
-const table = new FlTable({
+const table = new Fliplet.UI.Table({
     target: '#table',
     columns: [
         {
@@ -578,7 +578,7 @@ function updateTriggerText(rowEl, isExpanded) {
 
 ## Partial Selection UI
 
-FlTable provides a sophisticated partial selection UI for multiple row selection scenarios. Instead of using traditional HTML checkboxes, the component uses FontAwesome icons to display three distinct states in the header select-all checkbox.
+Fliplet.UI.Table provides a sophisticated partial selection UI for multiple row selection scenarios. Instead of using traditional HTML checkboxes, the component uses FontAwesome icons to display three distinct states in the header select-all checkbox.
 
 ### Selection States
 
@@ -614,7 +614,7 @@ The partial selection UI automatically updates based on the current selection st
 ### Example Implementation
 
 ```javascript
-const table = new FlTable({
+const table = new Fliplet.UI.Table({
     target: '#table',
     selection: {
         enabled: true,
@@ -644,7 +644,7 @@ table.on('selection:change', function(detail) {
 
 ### Custom Partial Selection for Individual Rows
 
-For file manager scenarios where a file or folder might have some of its content selected (but not all), FlTable supports setting individual rows to a partial selection state. This is particularly useful for hierarchical data where a folder might contain both selected and unselected items.
+For file manager scenarios where a file or folder might have some of its content selected (but not all), Fliplet.UI.Table supports setting individual rows to a partial selection state. This is particularly useful for hierarchical data where a folder might contain both selected and unselected items.
 
 #### API Methods for Custom Partial Selection
 
@@ -665,7 +665,7 @@ table.clearAllPartialSelection();
 #### Example Usage
 
 ```javascript
-const table = new FlTable({
+const table = new Fliplet.UI.Table({
     target: '#file-manager-table',
     selection: { enabled: true, multiple: true },
     columns: [
@@ -701,7 +701,7 @@ There are three convenient ways to initialize selection states when creating a t
 #### 1. Configuration-based Initialization
 
 ```javascript
-const table = new FlTable({
+const table = new Fliplet.UI.Table({
     target: '#table',
     selection: {
         enabled: true,
@@ -747,7 +747,7 @@ const fileData = [
     }
 ];
 
-const table = new FlTable({
+const table = new Fliplet.UI.Table({
     target: '#table',
     selection: { enabled: true, multiple: true },
     columns: [...],
@@ -759,7 +759,7 @@ const table = new FlTable({
 
 ```javascript
 // Combine both approaches for maximum flexibility
-const table = new FlTable({
+const table = new Fliplet.UI.Table({
     target: '#table',
     selection: {
         enabled: true,
@@ -806,7 +806,7 @@ const fileManagerData = [
     }
 ];
 
-const fileManager = new FlTable({
+const fileManager = new Fliplet.UI.Table({
     target: '#file-manager',
     selection: { enabled: true, multiple: true },
     columns: [
@@ -822,7 +822,7 @@ const fileManager = new FlTable({
 
 ## CSS Customization
 
-FlTable provides several CSS classes for styling:
+Fliplet.UI.Table provides several CSS classes for styling:
 
 | Class | Description |
 |-------|-------------|

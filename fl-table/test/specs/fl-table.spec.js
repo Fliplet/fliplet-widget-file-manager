@@ -1,4 +1,4 @@
-describe('FlTable', function() {
+describe('Fliplet.UI.Table', function() {
   var expect = chai.expect;
   var table;
   var container;
@@ -30,7 +30,7 @@ describe('FlTable', function() {
   });
 
   it('should initialize with basic configuration', function() {
-    table = new FlTable({
+    table = new Fliplet.UI.Table({
       target: '#test-container',
       columns: [
         { name: 'Name', field: 'name' }
@@ -45,7 +45,7 @@ describe('FlTable', function() {
   });
 
   it('should apply custom className to the table', function() {
-    table = new FlTable({
+    table = new Fliplet.UI.Table({
       target: '#test-container',
       columns: [{ name: 'Name', field: 'name' }],
       data: [{ name: 'Test' }],
@@ -56,7 +56,7 @@ describe('FlTable', function() {
 
   describe('Selection', function() {
     it('should handle selection via checkbox', function() {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -81,7 +81,7 @@ describe('FlTable', function() {
     });
 
     it('should handle selection via row click', function() {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -107,7 +107,7 @@ describe('FlTable', function() {
     it('should fire selection:change event', function(done) {
       var data = [{ name: 'Item 1' }, { name: 'Item 2' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -138,7 +138,7 @@ describe('FlTable', function() {
     });
 
     it('should prevent selection if onBeforeSelect returns false', function() {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -159,7 +159,7 @@ describe('FlTable', function() {
     });
 
     it('should allow selection if onBeforeSelect returns true', function() {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -180,7 +180,7 @@ describe('FlTable', function() {
     });
 
     it('should handle multiple selections', function() {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -200,7 +200,7 @@ describe('FlTable', function() {
     });
 
     it('should select all rows when header checkbox is clicked', function() {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -220,7 +220,7 @@ describe('FlTable', function() {
     it('should select a row via the API', function() {
       var data = [{ name: 'Item 1' }, { name: 'Item 2' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true },
         columns: [ { name: 'Name', field: 'name' } ],
@@ -235,7 +235,7 @@ describe('FlTable', function() {
     it('should deselect a row via the API', function() {
       var data = [{ name: 'Item 1' }, { name: 'Item 2' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true },
         columns: [ { name: 'Name', field: 'name' } ],
@@ -253,7 +253,7 @@ describe('FlTable', function() {
     it('should select all rows via the API', function() {
       var data = [{ name: 'Item 1' }, { name: 'Item 2' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true },
         columns: [ { name: 'Name', field: 'name' } ],
@@ -267,7 +267,7 @@ describe('FlTable', function() {
     it('should deselect all rows via the API', function() {
       var data = [{ name: 'Item 1' }, { name: 'Item 2' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true },
         columns: [ { name: 'Name', field: 'name' } ],
@@ -283,7 +283,7 @@ describe('FlTable', function() {
       it('should select a row with a partial object', function() {
         var data = [{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }];
 
-        table = new FlTable({
+        table = new Fliplet.UI.Table({
           target: '#test-container',
           selection: { enabled: true },
           columns: [ { name: 'Name', field: 'name' } ],
@@ -302,7 +302,7 @@ describe('FlTable', function() {
           { id: 3, name: 'Carrot', type: 'Vegetable' }
         ];
 
-        table = new FlTable({
+        table = new Fliplet.UI.Table({
           target: '#test-container',
           selection: { enabled: true, multiple: true },
           columns: [{ name: 'Name', field: 'name' }],
@@ -321,7 +321,7 @@ describe('FlTable', function() {
           { id: 3, name: 'Item 3' }
         ];
 
-        table = new FlTable({
+        table = new Fliplet.UI.Table({
           target: '#test-container',
           selection: { enabled: true, multiple: true },
           columns: [{ name: 'Name', field: 'name' }],
@@ -343,7 +343,7 @@ describe('FlTable', function() {
           data.push({ id: i, name: 'Item ' + i });
         }
 
-        table = new FlTable({
+        table = new Fliplet.UI.Table({
           target: '#test-container',
           columns: [{ name: 'Name', field: 'name' }],
           data: data,
@@ -383,7 +383,7 @@ describe('FlTable', function() {
 
   describe('Partial Selection UI', function() {
     it('should show empty square when no rows are selected', function() {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -400,6 +400,7 @@ describe('FlTable', function() {
       });
 
       var selectAllCheckbox = container.querySelector('.fl-table-select-all-checkbox');
+
       expect(selectAllCheckbox).to.exist;
       expect(selectAllCheckbox.classList.contains('fa-square-o')).to.be.true;
       expect(selectAllCheckbox.classList.contains('fa-check-square')).to.be.false;
@@ -407,7 +408,7 @@ describe('FlTable', function() {
     });
 
     it('should show check square when all rows are selected', function() {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -427,6 +428,7 @@ describe('FlTable', function() {
       table.selectAll();
 
       var selectAllCheckbox = container.querySelector('.fl-table-select-all-checkbox');
+
       expect(selectAllCheckbox.classList.contains('fa-check-square')).to.be.true;
       expect(selectAllCheckbox.classList.contains('fa-square-o')).to.be.false;
       expect(selectAllCheckbox.classList.contains('fa-minus-square')).to.be.false;
@@ -439,7 +441,7 @@ describe('FlTable', function() {
         { name: 'Item 3' }
       ];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -455,6 +457,7 @@ describe('FlTable', function() {
       table.selectRow(data[0]);
 
       var selectAllCheckbox = container.querySelector('.fl-table-select-all-checkbox');
+
       expect(selectAllCheckbox.classList.contains('fa-minus-square')).to.be.true;
       expect(selectAllCheckbox.classList.contains('fl-table-header-checkbox-partial')).to.be.true;
       expect(selectAllCheckbox.classList.contains('fa-square-o')).to.be.false;
@@ -467,7 +470,7 @@ describe('FlTable', function() {
         { name: 'Item 2' }
       ];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -494,6 +497,7 @@ describe('FlTable', function() {
 
       // Select second row via click
       var secondRow = container.querySelectorAll('.fl-table-body .fl-table-row')[1];
+
       secondRow.click();
 
       // Should show all selected state
@@ -502,11 +506,12 @@ describe('FlTable', function() {
 
     it('should handle partial selection with pagination', function() {
       var data = [];
+
       for (var i = 1; i <= 6; i++) {
         data.push({ id: i, name: 'Item ' + i });
       }
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -550,7 +555,7 @@ describe('FlTable', function() {
         { name: 'Item 3' }
       ];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -594,7 +599,7 @@ describe('FlTable', function() {
         { name: 'Carrot', type: 'Vegetable' }
       ];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         searchable: true,
         selection: {
@@ -629,7 +634,7 @@ describe('FlTable', function() {
 
   describe('Search', function() {
     it('should filter the table based on search input', function(done) {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         searchable: true,
         columns: [
@@ -660,7 +665,7 @@ describe('FlTable', function() {
     });
 
     it('should clear the search and show all rows', function(done) {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         searchable: true,
         columns: [
@@ -699,7 +704,7 @@ describe('FlTable', function() {
     it('should fire "search:change" event when search term changes', function(done) {
       var data = [{ name: 'Apple' }, { name: 'Banana' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         searchable: true,
         columns: [{ name: 'Name', field: 'name', searchable: true }],
@@ -731,7 +736,7 @@ describe('FlTable', function() {
     it('should sort the table when a sortable column header is clicked', function() {
       var data = [ { name: 'C' }, { name: 'A' }, { name: 'B' } ];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [ { name: 'Name', field: 'name', sortable: true } ],
         data: data
@@ -751,7 +756,7 @@ describe('FlTable', function() {
     it('should toggle sort direction on subsequent clicks', function() {
       var data = [ { name: 'C' }, { name: 'A' }, { name: 'B' } ];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [ { name: 'Name', field: 'name', sortable: true } ],
         data: data
@@ -777,7 +782,7 @@ describe('FlTable', function() {
         { name: 'Item 2' }
       ];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [
           {
@@ -812,7 +817,7 @@ describe('FlTable', function() {
         { category: 'A', value: 1, name: 'A1' }
       ];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [
           { name: 'Category', field: 'category', sortable: true },
@@ -847,7 +852,7 @@ describe('FlTable', function() {
         data.push({ name: 'Item ' + i });
       }
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [{ name: 'Name', field: 'name' }],
         data: data,
@@ -870,7 +875,7 @@ describe('FlTable', function() {
         data.push({ name: 'Item ' + i });
       }
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [{ name: 'Name', field: 'name' }],
         data: data,
@@ -893,7 +898,7 @@ describe('FlTable', function() {
 
   describe('Event System', function() {
     it('should subscribe to and fire a custom event', function(done) {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [{ name: 'Name', field: 'name' }],
         data: [{ name: 'Test' }]
@@ -917,7 +922,7 @@ describe('FlTable', function() {
 
   describe('Expandable Rows', function() {
     it('should expand and collapse row on trigger click', function() {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [
           { name: 'Expander', field: 'expander', isExpandTrigger: true, width: '40px' },
@@ -943,6 +948,7 @@ describe('FlTable', function() {
 
       // Should be expanded now
       var expandedContent = container.querySelector('.fl-table-row-expanded');
+
       expect(expandedContent).to.exist;
       expect(expandedContent.textContent).to.contain('Details for Item 1');
 
@@ -954,7 +960,7 @@ describe('FlTable', function() {
     });
 
     it('should prevent expansion if onBeforeExpand returns false', function() {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [
           { name: 'Expander', field: 'expander', isExpandTrigger: true },
@@ -985,7 +991,7 @@ describe('FlTable', function() {
       var expandStartFired = false;
       var expandCompleteFired = false;
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [
           { name: 'Expander', field: 'expander', isExpandTrigger: true },
@@ -1013,12 +1019,13 @@ describe('FlTable', function() {
         expect(detail.row.name).to.equal('Item 1');
         expect(detail.contentEl).to.exist;
         expandCompleteFired = true;
-        
+
         // Check that content was loaded
         var expandedContent = container.querySelector('.fl-table-row-expanded .async-content');
+
         expect(expandedContent).to.exist;
         expect(expandedContent.textContent).to.contain('Async content for Item 1');
-        
+
         // Verify both events fired
         expect(expandStartFired).to.be.true;
         expect(expandCompleteFired).to.be.true;
@@ -1032,7 +1039,7 @@ describe('FlTable', function() {
     });
 
     it('should fire expand:error event on async failure', function(done) {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [
           { name: 'Expander', field: 'expander', isExpandTrigger: true },
@@ -1065,7 +1072,7 @@ describe('FlTable', function() {
     });
 
     it('should fire collapse:complete event when row is collapsed', function(done) {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [
           { name: 'Expander', field: 'expander', isExpandTrigger: true },
@@ -1090,7 +1097,7 @@ describe('FlTable', function() {
 
       // First expand
       expandTrigger.click();
-      
+
       // Then collapse
       setTimeout(function() {
         expandTrigger.click();
@@ -1100,7 +1107,7 @@ describe('FlTable', function() {
     it('should support expandRow and collapseRow API methods', function() {
       var data = [{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [
           { name: 'Expander', field: 'expander', isExpandTrigger: true },
@@ -1119,6 +1126,7 @@ describe('FlTable', function() {
       table.expandRow(data[0]);
 
       var expandedContent = container.querySelector('.fl-table-row-expanded .api-expanded');
+
       expect(expandedContent).to.exist;
       expect(expandedContent.textContent).to.contain('API expanded Item 1');
 
@@ -1130,11 +1138,12 @@ describe('FlTable', function() {
 
     it('should handle row expansion with pagination', function() {
       var data = [];
+
       for (var i = 1; i <= 10; i++) {
         data.push({ id: i, name: 'Item ' + i });
       }
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [
           { name: 'Expander', field: 'expander', isExpandTrigger: true },
@@ -1152,19 +1161,22 @@ describe('FlTable', function() {
 
       // Should only show 3 rows on first page
       var rows = container.querySelectorAll('.fl-table-body .fl-table-row');
+
       expect(rows).to.have.lengthOf(3);
 
       // Expand first row
       var expandTrigger = rows[0].querySelector('[data-expand-trigger]');
+
       expandTrigger.click();
 
       var expandedContent = container.querySelector('.fl-table-row-expanded');
+
       expect(expandedContent).to.exist;
       expect(expandedContent.textContent).to.contain('Expanded Item 1');
     });
 
     it('should support custom expand triggers within rendered content', function() {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [
           {
@@ -1186,6 +1198,7 @@ describe('FlTable', function() {
 
       // Find the custom expand button
       var expandButton = container.querySelector('.expand-btn');
+
       expect(expandButton).to.exist;
 
       // Initially not expanded
@@ -1196,12 +1209,13 @@ describe('FlTable', function() {
 
       // Should be expanded now
       var expandedContent = container.querySelector('.fl-table-row-expanded .custom-expanded');
+
       expect(expandedContent).to.exist;
       expect(expandedContent.textContent).to.contain('Details for Item 1');
     });
 
     it('should fire cell:interaction event when custom expand trigger is clicked', function(done) {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [
           {
@@ -1234,11 +1248,12 @@ describe('FlTable', function() {
       });
 
       var expandIcon = container.querySelector('.expand-icon');
+
       expandIcon.click();
     });
 
     it('should support multiple custom expand triggers in different cells', function() {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [
           {
@@ -1267,9 +1282,11 @@ describe('FlTable', function() {
 
       // Test name column expand trigger
       var nameExpand = container.querySelector('.name-expand');
+
       nameExpand.click();
 
       var expandedContent = container.querySelector('.fl-table-row-expanded');
+
       expect(expandedContent).to.exist;
 
       // Collapse
@@ -1278,6 +1295,7 @@ describe('FlTable', function() {
 
       // Test action column expand trigger
       var actionExpand = container.querySelector('.action-expand');
+
       actionExpand.click();
 
       expandedContent = container.querySelector('.fl-table-row-expanded');
@@ -1288,7 +1306,7 @@ describe('FlTable', function() {
     it('should prevent race conditions when expand trigger is clicked rapidly', function(done) {
       var expandCallCount = 0;
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [
           {
@@ -1304,6 +1322,7 @@ describe('FlTable', function() {
           enabled: true,
           onExpand: function(row) {
             expandCallCount++;
+
             return new Promise(function(resolve) {
               setTimeout(function() {
                 resolve('<div class="race-test-content">Content ' + expandCallCount + '</div>');
@@ -1323,19 +1342,19 @@ describe('FlTable', function() {
       // Wait for async operations to complete
       setTimeout(function() {
         var expandedContents = container.querySelectorAll('.fl-table-row-expanded .race-test-content');
-        
+
         // Should only have one expanded content instance, despite multiple clicks
         expect(expandedContents).to.have.lengthOf(1);
-        
+
         // Should only have called onExpand once
         expect(expandCallCount).to.equal(1);
-        
+
         done();
       }, 200);
     });
 
     it('should provide isRowExpanding method to check expansion state', function(done) {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [
           { name: 'Name', field: 'name' },
@@ -1380,7 +1399,7 @@ describe('FlTable', function() {
 
   describe('Destroy', function() {
     it('should remove the table from the DOM', function() {
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [{ name: 'Name', field: 'name' }],
         data: [{ name: 'Test' }]
@@ -1393,7 +1412,7 @@ describe('FlTable', function() {
     it('should remove event listeners', function() {
       var clickSpy = sinon.spy();
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         columns: [{ name: 'Name', field: 'name' }],
         data: [{ name: 'Test' }]
@@ -1424,7 +1443,7 @@ describe('FlTable', function() {
     it('should set a row to partial selection state', function() {
       var data = [{ name: 'Item 1' }, { name: 'Item 2' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true },
         columns: [{ name: 'Name', field: 'name' }],
@@ -1440,7 +1459,7 @@ describe('FlTable', function() {
     it('should remove partial selection state from a row', function() {
       var data = [{ name: 'Item 1' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true },
         columns: [{ name: 'Name', field: 'name' }],
@@ -1457,7 +1476,7 @@ describe('FlTable', function() {
     it('should clear all partial selection states', function() {
       var data = [{ name: 'Item 1' }, { name: 'Item 2' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true },
         columns: [{ name: 'Name', field: 'name' }],
@@ -1479,7 +1498,7 @@ describe('FlTable', function() {
     it('should render FontAwesome icon for partially selected rows', function() {
       var data = [{ name: 'Item 1' }, { name: 'Item 2' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true },
         columns: [{ name: 'Name', field: 'name' }],
@@ -1504,7 +1523,7 @@ describe('FlTable', function() {
     it('should show header checkbox in partial state when any row has partial selection', function() {
       var data = [{ name: 'Item 1' }, { name: 'Item 2' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true },
         columns: [{ name: 'Name', field: 'name' }],
@@ -1527,7 +1546,7 @@ describe('FlTable', function() {
     it('should handle partial selection with regular selection', function() {
       var data = [{ name: 'Item 1' }, { name: 'Item 2' }, { name: 'Item 3' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true },
         columns: [{ name: 'Name', field: 'name' }],
@@ -1563,7 +1582,7 @@ describe('FlTable', function() {
     it('should initialize selection states from configuration', function() {
       var data = [{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }, { id: 3, name: 'Item 3' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -1588,7 +1607,7 @@ describe('FlTable', function() {
         { id: 3, name: 'Item 3' }
       ];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true },
         columns: [{ name: 'Name', field: 'name' }],
@@ -1609,7 +1628,7 @@ describe('FlTable', function() {
         { id: 4, name: 'Item 4' }
       ];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: {
           enabled: true,
@@ -1636,7 +1655,7 @@ describe('FlTable', function() {
     it('should remove partial state when clicking on partial row', function() {
       var data = [{ name: 'Item 1' }, { name: 'Item 2' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true, rowClickEnabled: true },
         columns: [{ name: 'Name', field: 'name' }],
@@ -1649,6 +1668,7 @@ describe('FlTable', function() {
 
       // Click the partial row checkbox
       var partialIcon = container.querySelector('.fl-table-row-checkbox-partial');
+
       partialIcon.click();
 
       // Should no longer be partial
@@ -1660,11 +1680,12 @@ describe('FlTable', function() {
 
     it('should deselect current page when clicking select-all checkbox in partial state', function() {
       var data = [];
+
       for (var i = 1; i <= 6; i++) {
         data.push({ id: i, name: 'Item ' + i });
       }
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true },
         columns: [{ name: 'Name', field: 'name' }],
@@ -1696,6 +1717,7 @@ describe('FlTable', function() {
       var selectedCurrentPage = table.getCurrentPageData().filter(function(row) {
         return table.getSelectedRows().indexOf(row) > -1;
       });
+
       expect(selectedCurrentPage).to.have.lengthOf(0);
     });
 
@@ -1706,7 +1728,7 @@ describe('FlTable', function() {
         { name: 'Item 3' }
       ];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true },
         columns: [{ name: 'Name', field: 'name' }],
@@ -1739,7 +1761,7 @@ describe('FlTable', function() {
     it('should follow consistent click behavior for individual rows: partial → selected → unselected', function() {
       var data = [{ name: 'Item 1' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true },
         columns: [{ name: 'Name', field: 'name' }],
@@ -1769,7 +1791,7 @@ describe('FlTable', function() {
     it('should follow consistent click behavior for select-all: empty → partial → selected → empty', function() {
       var data = [{ name: 'Item 1' }, { name: 'Item 2' }, { name: 'Item 3' }];
 
-      table = new FlTable({
+      table = new Fliplet.UI.Table({
         target: '#test-container',
         selection: { enabled: true, multiple: true },
         columns: [{ name: 'Name', field: 'name' }],
