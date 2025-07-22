@@ -463,6 +463,59 @@ if (table.isRowExpanding(rowData)) {
 }
 ```
 
+### Nested Tables
+
+Fliplet.UI.Table supports creating tables within expanded rows, perfect for hierarchical data displays with multi-level selection:
+
+```javascript
+const departmentTable = new Fliplet.UI.Table({
+    target: '#departments',
+    selection: { enabled: true, multiple: true }, // Enable department selection
+    columns: [
+        { name: 'Department', field: 'name' },
+        { name: 'Manager', field: 'manager' },
+        { name: 'Employee Count', field: 'count' }
+    ],
+    expandable: {
+        enabled: true,
+        onExpand: function(dept) {
+            // Create a container for the nested table
+            const container = document.createElement('div');
+            container.innerHTML = '<div id="employees-' + dept.id + '"></div>';
+
+            // Load employee data asynchronously
+            loadEmployees(dept.id).then(employees => {
+                // Create nested table with its own selection
+                const employeeTable = new Fliplet.UI.Table({
+                    target: '#employees-' + dept.id,
+                    selection: { enabled: true, multiple: true },
+                    columns: [
+                        { name: 'Name', field: 'name', sortable: true },
+                        { name: 'Position', field: 'position', sortable: true },
+                        { name: 'Email', field: 'email' }
+                    ],
+                    data: employees
+                });
+            });
+
+            return container;
+        }
+    },
+    data: departments
+});
+
+// Get selections at both levels
+const selectedDepartments = departmentTable.getSelectedRows();
+// Track nested table instances to get their selections
+```
+
+Key features:
+- **Multi-level selection**: Select items at parent and child levels independently
+- **Async data loading**: Load nested data on-demand
+- **Independent state**: Each table maintains its own selection, sort, and pagination state
+
+See the [nested tables demo](demo/nested-tables.html) for a complete example, or test performance at scale with the [large dataset stress test](demo/large-nested-tables.html).
+
 ### Advanced Custom Trigger Examples
 
 #### Multiple Triggers in Different Columns
@@ -507,12 +560,12 @@ const table = new Fliplet.UI.Table({
 // Handle different trigger types
 table.on('cell:interaction', function(detail) {
     const trigger = detail.target;
-    
+
     if (trigger.classList.contains('expand-chevron')) {
         console.log('Chevron clicked');
         // Update chevron icon
-        trigger.className = table.isRowExpanded(detail.row) 
-            ? 'fas fa-chevron-down expand-chevron' 
+        trigger.className = table.isRowExpanded(detail.row)
+            ? 'fas fa-chevron-down expand-chevron'
             : 'fas fa-chevron-right expand-chevron';
     } else if (trigger.classList.contains('clickable-badge')) {
         console.log('Status badge clicked');
@@ -536,7 +589,7 @@ const table = new Fliplet.UI.Table({
                 const isExpanded = table && table.isRowExpanded(row);
                 const icon = isExpanded ? '🔽' : '▶️';
                 const expandText = isExpanded ? 'Hide' : 'Show';
-                
+
                 return `
                     <div class="user-cell">
                         <strong>${row.name}</strong>
@@ -639,7 +692,7 @@ table.on('selection:change', function(detail) {
 ### Behavior with Pagination and Search
 
 - **Pagination**: When navigating between pages, the header checkbox shows the state for the current page only
-- **Search**: When filtering data, the header checkbox shows the state for visible/filtered rows only  
+- **Search**: When filtering data, the header checkbox shows the state for visible/filtered rows only
 - **Cross-page Selection**: You can select rows across different pages, and the header checkbox will reflect the current page state
 
 ### Custom Partial Selection for Individual Rows
@@ -727,21 +780,21 @@ const table = new Fliplet.UI.Table({
 
 ```javascript
 const fileData = [
-    { 
-        id: 1, 
-        name: 'Documents', 
+    {
+        id: 1,
+        name: 'Documents',
         type: 'folder',
         _selected: true // This row will be selected
     },
-    { 
-        id: 2, 
-        name: 'Projects', 
+    {
+        id: 2,
+        name: 'Projects',
         type: 'folder',
         _partiallySelected: true // This row will show as partially selected
     },
-    { 
-        id: 3, 
-        name: 'file.txt', 
+    {
+        id: 3,
+        name: 'file.txt',
         type: 'file'
         // This row will be unselected
     }
@@ -791,7 +844,7 @@ const fileManagerData = [
         _partiallySelected: true // Some files inside are selected
     },
     {
-        id: 'folder-2', 
+        id: 'folder-2',
         name: 'Images',
         type: 'folder',
         size: '850 MB',
@@ -800,7 +853,7 @@ const fileManagerData = [
     {
         id: 'file-1',
         name: 'report.pdf',
-        type: 'file', 
+        type: 'file',
         size: '2.3 MB'
         // Not selected
     }

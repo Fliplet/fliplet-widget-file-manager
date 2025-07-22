@@ -30,7 +30,7 @@
     }
 
     this.selection = [];
-    this.partialSelection = new Map(); // Track partial selection states for individual rows
+    this.partialSelection = new window.Map(); // Track partial selection states for individual rows
     this.sort = {};
     this.pagination = {
       currentPage: 1,
@@ -38,8 +38,8 @@
     };
     this.originalData = options.data.slice(0);
     this._searchDebounce = null;
-    this._expandedRows = new Map(); // Track expanded rows
-    this._expandingRows = new Set(); // Track rows currently being expanded
+    this._expandedRows = new window.Map(); // Track expanded rows
+    this._expandingRows = new window.Set(); // Track rows currently being expanded
 
     // Private properties
     this._events = {};
@@ -246,8 +246,39 @@
             }
           });
 
-          // Re-render to update UI after clearing partial selections
-          self.renderBody();
+          // Update UI for partial selection rows without full re-render
+          currentPageData.forEach(function(rowData, index) {
+            if (allPartialRows.indexOf(rowData) > -1) {
+              // Get direct children rows only, not nested table rows
+              var rowElements = Array.prototype.filter.call(
+                self.body.children,
+                function(child) {
+                  return child.classList.contains('fl-table-row');
+                }
+              );
+              var rowElement = rowElements[index];
+
+              if (rowElement && (!rowElement.nextSibling || !rowElement.nextSibling.classList.contains('fl-table-row-expanded'))) {
+                // Only update rows that are not expanded
+                var checkboxCell = rowElement.querySelector('.fl-table-checkbox');
+
+                if (checkboxCell) {
+                  // Replace partial checkbox with regular checkbox
+                  checkboxCell.innerHTML = '';
+
+                  var checkbox = document.createElement('input');
+
+                  checkbox.type = 'checkbox';
+                  checkbox.checked = true;
+                  checkbox.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    self.toggleRowSelection(rowData, rowElement, 'checkbox');
+                  });
+                  checkboxCell.appendChild(checkbox);
+                }
+              }
+            }
+          });
 
           // Then select all rows on current page (this handles the current page)
           self.selectCurrentPage();
@@ -674,15 +705,27 @@
         self.selection.push(rowData);
       }
 
-      var rowElement = self.body.querySelectorAll('.fl-table-row')[index];
+      // Get direct children rows only, not nested table rows
+      var rowElements = Array.prototype.filter.call(
+        self.body.children,
+        function(child) {
+          return child.classList.contains('fl-table-row');
+        }
+      );
+      var rowElement = rowElements[index];
 
       if (rowElement) {
         rowElement.classList.add('fl-table-selected');
 
-        var checkbox = rowElement.querySelector('input[type="checkbox"]');
+        // Only select checkbox that is a direct child of this row's checkbox cell
+        var checkboxCell = rowElement.querySelector('.fl-table-checkbox');
 
-        if (checkbox) {
-          checkbox.checked = true;
+        if (checkboxCell) {
+          var checkbox = checkboxCell.querySelector('input[type="checkbox"]');
+
+          if (checkbox && checkbox.parentElement === checkboxCell) {
+            checkbox.checked = true;
+          }
         }
       }
     });
@@ -710,15 +753,27 @@
         deselected.push(rowData);
       }
 
-      var rowElement = self.body.querySelectorAll('.fl-table-row')[index];
+      // Get direct children rows only, not nested table rows
+      var rowElements = Array.prototype.filter.call(
+        self.body.children,
+        function(child) {
+          return child.classList.contains('fl-table-row');
+        }
+      );
+      var rowElement = rowElements[index];
 
       if (rowElement) {
         rowElement.classList.remove('fl-table-selected');
 
-        var checkbox = rowElement.querySelector('input[type="checkbox"]');
+        // Only select checkbox that is a direct child of this row's checkbox cell
+        var checkboxCell = rowElement.querySelector('.fl-table-checkbox');
 
-        if (checkbox) {
-          checkbox.checked = false;
+        if (checkboxCell) {
+          var checkbox = checkboxCell.querySelector('input[type="checkbox"]');
+
+          if (checkbox && checkbox.parentElement === checkboxCell) {
+            checkbox.checked = false;
+          }
         }
       }
     });

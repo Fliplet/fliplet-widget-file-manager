@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fliplet.UI.Table - Large Nested Tables Stress Test</title>
+    <link rel="stylesheet" href="../src/styles/fl-table.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+            margin: 0;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #dc3545;
+            padding-bottom: 10px;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        .warning-box h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+        .stat-card h4 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-size: 14px;
+            font-weight: normal;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .controls button {
+            padding: 10px 16px;
+            border: 1px solid #007bff;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .controls button:hover {
+            background: #0056b3;
+            border-color: #0056b3;
+        }
+        .controls button:disabled {
+            background: #6c757d;
+            border-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .controls input[type="number"] {
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            width: 80px;
+        }
+        #table-container {
+            margin: 20px 0;
+            position: relative;
+        }
+        .performance-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .performance-log h3 {
+            margin-top: 0;
+            color: #495057;
+            font-family: Arial, sans-serif;
+        }
+        .log-entry {
+            padding: 2px 0;
+        }
+        .log-time {
+            color: #6c757d;
+            margin-right: 10px;
+        }
+        .log-duration {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .loading-content {
+            text-align: center;
+        }
+        .loading-spinner {
+            font-size: 48px;
+            color: #007bff;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            width: 300px;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px auto;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #007bff;
+            transition: width 0.3s ease;
+        }
+
+        /* Department type badges */
+        .dept-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .dept-type-1 { background: #e3f2fd; color: #1565c0; }
+        .dept-type-2 { background: #fff3e0; color: #ef6c00; }
+        .dept-type-3 { background: #e8f5e8; color: #2e7d32; }
+        .dept-type-4 { background: #f3e5f5; color: #7b1fa2; }
+        .dept-type-5 { background: #fce4ec; color: #c2185b; }
+
+        /* Nested table container */
+        .nested-table-container {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .nested-loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fa fa-database"></i> Fliplet.UI.Table - Large Dataset Stress Test</h1>
+        <p>Testing nested tables with large datasets: <strong>200 departments × 200 employees each = 40,000 total rows</strong></p>
+
+        <div class="warning-box">
+            <h3><i class="fa fa-exclamation-triangle"></i> Performance Warning</h3>
+            <p>This demo creates tables with up to 40,000 rows. Performance may vary based on your device and browser. Use the controls below to adjust the dataset size if needed.</p>
+            <p><strong>Tip:</strong> Disable pagination to stress test rendering all rows at once, but be aware this may impact performance significantly with large datasets.</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Main Table Rows</h4>
+                <div class="stat-value" id="main-rows">0</div>
+            </div>
+            <div class="stat-card">
+                <h4>Expanded Departments</h4>
+                <div class="stat-value" id="expanded-count">0</div>
+            </div>
+            <div class="stat-card">
+                <h4>Total Rows Rendered</h4>
+                <div class="stat-value" id="total-rows">0</div>
+            </div>
+            <div class="stat-card">
+                <h4>Selected Departments</h4>
+                <div class="stat-value" id="selected-depts">0</div>
+            </div>
+            <div class="stat-card">
+                <h4>Selected Employees</h4>
+                <div class="stat-value" id="selected-emps">0</div>
+            </div>
+            <div class="stat-card">
+                <h4>Memory Usage</h4>
+                <div class="stat-value" id="memory-usage">N/A</div>
+            </div>
+            <div class="stat-card">
+                <h4>Pagination</h4>
+                <div class="stat-value" id="pagination-status">Enabled</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <label>Departments: <input type="number" id="dept-count" value="200" min="1" max="500"></label>
+            <label>Employees per dept: <input type="number" id="emp-count" value="200" min="1" max="500"></label>
+            <label style="display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" id="enable-pagination" checked>
+                Enable Pagination
+            </label>
+            <button id="generate-data">Generate Data</button>
+            <button id="expand-first-10">Expand First 10</button>
+            <button id="expand-all" disabled>Expand All (Not Recommended)</button>
+            <button id="collapse-all">Collapse All</button>
+            <button id="select-all-main">Select All Departments</button>
+            <button id="clear-all">Clear All Selections</button>
+            <button id="test-performance">Run Performance Test</button>
+        </div>
+
+        <div id="table-container"></div>
+
+        <div class="performance-log">
+            <h3><i class="fa fa-tachometer"></i> Performance Log</h3>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <script src="../src/fl-table.js"></script>
+    <script>
+        let mainTable;
+        const nestedTables = new Map();
+        const expandedDepts = new Set();
+        let departmentData = [];
+        let employeeDataCache = new Map();
+
+        // Performance monitoring
+        function logPerformance(operation, duration) {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-time">${timestamp}</span>${operation}: <span class="log-duration">${duration.toFixed(2)}ms</span>`;
+            logEl.insertBefore(entry, logEl.firstChild);
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('main-rows').textContent = departmentData.length;
+            document.getElementById('expanded-count').textContent = expandedDepts.size;
+
+            let totalEmployeeRows = 0;
+            nestedTables.forEach(() => {
+                totalEmployeeRows += parseInt(document.getElementById('emp-count').value);
+            });
+            document.getElementById('total-rows').textContent = departmentData.length + totalEmployeeRows;
+
+            // Update memory usage if available
+            if (performance.memory) {
+                const usedMB = (performance.memory.usedJSHeapSize / 1048576).toFixed(1);
+                document.getElementById('memory-usage').textContent = usedMB + ' MB';
+            }
+        }
+
+        // Generate mock department data
+        function generateDepartments(count) {
+            const departments = [];
+            const types = ['Engineering', 'Sales', 'Marketing', 'Operations', 'Finance'];
+            const locations = ['New York', 'London', 'Tokyo', 'Berlin', 'Sydney', 'Toronto', 'Paris', 'Singapore'];
+
+            for (let i = 1; i <= count; i++) {
+                const type = types[i % types.length];
+                departments.push({
+                    id: i,
+                    name: `${type} - Division ${i}`,
+                    type: type,
+                    manager: `Manager ${i}`,
+                    employeeCount: parseInt(document.getElementById('emp-count').value),
+                    location: locations[i % locations.length],
+                    budget: '$' + (Math.floor(Math.random() * 5000) + 1000) + 'K',
+                    performance: Math.floor(Math.random() * 100) + '%'
+                });
+            }
+            return departments;
+        }
+
+        // Generate mock employee data
+        function generateEmployees(deptId, count) {
+            const employees = [];
+            const positions = ['Developer', 'Designer', 'Analyst', 'Consultant', 'Specialist', 'Coordinator'];
+            const statuses = ['active', 'active', 'active', 'vacation', 'training'];
+
+            for (let i = 1; i <= count; i++) {
+                employees.push({
+                    id: deptId * 1000 + i,
+                    name: `Employee ${deptId}-${i}`,
+                    position: positions[i % positions.length],
+                    email: `emp${deptId}_${i}@company.com`,
+                    status: statuses[i % statuses.length],
+                    experience: Math.floor(Math.random() * 10) + ' years',
+                    salary: '$' + (Math.floor(Math.random() * 80) + 40) + 'K',
+                    performance: Math.floor(Math.random() * 100)
+                });
+            }
+            return employees;
+        }
+
+        // Simulate async loading of employee data
+        function loadEmployeeData(departmentId) {
+            return new Promise((resolve) => {
+                const startTime = performance.now();
+
+                // Check cache first
+                if (employeeDataCache.has(departmentId)) {
+                    const duration = performance.now() - startTime;
+                    logPerformance(`Loaded employees for dept ${departmentId} (cached)`, duration);
+                    resolve(employeeDataCache.get(departmentId));
+                    return;
+                }
+
+                // Simulate network delay
+                setTimeout(() => {
+                    const count = parseInt(document.getElementById('emp-count').value);
+                    const employees = generateEmployees(departmentId, count);
+                    employeeDataCache.set(departmentId, employees);
+
+                    const duration = performance.now() - startTime;
+                    logPerformance(`Generated ${count} employees for dept ${departmentId}`, duration);
+                    resolve(employees);
+                }, 300 + Math.random() * 200); // 300-500ms delay
+            });
+        }
+
+        // Create nested table content
+        function createNestedTableContent(department) {
+            const container = document.createElement('div');
+            container.className = 'nested-table-container';
+            container.innerHTML = `
+                <div class="nested-loading">
+                    <i class="fa fa-spinner fa-spin fa-2x"></i>
+                    <p>Loading ${department.employeeCount} employees...</p>
+                </div>
+            `;
+
+            // Track expanded department
+            expandedDepts.add(department.id);
+            updateStats();
+
+            // Load employee data asynchronously
+            loadEmployeeData(department.id)
+                .then(employees => {
+                    const startTime = performance.now();
+
+                    container.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h4 style="margin: 0;">Team Members - ${department.name}</h4>
+                            <span style="color: #6c757d; font-size: 14px;">
+                                ${employees.length} employees |
+                                <span class="selected-count">0</span> selected
+                            </span>
+                        </div>
+                        <div id="nested-table-${department.id}"></div>
+                    `;
+
+                    // Create nested table
+                    const paginationEnabled = document.getElementById('enable-pagination').checked;
+                    const tableConfig = {
+                        target: `#nested-table-${department.id}`,
+                        selection: {
+                            enabled: true,
+                            multiple: true
+                        },
+                        searchable: true,
+                        columns: [
+                            {
+                                name: 'Name',
+                                field: 'name',
+                                sortable: true,
+                                searchable: true
+                            },
+                            {
+                                name: 'Position',
+                                field: 'position',
+                                sortable: true,
+                                searchable: true
+                            },
+                            {
+                                name: 'Email',
+                                field: 'email',
+                                sortable: true
+                            },
+                            {
+                                name: 'Status',
+                                field: 'status',
+                                sortable: true,
+                                render: function(row) {
+                                    const colors = {
+                                        active: '#28a745',
+                                        vacation: '#ffc107',
+                                        training: '#17a2b8'
+                                    };
+                                    return `<span style="color: ${colors[row.status] || '#6c757d'}">${row.status}</span>`;
+                                }
+                            },
+                            {
+                                name: 'Experience',
+                                field: 'experience',
+                                sortable: true
+                            },
+                            {
+                                name: 'Performance',
+                                field: 'performance',
+                                sortable: true,
+                                render: function(row) {
+                                    const color = row.performance > 80 ? '#28a745' :
+                                                 row.performance > 60 ? '#ffc107' : '#dc3545';
+                                    return `<span style="color: ${color}; font-weight: bold;">${row.performance}%</span>`;
+                                }
+                            }
+                        ],
+                        data: employees
+                    };
+
+                    // Add pagination if enabled
+                    if (paginationEnabled) {
+                        tableConfig.pagination = {
+                            pageSize: 20
+                        };
+                    }
+
+                    const nestedTable = new Fliplet.UI.Table(tableConfig);
+
+                    // Store reference
+                    nestedTables.set(department.id, nestedTable);
+
+                    // Update selected count
+                    nestedTable.on('selection:change', function(detail) {
+                        const selectedCount = container.querySelector('.selected-count');
+                        selectedCount.textContent = detail.selected.length;
+                        updateEmployeeSelectionCount();
+                    });
+
+                    const duration = performance.now() - startTime;
+                    logPerformance(`Rendered nested table for dept ${department.id}`, duration);
+                    updateStats();
+                })
+                .catch(error => {
+                    container.innerHTML = `
+                        <div style="color: #dc3545; text-align: center; padding: 40px;">
+                            <i class="fa fa-exclamation-triangle fa-2x"></i>
+                            <p>Failed to load employee data: ${error.message}</p>
+                        </div>
+                    `;
+                });
+
+            return container;
+        }
+
+        // Update employee selection count
+        function updateEmployeeSelectionCount() {
+            let totalSelected = 0;
+            nestedTables.forEach(table => {
+                totalSelected += table.getSelectedRows().length;
+            });
+            document.getElementById('selected-emps').textContent = totalSelected;
+        }
+
+        // Initialize table with data
+        function initializeTable() {
+            const startTime = performance.now();
+
+            if (mainTable) {
+                mainTable.destroy();
+                nestedTables.clear();
+                expandedDepts.clear();
+                employeeDataCache.clear();
+            }
+
+            const deptCount = parseInt(document.getElementById('dept-count').value);
+            departmentData = generateDepartments(deptCount);
+
+            const paginationEnabled = document.getElementById('enable-pagination').checked;
+            const mainTableConfig = {
+                target: '#table-container',
+                className: 'large-dataset-table',
+                selection: {
+                    enabled: true,
+                    multiple: true
+                },
+                searchable: true,
+                columns: [
+                    {
+                        name: 'Department',
+                        field: 'name',
+                        sortable: true,
+                        searchable: true,
+                        render: function(row) {
+                            const typeNum = ['Engineering', 'Sales', 'Marketing', 'Operations', 'Finance'].indexOf(row.type) + 1;
+                            const icon = mainTable && mainTable.isRowExpanded(row) ? 'fa-chevron-down' : 'fa-chevron-right';
+                            return `<i class="fa ${icon}" data-expand style="cursor: pointer; margin-right: 8px; color: #007bff; font-size: 12px;"></i>
+                                    <span class="dept-badge dept-type-${typeNum}">${row.name}</span>`;
+                        }
+                    },
+                    {
+                        name: 'Manager',
+                        field: 'manager',
+                        sortable: true,
+                        searchable: true
+                    },
+                    {
+                        name: 'Employees',
+                        field: 'employeeCount',
+                        sortable: true
+                    },
+                    {
+                        name: 'Location',
+                        field: 'location',
+                        sortable: true
+                    },
+                    {
+                        name: 'Budget',
+                        field: 'budget',
+                        sortable: true
+                    },
+                    {
+                        name: 'Performance',
+                        field: 'performance',
+                        sortable: true,
+                        render: function(row) {
+                            const value = parseInt(row.performance);
+                            const color = value > 80 ? '#28a745' : value > 60 ? '#ffc107' : '#dc3545';
+                            return `<span style="color: ${color}; font-weight: bold;">${row.performance}</span>`;
+                        }
+                    }
+                ],
+                expandable: {
+                    enabled: true,
+                    onExpand: function(row) {
+                        return createNestedTableContent(row);
+                    }
+                },
+                data: departmentData
+            };
+
+            // Add pagination if enabled
+            if (paginationEnabled) {
+                mainTableConfig.pagination = {
+                    pageSize: 20
+                };
+            }
+
+            // Update pagination status display
+            document.getElementById('pagination-status').textContent = paginationEnabled ? 'Enabled' : 'Disabled';
+
+            mainTable = new Fliplet.UI.Table(mainTableConfig);
+
+            // Event listeners
+            mainTable.on('selection:change', function(detail) {
+                document.getElementById('selected-depts').textContent = detail.selected.length;
+            });
+
+            mainTable.on('expand:start', function(detail) {
+                const chevron = detail.rowEl.querySelector('.fa-chevron-right, .fa-chevron-down');
+                if (chevron) {
+                    chevron.className = 'fa fa-spinner fa-spin';
+                }
+            });
+
+            mainTable.on('expand:complete', function(detail) {
+                const chevron = detail.rowEl.querySelector('.fa-spinner');
+                if (chevron) {
+                    chevron.className = 'fa fa-chevron-down';
+                }
+            });
+
+            mainTable.on('collapse:complete', function(detail) {
+                const chevron = detail.rowEl.querySelector('.fa-chevron-down');
+                if (chevron) {
+                    chevron.className = 'fa fa-chevron-right';
+                }
+
+                // Clean up
+                nestedTables.delete(detail.row.id);
+                expandedDepts.delete(detail.row.id);
+                updateStats();
+            });
+
+            const duration = performance.now() - startTime;
+            logPerformance(`Generated main table with ${deptCount} departments`, duration);
+            updateStats();
+        }
+
+        // Control button handlers
+        document.getElementById('generate-data').addEventListener('click', function() {
+            const deptCount = parseInt(document.getElementById('dept-count').value);
+            const empCount = parseInt(document.getElementById('emp-count').value);
+
+            if (confirm(`This will create ${deptCount} departments with ${empCount} employees each (${deptCount * empCount} total rows). Continue?`)) {
+                initializeTable();
+            }
+        });
+
+        document.getElementById('expand-first-10').addEventListener('click', function() {
+            const startTime = performance.now();
+            const toExpand = departmentData.slice(0, 10);
+
+            toExpand.forEach((dept, index) => {
+                setTimeout(() => {
+                    mainTable.expandRow(dept);
+                }, index * 100); // Stagger expansion
+            });
+
+            const duration = performance.now() - startTime;
+            logPerformance('Started expanding first 10 departments', duration);
+        });
+
+        document.getElementById('collapse-all').addEventListener('click', function() {
+            const startTime = performance.now();
+            departmentData.forEach(dept => {
+                mainTable.collapseRow(dept);
+            });
+            const duration = performance.now() - startTime;
+            logPerformance(`Collapsed ${expandedDepts.size} departments`, duration);
+        });
+
+        document.getElementById('select-all-main').addEventListener('click', function() {
+            const startTime = performance.now();
+            mainTable.selectAll();
+            const duration = performance.now() - startTime;
+            logPerformance(`Selected all ${departmentData.length} departments`, duration);
+        });
+
+        document.getElementById('clear-all').addEventListener('click', function() {
+            const startTime = performance.now();
+
+            // Clear main table selection
+            mainTable.deselectAll();
+
+            // Clear all nested table selections
+            nestedTables.forEach(table => {
+                table.deselectAll();
+            });
+
+            const duration = performance.now() - startTime;
+            logPerformance('Cleared all selections', duration);
+        });
+
+        document.getElementById('test-performance').addEventListener('click', async function() {
+            const button = this;
+            button.disabled = true;
+
+            logPerformance('=== Starting Performance Test ===', 0);
+
+            // Test 1: Select all departments
+            let startTime = performance.now();
+            mainTable.selectAll();
+            logPerformance('Test 1: Select all departments', performance.now() - startTime);
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Test 2: Expand first 5 departments
+            startTime = performance.now();
+            for (let i = 0; i < 5; i++) {
+                mainTable.expandRow(departmentData[i]);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            logPerformance('Test 2: Expanded 5 departments', performance.now() - startTime);
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Test 3: Select employees in first nested table
+            const firstNestedTable = nestedTables.values().next().value;
+            if (firstNestedTable) {
+                startTime = performance.now();
+                firstNestedTable.selectCurrentPage();
+                logPerformance('Test 3: Selected employees in first nested table', performance.now() - startTime);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Test 4: Deselect all departments (should preserve employee selections)
+            startTime = performance.now();
+            mainTable.deselectAll();
+            logPerformance('Test 4: Deselected all departments', performance.now() - startTime);
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Test 5: Search in main table
+            const searchInput = document.querySelector('.fl-table-search input');
+            if (searchInput) {
+                startTime = performance.now();
+                searchInput.value = 'Engineering';
+                searchInput.dispatchEvent(new Event('input'));
+                logPerformance('Test 5: Searched for "Engineering"', performance.now() - startTime);
+            }
+
+            logPerformance('=== Performance Test Complete ===', 0);
+            button.disabled = false;
+        });
+
+        // Pagination checkbox handler
+        document.getElementById('enable-pagination').addEventListener('change', function() {
+            const status = this.checked ? 'Enabled' : 'Disabled';
+            document.getElementById('pagination-status').textContent = status;
+            logPerformance(`Pagination ${status} (will apply on next data generation)`, 0);
+        });
+
+        // Initialize with default data
+        document.addEventListener('DOMContentLoaded', function() {
+            logPerformance('Page loaded, ready to generate data', 0);
+            updateStats();
+        });
+    </script>
+</body>
+</html>

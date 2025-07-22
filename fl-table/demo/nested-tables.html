@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fliplet.UI.Table - Nested Tables Demo</title>
+    <link rel="stylesheet" href="../src/styles/fl-table.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .info-box {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .controls button {
+            padding: 10px 16px;
+            border: 1px solid #007bff;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .controls button:hover {
+            background: #0056b3;
+            border-color: #0056b3;
+        }
+        #table-container {
+            margin: 20px 0;
+        }
+        .event-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .event-log h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .event-log pre {
+            background: white;
+            padding: 10px;
+            border-radius: 3px;
+            border-left: 4px solid #007bff;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* Department badges */
+        .dept-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .dept-engineering { background: #e3f2fd; color: #1565c0; }
+        .dept-sales { background: #fff3e0; color: #ef6c00; }
+        .dept-marketing { background: #e8f5e8; color: #2e7d32; }
+        .dept-hr { background: #f3e5f5; color: #7b1fa2; }
+
+        /* Status badges */
+        .status-badge {
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-inactive { background: #f8d7da; color: #721c24; }
+        .status-vacation { background: #fff3cd; color: #856404; }
+
+        /* Nested table container styling */
+        .nested-table-container {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .nested-table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .nested-table-header h4 {
+            margin: 0;
+            color: #495057;
+        }
+        .nested-table-info {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .loading-message {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .loading-message i {
+            font-size: 32px;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+
+        /* Override some table styles for nested tables */
+        .nested-table-container .fl-table {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .nested-table-container .fl-table-header {
+            background: #e9ecef;
+        }
+
+        /* Selected departments info */
+        .selection-info {
+            display: inline-block;
+            margin-left: 20px;
+            padding: 8px 16px;
+            background: #e7f3ff;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #0056b3;
+        }
+        .selection-info i {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fa fa-sitemap"></i> Fliplet.UI.Table - Nested Tables Demo</h1>
+        <p>This demo showcases how to use Fliplet.UI.Table within expanded rows to create nested table structures with async data loading.</p>
+
+        <div class="info-box">
+            <h3><i class="fa fa-info-circle"></i> Demo Features</h3>
+            <ul>
+                <li><strong>Main Table:</strong> Shows departments with employee counts and row selection</li>
+                <li><strong>Expanded Rows:</strong> Click on a row to expand and see team members</li>
+                <li><strong>Async Loading:</strong> Employee data is loaded asynchronously (simulated 1-2 second delay)</li>
+                <li><strong>Nested Table Features:</strong> Selection, sorting, and pagination in nested tables</li>
+                <li><strong>Independent State:</strong> Each table (main and nested) maintains its own selection and sort state</li>
+                <li><strong>Multi-level Selection:</strong> Select departments and/or individual employees</li>
+            </ul>
+        </div>
+
+        <div class="controls">
+            <button id="expand-all">Expand All Departments</button>
+            <button id="collapse-all">Collapse All Departments</button>
+            <button id="get-selections">Get All Selections</button>
+            <span class="selection-info" id="dept-selection-info">
+                <i class="fa fa-check-square-o"></i>
+                <span id="dept-count">0</span> departments selected
+            </span>
+        </div>
+
+        <div id="table-container"></div>
+
+        <div class="event-log">
+            <h3><i class="fa fa-list"></i> Event Log</h3>
+            <pre id="log"></pre>
+        </div>
+    </div>
+
+    <script src="../src/fl-table.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let mainTable;
+            const nestedTables = new Map(); // Store references to nested tables
+            const logEl = document.getElementById('log');
+
+            function logEvent(message) {
+                const timestamp = new Date().toLocaleTimeString();
+                logEl.textContent = `[${timestamp}] ${message}\n` + logEl.textContent;
+            }
+
+            // Mock department data
+            const departmentData = [
+                {
+                    id: 1,
+                    name: 'Engineering',
+                    manager: 'Alice Johnson',
+                    employeeCount: 25,
+                    location: 'San Francisco',
+                    budget: '$2.5M'
+                },
+                {
+                    id: 2,
+                    name: 'Sales',
+                    manager: 'Bob Wilson',
+                    employeeCount: 18,
+                    location: 'New York',
+                    budget: '$1.8M'
+                },
+                {
+                    id: 3,
+                    name: 'Marketing',
+                    manager: 'Carol Davis',
+                    employeeCount: 12,
+                    location: 'Los Angeles',
+                    budget: '$1.2M'
+                },
+                {
+                    id: 4,
+                    name: 'HR',
+                    manager: 'David Brown',
+                    employeeCount: 8,
+                    location: 'Chicago',
+                    budget: '$800K'
+                }
+            ];
+
+            // Mock employee data by department
+            const employeesByDepartment = {
+                1: [ // Engineering
+                    { id: 101, name: 'John Doe', position: 'Senior Developer', email: 'john.doe@company.com', status: 'active', salary: '$120,000' },
+                    { id: 102, name: 'Jane Smith', position: 'DevOps Engineer', email: 'jane.smith@company.com', status: 'active', salary: '$115,000' },
+                    { id: 103, name: 'Mike Johnson', position: 'Frontend Developer', email: 'mike.j@company.com', status: 'vacation', salary: '$95,000' },
+                    { id: 104, name: 'Sarah Williams', position: 'Backend Developer', email: 'sarah.w@company.com', status: 'active', salary: '$110,000' },
+                    { id: 105, name: 'Tom Brown', position: 'QA Engineer', email: 'tom.b@company.com', status: 'active', salary: '$85,000' },
+                    { id: 106, name: 'Emily Davis', position: 'Tech Lead', email: 'emily.d@company.com', status: 'active', salary: '$140,000' },
+                    { id: 107, name: 'Chris Wilson', position: 'Junior Developer', email: 'chris.w@company.com', status: 'active', salary: '$75,000' },
+                    { id: 108, name: 'Lisa Anderson', position: 'UX Designer', email: 'lisa.a@company.com', status: 'active', salary: '$100,000' }
+                ],
+                2: [ // Sales
+                    { id: 201, name: 'Robert Taylor', position: 'Sales Director', email: 'robert.t@company.com', status: 'active', salary: '$150,000' },
+                    { id: 202, name: 'Jennifer Lee', position: 'Account Manager', email: 'jennifer.l@company.com', status: 'active', salary: '$90,000' },
+                    { id: 203, name: 'Michael Garcia', position: 'Sales Rep', email: 'michael.g@company.com', status: 'active', salary: '$70,000' },
+                    { id: 204, name: 'Patricia Martinez', position: 'Sales Rep', email: 'patricia.m@company.com', status: 'vacation', salary: '$70,000' },
+                    { id: 205, name: 'William Rodriguez', position: 'Senior Account Manager', email: 'william.r@company.com', status: 'active', salary: '$110,000' },
+                    { id: 206, name: 'Linda Hernandez', position: 'Sales Coordinator', email: 'linda.h@company.com', status: 'active', salary: '$65,000' }
+                ],
+                3: [ // Marketing
+                    { id: 301, name: 'Jessica Lopez', position: 'Marketing Manager', email: 'jessica.l@company.com', status: 'active', salary: '$105,000' },
+                    { id: 302, name: 'Daniel Gonzalez', position: 'Content Writer', email: 'daniel.g@company.com', status: 'active', salary: '$70,000' },
+                    { id: 303, name: 'Nancy Wilson', position: 'Social Media Manager', email: 'nancy.w@company.com', status: 'active', salary: '$75,000' },
+                    { id: 304, name: 'Kevin Moore', position: 'SEO Specialist', email: 'kevin.m@company.com', status: 'inactive', salary: '$80,000' },
+                    { id: 305, name: 'Betty Taylor', position: 'Graphic Designer', email: 'betty.t@company.com', status: 'active', salary: '$85,000' }
+                ],
+                4: [ // HR
+                    { id: 401, name: 'Charles Anderson', position: 'HR Manager', email: 'charles.a@company.com', status: 'active', salary: '$95,000' },
+                    { id: 402, name: 'Maria Thomas', position: 'Recruiter', email: 'maria.t@company.com', status: 'active', salary: '$70,000' },
+                    { id: 403, name: 'Steven Jackson', position: 'HR Specialist', email: 'steven.j@company.com', status: 'active', salary: '$65,000' },
+                    { id: 404, name: 'Barbara White', position: 'Training Coordinator', email: 'barbara.w@company.com', status: 'vacation', salary: '$68,000' }
+                ]
+            };
+
+            // Function to simulate async loading of employee data
+            function loadEmployeeData(departmentId) {
+                return new Promise((resolve, reject) => {
+                    logEvent(`🔄 Loading employees for department ${departmentId}...`);
+
+                    // Simulate network delay
+                    const delay = 1000 + Math.random() * 1000; // 1-2 seconds
+
+                    setTimeout(() => {
+                        const employees = employeesByDepartment[departmentId];
+                        if (employees) {
+                            logEvent(`✅ Loaded ${employees.length} employees for department ${departmentId}`);
+                            resolve(employees);
+                        } else {
+                            reject(new Error('Department not found'));
+                        }
+                    }, delay);
+                });
+            }
+
+            // Function to create nested table content
+            function createNestedTableContent(department) {
+                const container = document.createElement('div');
+                container.className = 'nested-table-container';
+                container.innerHTML = `
+                    <div class="nested-table-header">
+                        <h4>Team Members - ${department.name} Department</h4>
+                        <div class="nested-table-info">
+                            <span>Manager: ${department.manager}</span> |
+                            <span>Location: ${department.location}</span>
+                        </div>
+                    </div>
+                    <div class="loading-message">
+                        <i class="fa fa-spinner fa-spin"></i><br>
+                        Loading employee data...
+                    </div>
+                `;
+
+                // Load employee data asynchronously
+                loadEmployeeData(department.id)
+                    .then(employees => {
+                        // Clear loading message
+                        container.innerHTML = `
+                            <div class="nested-table-header">
+                                <h4>Team Members - ${department.name} Department</h4>
+                                <div class="nested-table-info">
+                                    <span>Manager: ${department.manager}</span> |
+                                    <span>Location: ${department.location}</span> |
+                                    <span class="selected-count">0 selected</span>
+                                </div>
+                            </div>
+                            <div id="nested-table-${department.id}"></div>
+                        `;
+
+                        // Create nested table
+                        const nestedTable = new Fliplet.UI.Table({
+                            target: `#nested-table-${department.id}`,
+                            selection: {
+                                enabled: true,
+                                multiple: true
+                            },
+                            pagination: {
+                                pageSize: 5
+                            },
+                            columns: [
+                                {
+                                    name: 'Name',
+                                    field: 'name',
+                                    sortable: true
+                                },
+                                {
+                                    name: 'Position',
+                                    field: 'position',
+                                    sortable: true
+                                },
+                                {
+                                    name: 'Email',
+                                    field: 'email',
+                                    sortable: true
+                                },
+                                {
+                                    name: 'Status',
+                                    field: 'status',
+                                    sortable: true,
+                                    render: function(row) {
+                                        const statusClass = 'status-' + row.status;
+                                        return `<span class="status-badge ${statusClass}">${row.status}</span>`;
+                                    }
+                                },
+                                {
+                                    name: 'Salary',
+                                    field: 'salary',
+                                    sortable: true,
+                                    sortFn: function(a, b) {
+                                        // Custom sort for salary values
+                                        const salaryA = parseInt(a.salary.replace(/[$,]/g, ''));
+                                        const salaryB = parseInt(b.salary.replace(/[$,]/g, ''));
+                                        return salaryA - salaryB;
+                                    }
+                                }
+                            ],
+                            data: employees
+                        });
+
+                        // Store reference to nested table
+                        nestedTables.set(department.id, nestedTable);
+
+                        // Update selected count when selection changes
+                        nestedTable.on('selection:change', function(detail) {
+                            const selectedCount = container.querySelector('.selected-count');
+                            selectedCount.textContent = detail.selected.length + ' selected';
+
+                            logEvent(`👥 ${department.name} department: ${detail.selected.length} employees selected`);
+                        });
+
+                        // Log sorting events
+                        nestedTable.on('sort:change', function(detail) {
+                            logEvent(`🔤 ${department.name} department: Sorted by ${detail.field} (${detail.direction})`);
+                        });
+                    })
+                    .catch(error => {
+                        container.innerHTML = `
+                            <div class="loading-message" style="color: #dc3545;">
+                                <i class="fa fa-exclamation-triangle"></i><br>
+                                Failed to load employee data: ${error.message}
+                            </div>
+                        `;
+                        logEvent(`❌ Failed to load employees for department ${department.id}: ${error.message}`);
+                    });
+
+                return container;
+            }
+
+            // Initialize main table
+            mainTable = new Fliplet.UI.Table({
+                target: '#table-container',
+                className: 'departments-table',
+                selection: {
+                    enabled: true,
+                    multiple: true
+                },
+                columns: [
+                    {
+                        name: 'Department',
+                        field: 'name',
+                        sortable: true,
+                        render: function(row) {
+                            const deptClass = 'dept-' + row.name.toLowerCase();
+                            const icon = mainTable && mainTable.isRowExpanded(row) ? 'fa-chevron-down' : 'fa-chevron-right';
+                            return `<i class="fa ${icon}" data-expand style="cursor: pointer; margin-right: 8px; color: #007bff; font-size: 12px;"></i>
+                                    <span class="dept-badge ${deptClass}">${row.name}</span>`;
+                        }
+                    },
+                    {
+                        name: 'Manager',
+                        field: 'manager',
+                        sortable: true
+                    },
+                    {
+                        name: 'Employee Count',
+                        field: 'employeeCount',
+                        sortable: true
+                    },
+                    {
+                        name: 'Location',
+                        field: 'location',
+                        sortable: true
+                    },
+                    {
+                        name: 'Budget',
+                        field: 'budget',
+                        sortable: true,
+                        sortFn: function(a, b) {
+                            // Custom sort for budget values
+                            const parseBudget = (budget) => {
+                                const num = parseFloat(budget.replace(/[$,]/g, ''));
+                                return budget.includes('M') ? num * 1000000 : num * 1000;
+                            };
+                            return parseBudget(a.budget) - parseBudget(b.budget);
+                        }
+                    }
+                ],
+                expandable: {
+                    enabled: true,
+                    onExpand: function(row) {
+                        return createNestedTableContent(row);
+                    }
+                },
+                data: departmentData
+            });
+
+            // Event listeners
+            mainTable.on('selection:change', function(detail) {
+                const count = detail.selected.length;
+                document.getElementById('dept-count').textContent = count;
+                logEvent(`🏢 ${count} department(s) selected`);
+            });
+
+            mainTable.on('expand:start', function(detail) {
+                logEvent(`📂 Expanding ${detail.row.name} department...`);
+
+                // Update chevron icon
+                const chevron = detail.rowEl.querySelector('.fa-chevron-right, .fa-chevron-down');
+                if (chevron) {
+                    chevron.className = 'fa fa-spinner fa-spin';
+                }
+            });
+
+            mainTable.on('expand:complete', function(detail) {
+                logEvent(`✅ Expanded ${detail.row.name} department`);
+
+                // Update chevron icon
+                const chevron = detail.rowEl.querySelector('.fa-spinner');
+                if (chevron) {
+                    chevron.className = 'fa fa-chevron-down';
+                }
+            });
+
+            mainTable.on('collapse:complete', function(detail) {
+                logEvent(`📁 Collapsed ${detail.row.name} department`);
+
+                // Update chevron icon
+                const chevron = detail.rowEl.querySelector('.fa-chevron-down');
+                if (chevron) {
+                    chevron.className = 'fa fa-chevron-right';
+                }
+
+                // Clean up nested table reference
+                nestedTables.delete(detail.row.id);
+            });
+
+            // Control buttons
+            document.getElementById('expand-all').addEventListener('click', function() {
+                departmentData.forEach(dept => {
+                    mainTable.expandRow(dept);
+                });
+                logEvent('🔧 Expanded all departments');
+            });
+
+            document.getElementById('collapse-all').addEventListener('click', function() {
+                departmentData.forEach(dept => {
+                    mainTable.collapseRow(dept);
+                });
+                logEvent('🔧 Collapsed all departments');
+            });
+
+            document.getElementById('get-selections').addEventListener('click', function() {
+                // Get selected departments
+                const selectedDepts = mainTable.getSelectedRows();
+
+                // Get employee selections from nested tables
+                const employeeSelections = [];
+                nestedTables.forEach((table, deptId) => {
+                    const selected = table.getSelectedRows();
+                    if (selected.length > 0) {
+                        const dept = departmentData.find(d => d.id === deptId);
+                        employeeSelections.push({
+                            department: dept.name,
+                            employees: selected
+                        });
+                    }
+                });
+
+                logEvent('📋 === Current Selections ===');
+
+                // Log selected departments
+                if (selectedDepts.length > 0) {
+                    logEvent('🏢 Selected Departments:');
+                    selectedDepts.forEach(dept => {
+                        logEvent(`  - ${dept.name} (${dept.location}, Manager: ${dept.manager})`);
+                    });
+                } else {
+                    logEvent('🏢 No departments selected');
+                }
+
+                // Log selected employees
+                if (employeeSelections.length > 0) {
+                    logEvent('👥 Selected Employees by Department:');
+                    employeeSelections.forEach(selection => {
+                        const names = selection.employees.map(e => `${e.name} (${e.position})`).join(', ');
+                        logEvent(`  ${selection.department}: ${names}`);
+                    });
+                } else {
+                    logEvent('👥 No employees selected');
+                }
+
+                if (selectedDepts.length === 0 && employeeSelections.length === 0) {
+                    logEvent('ℹ️ No selections at any level');
+                }
+            });
+
+            logEvent('🚀 Nested tables demo initialized');
+        });
+    </script>
+</body>
+</html>
