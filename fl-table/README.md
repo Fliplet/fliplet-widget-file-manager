@@ -38,7 +38,9 @@ const table = new Fliplet.UI.Table({
 | `columns` | Array | Required | Array of column definitions |
 | `data` | Array | `[]` | Array of data objects to display in the table |
 | `searchable` | Boolean | `false` | Enable global search functionality |
-| `pagination` | Object \| Boolean | `false` | Enable and configure pagination |
+| `pagination` | Object \| Boolean | `false` | Enable and configure pagination. Set to `false` to disable pagination entirely |
+| `selection` | Object | `undefined` | Enable and configure row selection |
+| `expandable` | Object | `undefined` | Enable and configure expandable rows |
 
 ### Column Definition
 
@@ -515,6 +517,16 @@ Key features:
 - **Independent state**: Each table maintains its own selection, sort, and pagination state
 
 See the [nested tables demo](demo/nested-tables.html) for a complete example, or test performance at scale with the [large dataset stress test](demo/large-nested-tables.html).
+
+### Performance Considerations
+
+When working with large datasets:
+
+- **Pagination**: Recommended for datasets over 100 rows to maintain smooth performance
+- **Async Loading**: Use Promise-based `onExpand` functions for nested content to prevent UI blocking
+- **Memory Management**: The component automatically cleans up expanded content when rows are collapsed
+- **Selection Independence**: Main table and nested table selections are completely independent
+- **DOM Optimization**: Nested tables only render when expanded, reducing initial DOM size
 
 ### Advanced Custom Trigger Examples
 
