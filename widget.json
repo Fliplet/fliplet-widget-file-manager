@@ -9,7 +9,6 @@
     "dependencies": [
       "fliplet-media",
       "fliplet-studio-ui",
-      "lodash",
       "handlebars",
       "bootstrap",
       "animate-css",
@@ -19,6 +18,7 @@
       "vendor/tether.min.js",
       "vendor/paginationjs/pagination.css",
       "vendor/paginationjs/pagination.min.js",
+      "js/utils.js",
       "js/interface.js",
       "css/interface.css"
     ]

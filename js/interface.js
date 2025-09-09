@@ -130,7 +130,7 @@ function navigateToFolder($item) {
   disableSearchState();
 
   // Making a backstack item
-  backItem = _.find(folders, ['id', id]);
+  backItem = FlipletFileManagerUtils.find(folders, ['id', id]);
   backItem.tempElement = $item;
 
   backItem.back = function() {
@@ -228,7 +228,7 @@ function getAppsList() {
     });
 
     // Sort apps alphabetically
-    apps = _.sortBy(apps, [function(o) {
+    apps = FlipletFileManagerUtils.sortBy(apps, [function(o) {
       return o.name;
     }]);
 
@@ -502,7 +502,7 @@ function restoreTrashItems(items) {
         $element.removeClass('restore-fade');
         showSpinner(false);
 
-        _.remove(itemType === 'folders'
+        FlipletFileManagerUtils.remove(itemType === 'folders'
           ? currentFolders
           : currentFiles, function(item) {
           return item.id !== itemID;
@@ -756,7 +756,7 @@ function addOrganizations(organizations) {
 
 function getOriginPath(data) {
   return {
-    html: _.map(data.parents, function(item) {
+    html: FlipletFileManagerUtils.map(data.parents, function(item) {
       if (item.type === 'app') {
         return '<b>' + item.data.name + '</b>';
       }
@@ -767,7 +767,7 @@ function getOriginPath(data) {
 
       return item.data.name;
     }),
-    tooltip: _.map(data.parents, function(item) {
+    tooltip: FlipletFileManagerUtils.map(data.parents, function(item) {
       return item.data.name;
     })
   };
@@ -1016,8 +1016,8 @@ function getFoldersData(options, filterFiles, filterFolders) {
       var mediaFiles = response.files.filter(filterFiles);
       var mediaFolders = response.folders.filter(filterFolders);
 
-      _.forEach(mediaFolders, function(item) { addFolder(item, false); });
-      _.forEach(mediaFiles, function(item) { addFile(item, false); });
+      FlipletFileManagerUtils.forEach(mediaFolders, function(item) { addFolder(item, false); });
+      FlipletFileManagerUtils.forEach(mediaFiles, function(item) { addFile(item, false); });
 
       mediaFiles.forEach(parseThumbnail);
 
@@ -1054,8 +1054,8 @@ function getTrashFilesData(filterFiles, filterFolders) {
       var mediaFiles = result.files.filter(filterFiles);
       var mediaFolders = result.folders.filter(filterFolders);
 
-      _.forEach(mediaFolders, function(item) { addFolder(item, true); });
-      _.forEach(mediaFiles, function(item) { addFile(item, true); });
+      FlipletFileManagerUtils.forEach(mediaFolders, function(item) { addFolder(item, true); });
+      FlipletFileManagerUtils.forEach(mediaFiles, function(item) { addFile(item, true); });
 
       mediaFiles.forEach(parseThumbnail);
 
@@ -1138,7 +1138,7 @@ function uploadFiles(files) {
 
 // Sorts items by name
 function sortItems(items) {
-  return _.sortBy(items, [
+  return FlipletFileManagerUtils.sortBy(items, [
     function(item) {
       return item.name.toLowerCase();
     },
@@ -1158,7 +1158,7 @@ function renderItem(item, isFolder, insertIndex) {
     $folderContents.append(template);
   }
 
-  if (!isFolder && _.get(item, ['metadata.av.status']) === 'infected') {
+  if (!isFolder && FlipletFileManagerUtils.get(item, ['metadata.av.status']) === 'infected') {
     $('.file-row[data-id="' + item.id + '"]').find('[data-toggle="tooltip"]').tooltip();
   }
 }
@@ -1227,8 +1227,8 @@ function search(type, term) {
   };
 
 
-  // If the user put anything except a numbers _.toNumber function will return a NaN result
-  if (_.toNumber(term)) {
+  // If the user put anything except a numbers FlipletFileManagerUtils.toNumber function will return a NaN result
+  if (FlipletFileManagerUtils.toNumber(term)) {
     query.id = term;
   }
 
@@ -1488,7 +1488,7 @@ function updateSearchTypeOptions(type) {
 
 // Shows content of the last folder before run search
 function backToLastFolderBeforeSearch() {
-  var navItem = _.last(beforeSearchNavStack);
+  var navItem = FlipletFileManagerUtils.last(beforeSearchNavStack);
 
   navItem.back();
   navStack = beforeSearchNavStack;
@@ -1715,7 +1715,7 @@ function toggleStorageUsage($el) {
   }
 
   // Get the selected app
-  var selectedApp = _.find(appList, function(app) {
+  var selectedApp = FlipletFileManagerUtils.find(appList, function(app) {
     return app.id === selectedAppId;
   });
 
@@ -2058,7 +2058,7 @@ $('.file-manager-wrapper')
               var $element = $(this);
               var itemID = Number($element.attr('data-id'));
 
-              _.remove(itemType === 'folder'
+              FlipletFileManagerUtils.remove(itemType === 'folder'
                 ? currentFolders
                 : currentFiles, function(item) {
                 return item.id === itemID;
@@ -2203,7 +2203,7 @@ $('.file-manager-wrapper')
   .on('hide.bs.collapse', '.panel-collapse', function() {
     $(this).siblings('.panel-heading').find('.fa').removeClass('rotate');
   })
-  .on('keyup', '.search-term', _.debounce(function() {
+  .on('keyup', '.search-term', FlipletFileManagerUtils.debounce(function() {
     var term = $searchTerm.val();
 
     if (!term) {
