@@ -187,6 +187,8 @@ function navigateToDefaultFolder() {
   toggleStorageUsage($listHolder.parents('[data-browse-folder]'));
 
   if (data.appId) {
+    // Ensure the search context dropdown reflects the current app context on initial load
+    updateSearchTypeOptions($el.data('type'));
     getFolderContents($el, true);
 
     return;
