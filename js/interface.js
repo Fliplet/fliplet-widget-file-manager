@@ -23,10 +23,9 @@ var $spinner = $('.spinner-holder');
 var $newBtn = $('.new-btn');
 var $selectAllCheckbox =  $('.file-cell.selectable');
 
+var appList;
 // Track last displayed progress to prevent backwards movement
 var lastDisplayedProgress = 0;
-
-var appList;
 // This should contain either app/org/folder of current folder
 // eslint-disable-next-line no-undef
 var appIcons = new Map();
@@ -1114,15 +1113,11 @@ function uploadFiles(files) {
     name: file.name,
     data: formData,
     progress: function(percentage) {
-      // Cap at 95% until server confirms - XHR reports 100% when data is sent
-      // but server still needs time to process and save the file
-      var displayPercentage = Math.min(percentage, 95);
-
       // Only update if progress moved forward (prevents chaotic backwards jumps)
-      if (displayPercentage > lastDisplayedProgress) {
-        lastDisplayedProgress = displayPercentage;
+      if (percentage > lastDisplayedProgress) {
+        lastDisplayedProgress = percentage;
         $progressBar.css({
-          width: displayPercentage + '%'
+          width: percentage + '%'
         });
       }
     }
@@ -1133,8 +1128,6 @@ function uploadFiles(files) {
       insertItem(file);
     });
 
-    // Complete to 100% then hide
-    $progressBar.css({ width: '100%' });
     lastDisplayedProgress = 0;
     $progress.addClass('hidden');
 
@@ -1147,7 +1140,6 @@ function uploadFiles(files) {
       message: Fliplet.parseError(error, 'Unknown error. Please try again later.')
     });
 
-    // Reset and hide progress bar
     lastDisplayedProgress = 0;
     $progress.addClass('hidden');
   });
@@ -1949,15 +1941,11 @@ $('.file-manager-wrapper')
       name: file.name,
       data: formData,
       progress: function(percentage) {
-        // Cap at 95% until server confirms - XHR reports 100% when data is sent
-        // but server still needs time to process and save the file
-        var displayPercentage = Math.min(percentage, 95);
-
         // Only update if progress moved forward (prevents chaotic backwards jumps)
-        if (displayPercentage > lastDisplayedProgress) {
-          lastDisplayedProgress = displayPercentage;
+        if (percentage > lastDisplayedProgress) {
+          lastDisplayedProgress = percentage;
           $progressBar.css({
-            width: displayPercentage + '%'
+            width: percentage + '%'
           });
         }
       }
@@ -1969,8 +1957,6 @@ $('.file-manager-wrapper')
         insertItem(file);
       });
 
-      // Complete to 100% then hide
-      $progressBar.css({ width: '100%' });
       lastDisplayedProgress = 0;
       $progress.addClass('hidden');
 
@@ -1986,7 +1972,6 @@ $('.file-manager-wrapper')
         message: Fliplet.parseError(error, 'Unknown error. Please try again later.')
       });
 
-      // Reset and hide progress bar
       lastDisplayedProgress = 0;
       $progress.addClass('hidden');
     });
