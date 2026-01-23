@@ -23,6 +23,9 @@ var $spinner = $('.spinner-holder');
 var $newBtn = $('.new-btn');
 var $selectAllCheckbox =  $('.file-cell.selectable');
 
+// Track last displayed progress to prevent backwards movement
+var lastDisplayedProgress = 0;
+
 var appList;
 // This should contain either app/org/folder of current folder
 // eslint-disable-next-line no-undef
@@ -1097,6 +1100,8 @@ function uploadFiles(files) {
     formData.append('files[' + i + ']', file);
   }
 
+  // Reset progress state for new upload
+  lastDisplayedProgress = 0;
   $progressBar.css({
     width: '0%'
   });
@@ -1109,9 +1114,17 @@ function uploadFiles(files) {
     name: file.name,
     data: formData,
     progress: function(percentage) {
-      $progressBar.css({
-        width: percentage + '%'
-      });
+      // Cap at 95% until server confirms - XHR reports 100% when data is sent
+      // but server still needs time to process and save the file
+      var displayPercentage = Math.min(percentage, 95);
+
+      // Only update if progress moved forward (prevents chaotic backwards jumps)
+      if (displayPercentage > lastDisplayedProgress) {
+        lastDisplayedProgress = displayPercentage;
+        $progressBar.css({
+          width: displayPercentage + '%'
+        });
+      }
     }
   }).then(function(files) {
     files.forEach(function(file) {
@@ -1120,6 +1133,9 @@ function uploadFiles(files) {
       insertItem(file);
     });
 
+    // Complete to 100% then hide
+    $progressBar.css({ width: '100%' });
+    lastDisplayedProgress = 0;
     $progress.addClass('hidden');
 
     return updateAppMetrics(currentAppId);
@@ -1131,6 +1147,8 @@ function uploadFiles(files) {
       message: Fliplet.parseError(error, 'Unknown error. Please try again later.')
     });
 
+    // Reset and hide progress bar
+    lastDisplayedProgress = 0;
     $progress.addClass('hidden');
   });
 }
@@ -1917,6 +1935,8 @@ $('.file-manager-wrapper')
       formData.append('files[' + i + ']', file);
     }
 
+    // Reset progress state for new upload
+    lastDisplayedProgress = 0;
     $progressBar.css({
       width: '0%'
     });
@@ -1929,9 +1949,17 @@ $('.file-manager-wrapper')
       name: file.name,
       data: formData,
       progress: function(percentage) {
-        $progressBar.css({
-          width: percentage + '%'
-        });
+        // Cap at 95% until server confirms - XHR reports 100% when data is sent
+        // but server still needs time to process and save the file
+        var displayPercentage = Math.min(percentage, 95);
+
+        // Only update if progress moved forward (prevents chaotic backwards jumps)
+        if (displayPercentage > lastDisplayedProgress) {
+          lastDisplayedProgress = displayPercentage;
+          $progressBar.css({
+            width: displayPercentage + '%'
+          });
+        }
       }
     }).then(function(files) {
       $input.val('');
@@ -1941,17 +1969,25 @@ $('.file-manager-wrapper')
         insertItem(file);
       });
 
+      // Complete to 100% then hide
+      $progressBar.css({ width: '100%' });
+      lastDisplayedProgress = 0;
       $progress.addClass('hidden');
 
       return updateAppMetrics(currentAppId);
     }).then(function() {
       toggleStorageUsage();
     }).catch(function(error) {
+      // Clear the file input so user can try again with the same file
+      $input.val('');
+
       Fliplet.Modal.alert({
         title: 'Error uploading',
         message: Fliplet.parseError(error, 'Unknown error. Please try again later.')
       });
 
+      // Reset and hide progress bar
+      lastDisplayedProgress = 0;
       $progress.addClass('hidden');
     });
   })

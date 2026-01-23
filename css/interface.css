@@ -922,6 +922,7 @@ html {
 
 .progress-bar {
   background-color: #0087a6;
+  transition: width 0.3s ease-out;
 }
 
 .drop-zone {
