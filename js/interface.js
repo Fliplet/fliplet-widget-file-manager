@@ -24,8 +24,6 @@ var $newBtn = $('.new-btn');
 var $selectAllCheckbox =  $('.file-cell.selectable');
 
 var appList;
-// Track last displayed progress to prevent backwards movement
-var lastDisplayedProgress = 0;
 // This should contain either app/org/folder of current folder
 // eslint-disable-next-line no-undef
 var appIcons = new Map();
@@ -1099,8 +1097,6 @@ function uploadFiles(files) {
     formData.append('files[' + i + ']', file);
   }
 
-  // Reset progress state for new upload
-  lastDisplayedProgress = 0;
   $progressBar.css({
     width: '0%'
   });
@@ -1113,13 +1109,9 @@ function uploadFiles(files) {
     name: file.name,
     data: formData,
     progress: function(percentage) {
-      // Only update if progress moved forward (prevents chaotic backwards jumps)
-      if (percentage > lastDisplayedProgress) {
-        lastDisplayedProgress = percentage;
-        $progressBar.css({
-          width: percentage + '%'
-        });
-      }
+      $progressBar.css({
+        width: percentage + '%'
+      });
     }
   }).then(function(files) {
     files.forEach(function(file) {
@@ -1128,7 +1120,6 @@ function uploadFiles(files) {
       insertItem(file);
     });
 
-    lastDisplayedProgress = 0;
     $progress.addClass('hidden');
 
     return updateAppMetrics(currentAppId);
@@ -1140,7 +1131,6 @@ function uploadFiles(files) {
       message: Fliplet.parseError(error, 'Unknown error. Please try again later.')
     });
 
-    lastDisplayedProgress = 0;
     $progress.addClass('hidden');
   });
 }
@@ -1927,8 +1917,6 @@ $('.file-manager-wrapper')
       formData.append('files[' + i + ']', file);
     }
 
-    // Reset progress state for new upload
-    lastDisplayedProgress = 0;
     $progressBar.css({
       width: '0%'
     });
@@ -1941,13 +1929,9 @@ $('.file-manager-wrapper')
       name: file.name,
       data: formData,
       progress: function(percentage) {
-        // Only update if progress moved forward (prevents chaotic backwards jumps)
-        if (percentage > lastDisplayedProgress) {
-          lastDisplayedProgress = percentage;
-          $progressBar.css({
-            width: percentage + '%'
-          });
-        }
+        $progressBar.css({
+          width: percentage + '%'
+        });
       }
     }).then(function(files) {
       $input.val('');
@@ -1957,22 +1941,17 @@ $('.file-manager-wrapper')
         insertItem(file);
       });
 
-      lastDisplayedProgress = 0;
       $progress.addClass('hidden');
 
       return updateAppMetrics(currentAppId);
     }).then(function() {
       toggleStorageUsage();
     }).catch(function(error) {
-      // Clear the file input so user can try again with the same file
-      $input.val('');
-
       Fliplet.Modal.alert({
         title: 'Error uploading',
         message: Fliplet.parseError(error, 'Unknown error. Please try again later.')
       });
 
-      lastDisplayedProgress = 0;
       $progress.addClass('hidden');
     });
   })
