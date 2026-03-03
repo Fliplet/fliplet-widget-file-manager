@@ -9,7 +9,7 @@
     "dependencies": [
       "fliplet-media",
       "fliplet-studio-ui",
-      "lodash",
+      "fliplet-utils",
       "handlebars",
       "bootstrap",
       "animate-css",
