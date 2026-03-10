@@ -229,10 +229,23 @@
    Layer 2B: Selected Item Security Section
    ------------------------------------------ */
 
-.selected-security-section {
-  padding: 15px 0 0 0;
-  border-top: 1px solid #e4e9eb;
-  margin-top: 15px;
+/* No rules section (between file info and Action button) */
+.selected-no-rules-section {
+  margin-bottom: 10px;
+}
+
+.selected-no-rules-section .security-alert {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.selected-no-rules-section .selected-security-actions .btn {
+  width: 100%;
+}
+
+/* Has rules section (between file info and Action button) */
+.selected-has-rules-section {
+  margin-bottom: 10px;
 }
 
 
@@ -247,15 +260,6 @@
 .selected-security-status .security-badge {
   font-size: 11px;
   padding: 3px 10px;
-}
-
-.selected-security-section .security-alert {
-  margin-top: 0;
-  margin-bottom: 12px;
-}
-
-.selected-security-actions {
-  margin-bottom: 12px;
 }
 
 .selected-security-actions {

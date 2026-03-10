@@ -288,42 +288,39 @@
   // -----------------------------------------
 
   function updateSelectedItemSecurity(type, id, name) {
-    var $section = $('.selected-security-section');
     var effective = getEffectiveRules(type, String(id));
     var own = getOwnRules(type, String(id));
 
-    var $status = $section.find('.selected-security-status');
-    var $alertWarning = $section.find('.selected-security-alert');
-    var $list = $section.find('.effective-rules-list');
-    var $editBtn = $section.find('.btn-edit-rules-inline');
-    var $addBtn = $section.find('.btn-add-rules-inline');
+    var $noRulesSection = $('.selected-no-rules-section');
+    var $hasRulesSection = $('.selected-has-rules-section');
+    var $addBtn = $noRulesSection.find('.btn-add-rules-inline');
+    var $editBtn = $hasRulesSection.find('.btn-edit-rules-inline');
 
     // Reset
-    var $actionsWrapper = $section.find('.selected-security-actions');
-
-    $list.empty();
-    $status.hide();
-    $alertWarning.hide();
-    $editBtn.hide();
-    $addBtn.hide();
-    $actionsWrapper.hide();
+    $noRulesSection.hide();
+    $hasRulesSection.hide();
 
     if (effective.rules.length > 0) {
-      // Has rules — show "Users can:" summary, no badge
+      // Has rules — show "Users can:" summary below Action button
       var summary = getActionsEnabledSummary(effective.rules);
 
-      $status.html(
+      $hasRulesSection.find('.selected-security-status').html(
         summary ? '<span class="folder-security-detail"><strong>Users can:</strong> ' + summary + '</span>' : ''
-      ).show();
+      );
 
-      $actionsWrapper.show();
-      $editBtn.show();
+      // Show inheritance hint only when rules are inherited (not own)
+      var $hint = $hasRulesSection.find('.folder-security-hint');
+
+      if (own.length === 0 && effective.inheritedFrom) {
+        $hint.show();
+      } else {
+        $hint.hide();
+      }
+
+      $hasRulesSection.show();
     } else {
-      // Not accessible — show warning alert and Add rules button
-      $status.hide();
-      $alertWarning.show();
-      $actionsWrapper.show();
-      $addBtn.show();
+      // No rules — show alert + Add rules between file info and Action
+      $noRulesSection.show();
     }
 
     // Store target for the Actions dropdown "Security rules" link
@@ -335,17 +332,6 @@
     // Also store on inline buttons
     $editBtn.data('target-type', type).data('target-id', id).data('target-name', name);
     $addBtn.data('target-type', type).data('target-id', id).data('target-name', name);
-
-    // Hide inheritance hint for root/app folders
-    var $hint = $section.find('.folder-security-hint');
-
-    if (isRootFolder(type, String(id))) {
-      $hint.hide();
-    } else {
-      $hint.show();
-    }
-
-    $section.show();
   }
 
   // -----------------------------------------

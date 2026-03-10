@@ -217,11 +217,40 @@
               </div>
               <p>You have selected <span class="items-selected"></span></p>
             </div>
+            <!-- No access rules alert (shown between file info and Action button) -->
+            <div class="selected-no-rules-section" style="display: none;">
+              <div class="selected-security-alert security-alert security-alert-warning">
+                <span class="alert-icon"><i class="fa fa-exclamation-triangle"></i></span>
+                <div class="alert-content">
+                  <div class="alert-title">No access rules</div>
+                  <div class="alert-message">This item won't be accessible to app users.</div>
+                </div>
+              </div>
+              <div class="selected-security-actions">
+                <button class="btn btn-default btn-sm btn-add-rules-inline">
+                  <i class="fa fa-plus"></i> Add rules
+                </button>
+              </div>
+            </div>
+
+            <!-- Has rules summary (shown between file info and Action button) -->
+            <div class="selected-has-rules-section" style="display: none;">
+              <div class="selected-security-status">
+                <!-- Populated by security-rules.js -->
+              </div>
+              <p class="folder-security-hint" style="display: none;"><i class="fa fa-info-circle"></i> Files inherit rules from their parent folder unless they have their own.</p>
+              <div class="selected-security-actions">
+                <button class="btn btn-default btn-sm btn-edit-rules-inline">
+                  <i class="fa fa-pencil"></i> Edit rules
+                </button>
+              </div>
+            </div>
+
             <div class="item-actions">
               <div class="single-item">
                 <div class="btn-group">
                   <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Action <span class="caret"></span>
+                    Actions <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu">
                     <li>
@@ -250,7 +279,7 @@
               <div class="multiple-item">
                 <div class="btn-group">
                   <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Action <span class="caret"></span>
+                    Actions <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu">
                     <li>
@@ -269,28 +298,6 @@
               </div>
             </div>
 
-            <!-- Security summary for selected item (shown below actions) -->
-            <div class="selected-security-section" style="display: none;">
-              <div class="selected-security-status">
-                <!-- Populated by security-rules.js -->
-              </div>
-              <div class="selected-security-alert security-alert security-alert-warning" style="display: none;">
-                <span class="alert-icon"><i class="fa fa-exclamation-triangle"></i></span>
-                <div class="alert-content">
-                  <div class="alert-title">No access rules</div>
-                  <div class="alert-message">This item won't be accessible to app users.</div>
-                </div>
-              </div>
-              <div class="selected-security-actions" style="display: none;">
-                <button class="btn btn-default btn-sm btn-edit-rules-inline" style="display: none;">
-                  <i class="fa fa-pencil"></i> Edit rules
-                </button>
-                <button class="btn btn-default btn-sm btn-add-rules-inline" style="display: none;">
-                  <i class="fa fa-plus"></i> Add rules
-                </button>
-              </div>
-              <p class="folder-security-hint"><i class="fa fa-info-circle"></i> Files inherit rules from their parent folder unless they have their own.</p>
-            </div>
           </div>
         </div>
       </div>
