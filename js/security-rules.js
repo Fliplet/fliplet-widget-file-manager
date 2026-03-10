@@ -389,10 +389,6 @@
   }
 
   function describeApps(rule) {
-    if (rule._appScope === 'current') {
-      return 'Current app';
-    }
-
     if (!rule.appId || (Array.isArray(rule.appId) && rule.appId.length === 0)) {
       return 'All apps';
     }
@@ -1182,20 +1178,10 @@
     // Apps
     $editor.find('[data-app-scope]').removeClass('selected');
 
-    if (rule._appScope === 'current') {
-      $editor.find('[data-app-scope="current"]').addClass('selected');
-    } else if (rule.appId && Array.isArray(rule.appId) && rule.appId.length > 0) {
-      // Check if the appId matches the current app
-      var currentAppId = (typeof Fliplet !== 'undefined' && Fliplet.Env) ? Fliplet.Env.get('appId') : null;
-
-      if (currentAppId && rule.appId.length === 1 && rule.appId[0] === currentAppId && !rule._appScope) {
-        // Single app matching current app — could be "current app" scope
-        $editor.find('[data-app-scope="current"]').addClass('selected');
-      } else {
-        $editor.find('[data-app-scope="filter"]').addClass('selected');
-        $editor.find('.apps-list-wrapper').removeClass('hidden');
-        populateAppsList(rule.appId);
-      }
+    if (rule.appId && Array.isArray(rule.appId) && rule.appId.length > 0) {
+      $editor.find('[data-app-scope="filter"]').addClass('selected');
+      $editor.find('.apps-list-wrapper').removeClass('hidden');
+      populateAppsList(rule.appId);
     } else {
       $editor.find('[data-app-scope="all"]').addClass('selected');
     }
@@ -1345,12 +1331,6 @@
 
     if (appScope === 'all') {
       rule.appId = null;
-    } else if (appScope === 'current') {
-      // [FILEAPI] Uses Fliplet.Env.get('appId') for current app context
-      var currentAppId = (typeof Fliplet !== 'undefined' && Fliplet.Env) ? Fliplet.Env.get('appId') : null;
-
-      rule.appId = currentAppId ? [currentAppId] : null;
-      rule._appScope = 'current'; // Internal flag to distinguish from specific apps
     } else {
       rule.appId = [];
 
