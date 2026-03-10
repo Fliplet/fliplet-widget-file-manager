@@ -634,6 +634,18 @@ function removeTrashItems(items) {
 
 // Get folders and files depending on ID (Org, App, Folder) to add to the content area
 function getFolderContents(el, isRootFolder) {
+  // Clear selection and side-actions from previous folder
+  hideSideActions();
+  $('.file-row').removeClass('active passive');
+  $('.selected-security-section').hide();
+
+  // Close security panel on navigation and restore body scroll
+  if (window.FileSecurityRules && $('#security-panel-overlay').hasClass('active')) {
+    // Force close without unsaved changes prompt during navigation
+    $('#security-panel-overlay').removeClass('visible active');
+    $('body').css('overflow', '');
+  }
+
   if (isRootFolder) {
     // Restart breadcrumbs
     var $el = el;
@@ -859,11 +871,17 @@ function updateCheckboxStatus() {
     $selectAllCheckbox.addClass('active');
     $('.file-row').not(this).addClass('passive');
     $('.help-tips').addClass('hidden');
+    $('.folder-security-card').removeClass('active');
   } else {
     $('.side-actions').removeClass('active');
     $('.file-row').not(this).removeClass('passive');
     $('.help-tips').removeClass('hidden');
     $('.side-actions .item').removeClass('show');
+    // Show folder security card when nothing is selected
+    if (window.FileSecurityRules) {
+      $('.folder-security-card').addClass('active');
+      $('.help-tips').addClass('hidden');
+    }
   }
 
   $('.side-actions .item').removeClass('show');
@@ -885,6 +903,19 @@ function updateCheckboxStatus() {
     } else {
       $('.side-actions .item.file').addClass('show');
     }
+
+    // Update security section for selected item
+    if (window.FileSecurityRules) {
+      var $activeRow = $('.file-row.active');
+      var selectedId = $activeRow.data('id');
+      var selectedName = $activeRow.find('.file-name span').first().text();
+      var selectedType = (itemType === 'folder') ? 'folder' : 'file';
+
+      window.FileSecurityRules.updateSelectedItemSecurity(selectedType, selectedId, selectedName);
+    }
+  } else {
+    // Hide security section for multiple selection
+    $('.selected-security-section').hide();
   }
 
   if (numberOfRows === numberOfActiveRows) {
@@ -928,6 +959,18 @@ function toggleAll(el) {
     $('.side-actions').removeClass('active');
     $('.side-actions .item').removeClass('show');
     $('.help-tips').removeClass('hidden');
+
+    if (window.FileSecurityRules) {
+      $('.folder-security-card').addClass('active');
+      $('.help-tips').addClass('hidden');
+    }
+  } else {
+    $('.folder-security-card').removeClass('active');
+  }
+
+  // Hide security section when not single selection
+  if ($('.file-row.active').length !== 1) {
+    $('.selected-security-section').hide();
   }
 }
 
@@ -1180,6 +1223,18 @@ function renderList() {
 
   $('[data-toggle="tooltip"]').tooltip();
   $selectAllCheckbox.addClass('active');
+
+  // Update folder security card with current folder context
+  if (window.FileSecurityRules) {
+    var folderName = navStack.length > 0 ? navStack[navStack.length - 1].name : 'App Files';
+    var folderId = currentFolderId || 'root';
+
+    window.FileSecurityRules.updateFolderSecurityCard(folderId, folderName);
+
+    // Update edit button data attributes
+    $('.folder-security-card .btn-edit-folder-rules').data('folder-id', folderId).data('folder-name', folderName);
+    $('.folder-security-card .security-alert a.btn-edit-folder-rules').data('folder-id', folderId).data('folder-name', folderName);
+  }
 }
 
 // Finds insert index for a new item
@@ -1392,7 +1447,14 @@ function removeSelection() {
 function hideSideActions() {
   $('.side-actions').removeClass('active');
   $('.side-actions .item').removeClass('show');
-  $('.help-tips').removeClass('hidden');
+  $('.selected-security-section').hide();
+
+  if (window.FileSecurityRules) {
+    $('.folder-security-card').addClass('active');
+    $('.help-tips').addClass('hidden');
+  } else {
+    $('.help-tips').removeClass('hidden');
+  }
 }
 
 function updateBreadcrumbsBySearchItem(item) {
