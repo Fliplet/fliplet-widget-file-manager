@@ -308,15 +308,6 @@
         summary ? '<span class="folder-security-detail"><strong>Users can:</strong> ' + summary + '</span>' : ''
       );
 
-      // Show inheritance hint only when rules are inherited (not own)
-      var $hint = $hasRulesSection.find('.folder-security-hint');
-
-      if (own.length === 0 && effective.inheritedFrom) {
-        $hint.show();
-      } else {
-        $hint.hide();
-      }
-
       $hasRulesSection.show();
     } else {
       // No rules — show alert + Add rules between file info and Action

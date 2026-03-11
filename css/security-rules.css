@@ -69,6 +69,10 @@
   color: #fff;
 }
 
+.file-row.active .security-badge-actions {
+  color: #fff;
+}
+
 .file-row.active .security-badge-detail {
   color: rgba(255, 255, 255, 0.7);
 }
