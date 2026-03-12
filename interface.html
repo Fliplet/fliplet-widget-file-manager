@@ -493,69 +493,73 @@
 
       <!-- ===== STATE: RULES LIST ===== -->
       <div class="panel-state panel-state-list">
-        <!-- Inheritance banner -->
-        <div class="security-panel-inheritance" id="security-panel-inheritance"></div>
-
         <!-- Rules toolbar -->
         <div class="security-rules-toolbar">
-          <div class="dropdown">
-            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Add new rule <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu">
-              <li><a href="#" data-add-security-rule>Create my own rule</a></li>
-              <li role="separator" class="divider"></li>
-              <li class="dropdown-header">Advanced</li>
-              <li><a href="#" data-add-custom-rule>Create a custom rule using JavaScript</a></li>
-              <li role="separator" class="divider"></li>
-              <li class="dropdown-header">Pre-configured rules</li>
-              <li><a href="#" data-preconfigured-rule="0">All users can read</a></li>
-              <li><a href="#" data-preconfigured-rule="1">All users can upload</a></li>
-              <li><a href="#" data-preconfigured-rule="2">Logged in users can upload</a></li>
-              <li><a href="#" data-preconfigured-rule="3">Logged in users can read</a></li>
-              <li><a href="#" data-preconfigured-rule="4">Logged in users can read, update and delete</a></li>
-            </ul>
+            <div class="dropdown">
+              <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Add new rule <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                <li><a href="#" data-add-security-rule>Create my own rule</a></li>
+                <li role="separator" class="divider"></li>
+                <li class="dropdown-header">Advanced</li>
+                <li><a href="#" data-add-custom-rule>Create a custom rule using JavaScript</a></li>
+                <li role="separator" class="divider"></li>
+                <li class="dropdown-header">Pre-configured rules</li>
+                <li><a href="#" data-preconfigured-rule="0">All users can read</a></li>
+                <li><a href="#" data-preconfigured-rule="1">All users can upload</a></li>
+                <li><a href="#" data-preconfigured-rule="2">Logged in users can upload</a></li>
+                <li><a href="#" data-preconfigured-rule="3">Logged in users can read</a></li>
+                <li><a href="#" data-preconfigured-rule="4">Logged in users can read, update and delete</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a href="#" data-preconfigured-rule="5">Deny access</a></li>
+              </ul>
+            </div>
+            <a href="#" class="btn btn-secondary btn-save-rules">Save &amp; Apply</a>
           </div>
-          <a href="#" class="btn btn-secondary btn-save-rules">Save &amp; Apply</a>
-        </div>
 
-        <!-- Rules table (matches DS widget table-hover pattern) -->
-        <div class="security-rules-table" id="security-rules-list">
-          <table class="table-hover">
-            <thead>
-              <tr>
-                <th class="status-header">Status</th>
-                <th>Allow</th>
-                <th>Users can</th>
-                <th>Applies to</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="security-rules-tbody"></tbody>
-          </table>
-          <div class="security-rules-empty" style="display: none;">
-            <i class="fa fa-lock"></i>
-            <p>No rules defined. Add a rule to control access.</p>
+          <!-- Inheritance banner -->
+          <div class="security-panel-inheritance" id="security-panel-inheritance"></div>
+
+          <!-- Rules table (matches DS widget table-hover pattern) -->
+          <div class="security-rules-table" id="security-rules-list">
+            <table class="table-hover">
+              <thead>
+                <tr>
+                  <th class="status-header">Status</th>
+                  <th>Allow</th>
+                  <th>Users can</th>
+                  <th>Applies to</th>
+                  <th>If not matched</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="security-rules-tbody"></tbody>
+            </table>
+            <div class="security-rules-empty" style="display: none;">
+              <i class="fa fa-lock"></i>
+              <p>No rules defined. Add a rule to control access.</p>
+            </div>
           </div>
-        </div>
 
-        <!-- Inherited rules (read-only) -->
-        <div class="inherited-rules-section" id="security-inherited-rules" style="display: none;">
-          <h4>
-            Inherited from <span class="inherited-from-path"></span> <a href="#" class="inherited-edit-link" data-edit-inherited-rules>Edit inherited rules</a>
-          </h4>
-          <table class="table-hover">
-            <thead>
-              <tr>
-                <th>Status</th>
-                <th>Allow</th>
-                <th>Actions</th>
-                <th>Applies to</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
+          <!-- Inherited rules (read-only) -->
+          <div class="inherited-rules-section" id="security-inherited-rules" style="display: none;">
+            <h4>
+              Inherited from <span class="inherited-from-path"></span> <a href="#" class="inherited-edit-link" data-edit-inherited-rules>Edit inherited rules</a>
+            </h4>
+            <table class="table-hover">
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Allow</th>
+                  <th>Actions</th>
+                  <th>Applies to</th>
+                  <th>If not matched</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
       </div>
 
       <!-- ===== STATE: RULE EDITOR (inline, matches DS #configure-rule pattern) ===== -->
@@ -686,6 +690,29 @@
               </div>
             </div>
           </div>
+          <hr />
+
+          <!-- STOP CONTROL -->
+          <div class="row rule-stop-section">
+            <div class="col-md-4">
+              <h5>When this rule does not grant access</h5>
+              <p>Control whether evaluation continues to the next rule.</p>
+            </div>
+            <div class="col-md-8 side vertical">
+              <div class="radio radio-icon">
+                <input type="radio" id="rule-stop-continue" name="rule-stop" value="false" checked />
+                <label for="rule-stop-continue">
+                  <span class="check"><i class="fa fa-circle"></i></span> <strong>Continue</strong> — Evaluate the next rule in the list <em>(default)</em>
+                </label>
+              </div>
+              <div class="radio radio-icon">
+                <input type="radio" id="rule-stop-stop" name="rule-stop" value="true" />
+                <label for="rule-stop-stop">
+                  <span class="check"><i class="fa fa-circle"></i></span> <strong>Stop</strong> — Deny access immediately, skip remaining rules
+                </label>
+              </div>
+            </div>
+          </div>
         </form>
         </div>
 
@@ -709,6 +736,28 @@
             <div class="col-md-8 side vertical">
               <div style="width:100%">
                 <textarea id="custom-file-rule"></textarea>
+              </div>
+            </div>
+          </div>
+          <hr />
+          <!-- STOP CONTROL (custom rules) -->
+          <div class="row rule-stop-section">
+            <div class="col-md-4">
+              <h5>When this rule does not grant access</h5>
+              <p>Control whether evaluation continues to the next rule.</p>
+            </div>
+            <div class="col-md-8 side vertical">
+              <div class="radio radio-icon">
+                <input type="radio" id="custom-rule-stop-continue" name="custom-rule-stop" value="false" checked />
+                <label for="custom-rule-stop-continue">
+                  <span class="check"><i class="fa fa-circle"></i></span> <strong>Continue</strong> — Evaluate the next rule in the list <em>(default)</em>
+                </label>
+              </div>
+              <div class="radio radio-icon">
+                <input type="radio" id="custom-rule-stop-stop" name="custom-rule-stop" value="true" />
+                <label for="custom-rule-stop-stop">
+                  <span class="check"><i class="fa fa-circle"></i></span> <strong>Stop</strong> — Deny access immediately, skip remaining rules
+                </label>
               </div>
             </div>
           </div>

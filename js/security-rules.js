@@ -221,7 +221,6 @@
       var $cell = $row.find('.file-security-cell');
 
       if ($cell.length) {
-        // Table cell: show just CRUD actions or "Not accessible"
         $cell.html(getSecurityBadgeHTML(status, summary, { tableCell: true }));
       }
     });
@@ -433,14 +432,7 @@
     // Hide context back link (fresh open, no stack)
     $panel.find('.panel-context-back').hide();
 
-    // Set title with clear item identification
-    var icon = type === 'folder' ? '<i class="fa fa-folder-open"></i>' : '<i class="fa fa-file"></i>';
-    var statusText = effective.rules.length > 0 ? 'Accessible' : 'Not accessible';
-    var actionsSummary = getActionsEnabledSummary(effective.rules);
-    var ruleSource = own.length > 0
-      ? own.length + ' own rule' + (own.length !== 1 ? 's' : '')
-      : (effective.inheritedFrom ? 'Inheriting from ' + escapeHtml(effective.inheritedFrom.folderName) : 'No rules');
-
+    // Set title
     $panel.find('.security-panel-header h3').html('Access Rules <a href="#" class="panel-help-link" target="_blank"><i class="fa fa-question-circle-o"></i></a>');
 
     // Inheritance banner
@@ -515,14 +507,6 @@
     var $overlay = $('#security-panel-overlay');
     var $panel = $overlay.find('.security-panel');
 
-    // Update header
-    var icon = type === 'folder' ? '<i class="fa fa-folder-open"></i>' : '<i class="fa fa-file"></i>';
-    var statusText = effective.rules.length > 0 ? 'Accessible' : 'Not accessible';
-    var actionsSummary = getActionsEnabledSummary(effective.rules);
-    var ruleSource = own.length > 0
-      ? own.length + ' own rule' + (own.length !== 1 ? 's' : '')
-      : (effective.inheritedFrom ? 'Inheriting from ' + escapeHtml(effective.inheritedFrom.folderName) : 'No rules');
-
     // Update "Back to [item]" link
     var $backLink = $panel.find('.panel-context-back');
 
@@ -569,14 +553,6 @@
         '<div class="alert-content">' +
         '<div class="alert-title">This folder has access rules</div>' +
         '<div class="alert-message">Child items without their own rules will inherit these.</div>' +
-        '</div></div>';
-    } else if (!isRoot && effective.rules.length > 0 && effective.inheritedFrom) {
-      html = '<div class="security-alert security-alert-info">' +
-        '<span class="alert-icon"><i class="fa fa-info-circle"></i></span>' +
-        '<div class="alert-content">' +
-        '<div class="alert-title">Inheriting ' + effective.rules.length + ' rule' +
-          (effective.rules.length !== 1 ? 's' : '') + ' from ' + escapeHtml(effective.inheritedFrom.folderName) + '</div>' +
-        '<div class="alert-message">Add own rules below to override inheritance.</div>' +
         '</div></div>';
     } else if (effective.rules.length === 0) {
       html = '<div class="security-alert security-alert-warning">' +
@@ -664,6 +640,11 @@
       var enabledClass = rule.enabled !== false ? 'rule-enabled' : 'rule-disabled';
       var isEnabled = rule.enabled !== false;
       var isCustom = typeof rule.script === 'string';
+      var isStop = rule.stop === true;
+
+      if (isStop) {
+        enabledClass += ' rule-stop';
+      }
 
       var statusCell = '<td class="align-baseline opacity-full">' +
         '<span class="fa-stack handle-sort">' +
@@ -679,6 +660,12 @@
         '</a>' +
         '</td>';
 
+      var stopCell = '<td class="align-baseline rule-stop-cell">' +
+        (isStop
+          ? '<span class="rule-stop-label">Stop</span>'
+          : '<span class="rule-continue-label">Continue</span>') +
+        '</td>';
+
       var actionsCell = '<td class="align-baseline opacity-full">' +
         '<button class="btn btn-default btn-sm" data-edit-rule="' + index + '">Edit</button> ' +
         '<button class="btn btn-danger btn-sm" data-delete-rule="' + index + '">Delete</button>' +
@@ -690,6 +677,7 @@
         html = '<tr data-rule-index="' + index + '" class="' + enabledClass + '">' +
           statusCell +
           '<td colspan="3" class="align-baseline"><span class="label label-default"><i class="fa fa-code"></i> Custom rule</span> ' + escapeHtml(rule.name || 'Untitled custom rule') + '</td>' +
+          stopCell +
           actionsCell +
           '</tr>';
       } else {
@@ -698,6 +686,7 @@
           '<td class="align-baseline">' + describeAllow(rule) + '</td>' +
           '<td class="align-baseline">' + describeType(rule) + '</td>' +
           '<td class="align-baseline">' + describeApps(rule) + '</td>' +
+          stopCell +
           actionsCell +
           '</tr>';
       }
@@ -725,11 +714,19 @@
       $tbody.empty();
 
       effective.rules.forEach(function(rule) {
-        var html = '<tr>' +
+        var isStop = rule.stop === true;
+        var stopCell = '<td class="rule-stop-cell">' +
+          (isStop
+            ? '<span class="rule-stop-label">Stop</span>'
+            : '<span class="rule-continue-label">Continue</span>') +
+          '</td>';
+
+        var html = '<tr' + (isStop ? ' class="rule-stop"' : '') + '>' +
           '<td>' + (rule.enabled !== false ? '<i class="fa fa-check-circle" style="color:#10B981"></i>' : '<i class="fa fa-minus-circle" style="color:#ccc"></i>') + '</td>' +
           '<td>' + describeAllow(rule) + '</td>' +
           '<td>' + describeType(rule) + '</td>' +
           '<td>' + describeApps(rule) + '</td>' +
+          stopCell +
           '</tr>';
 
         $tbody.append(html);
@@ -1067,6 +1064,10 @@
     if (customRuleEditor) {
       customRuleEditor.setValue('');
     }
+
+    // Reset stop controls
+    $editor.find('[name="rule-stop"][value="false"]').prop('checked', true);
+    $editor.find('[name="custom-rule-stop"][value="false"]').prop('checked', true);
   }
 
   function populateRuleForm($editor, rule) {
@@ -1077,6 +1078,9 @@
       if (customRuleEditor) {
         customRuleEditor.setValue(rule.script || '');
       }
+
+      // Stop control
+      $editor.find('[name="custom-rule-stop"][value="' + (rule.stop ? 'true' : 'false') + '"]').prop('checked', true);
 
       return;
     }
@@ -1162,6 +1166,9 @@
     } else {
       $editor.find('[data-app-scope="all"]').addClass('selected');
     }
+
+    // Stop control
+    $editor.find('[name="rule-stop"][value="' + (rule.stop ? 'true' : 'false') + '"]').prop('checked', true);
   }
 
   function addUserFilterRow($container, column, operator, value) {
@@ -1233,6 +1240,13 @@
         script: customRuleEditor ? customRuleEditor.getValue() : '',
         enabled: true
       };
+
+      // Stop control
+      var customStop = $editor.find('[name="custom-rule-stop"]:checked').val();
+
+      if (customStop === 'true') {
+        rule.stop = true;
+      }
 
       if (customRuleEditor) {
         customRuleEditor.setValue('');
@@ -1318,6 +1332,13 @@
 
     rule.enabled = true;
 
+    // Stop control
+    var stopVal = $editor.find('[name="rule-stop"]:checked').val();
+
+    if (stopVal === 'true') {
+      rule.stop = true;
+    }
+
     return rule;
   }
 
@@ -1345,6 +1366,10 @@
     {
       name: 'Logged in users can read, update and delete',
       rule: { allow: 'loggedIn', type: ['read', 'update', 'delete'], enabled: true, appId: null }
+    },
+    {
+      name: 'Deny access',
+      rule: { name: 'Deny access', script: 'return { granted: false };', stop: true, enabled: true }
     }
   ];
 

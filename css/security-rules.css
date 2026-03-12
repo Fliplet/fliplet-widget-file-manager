@@ -899,6 +899,27 @@ a.toggle-status:hover {
   display: block;
 }
 
+/* Stop control in rule editor */
+.rule-stop-section .radio label em {
+  color: #999;
+  font-style: italic;
+}
+
+/* Stop rule visual distinction in table — red left border + column label */
+#security-rules-list tr.rule-stop {
+  box-shadow: inset 4px 0 0 #DC2626;
+}
+
+.rule-stop-cell {
+  white-space: nowrap;
+}
+
+.rule-stop-label {
+}
+
+.rule-continue-label {
+}
+
 /* Editor footer */
 .rule-editor-footer {
   display: flex;
