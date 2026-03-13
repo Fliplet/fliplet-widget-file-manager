@@ -888,37 +888,53 @@ function updateCheckboxStatus() {
   }
 
   $('.side-actions .item').removeClass('show');
+  $('.side-actions .item.image').hide();
   $('.side-actions .item-actions').removeClass('single multiple');
 
   if (numberOfActiveRows > 1) {
     $('.side-actions .item.multiple').addClass('show');
     $('.side-actions .item-actions').addClass('multiple');
+    $('.selected-count-text').removeClass('hidden');
+    $('.selected-item-name').hide();
+    // Hide security sections for multi-selection
+    $('.selected-no-rules-section').hide();
+    $('.selected-has-rules-section').hide();
   } else if (numberOfActiveRows === 1) {
     var itemType = $('.file-row.active').data('file-type');
 
     $('.side-actions .item-actions').addClass('single');
+    // Hide "You have selected" text for single selection
+    $('.selected-count-text').addClass('hidden');
 
-    if (itemType === 'folder') {
-      $('.side-actions .item.folder').addClass('show');
-    } else if (itemType === 'image') {
-      $('.side-actions .item.image').addClass('show');
-      $('.side-actions .item.image').find('img').attr('src', fileURL);
-    } else {
-      $('.side-actions .item.file').addClass('show');
+    var $activeRow = $('.file-row.active');
+    var selectedName = $activeRow.find('.file-name span').first().text();
+
+    // For images, show the image preview (hides itself on load error)
+    if (itemType === 'image' && fileURL) {
+      var $imgItem = $('.side-actions .item.image');
+
+      $imgItem.show().find('img').attr('src', fileURL);
     }
+
+    // Show selected item name with small inline icon (matching folder card h4 style)
+    var $nameEl = $('.selected-item-name');
+    var iconClass = itemType === 'folder' ? 'fa-folder-open' : 'fa-file';
+
+    $nameEl.html('<i class="fa ' + iconClass + '"></i> ' + $('<span>').text(selectedName || '').html()).show();
 
     // Update security section for selected item
     if (window.FileSecurityRules) {
-      var $activeRow = $('.file-row.active');
       var selectedId = $activeRow.data('id');
-      var selectedName = $activeRow.find('.file-name span').first().text();
       var selectedType = (itemType === 'folder') ? 'folder' : 'file';
 
       window.FileSecurityRules.updateSelectedItemSecurity(selectedType, selectedId, selectedName);
     }
   } else {
-    // Hide security section for multiple selection
-    $('.selected-security-section').hide();
+    // Hide security sections when nothing selected
+    $('.selected-no-rules-section').hide();
+    $('.selected-has-rules-section').hide();
+    $('.selected-count-text').removeClass('hidden');
+    $('.selected-item-name').hide();
   }
 
   if (numberOfRows === numberOfActiveRows) {
@@ -949,19 +965,59 @@ function toggleAll(el) {
   $('.items-selected').html(numberOfActiveRows > 1 ? numberOfActiveRows + ' items' : numberOfActiveRows + ' item');
 
   $('.side-actions .item').removeClass('show');
+  $('.side-actions .item.image').hide();
   $('.side-actions .item-actions').removeClass('single multiple');
 
   if (numberOfActiveRows > 1) {
     $('.side-actions .item.multiple').addClass('show');
     $('.side-actions .item-actions').addClass('multiple');
+    $('.selected-count-text').removeClass('hidden');
+    $('.selected-item-name').hide();
+    // Hide security sections for multi-selection
+    $('.selected-no-rules-section').hide();
+    $('.selected-has-rules-section').hide();
   } else if (numberOfActiveRows === 1) {
+    var toggleItemType = $('.file-row.active').data('file-type');
+
     $('.side-actions .item-actions').addClass('single');
+    $('.selected-count-text').addClass('hidden');
+
+    var $toggleActiveRow = $('.file-row.active');
+    var toggleSelectedName = $toggleActiveRow.find('.file-name span').first().text();
+
+    // For images, show the image preview (hides itself on load error)
+    if (toggleItemType === 'image') {
+      var toggleFileURL = $toggleActiveRow.data('file-url');
+
+      if (toggleFileURL) {
+        var $toggleImgItem = $('.side-actions .item.image');
+
+        $toggleImgItem.show().find('img').attr('src', toggleFileURL);
+      }
+    }
+
+    // Show selected item name with small inline icon
+    var $toggleNameEl = $('.selected-item-name');
+    var toggleIconClass = toggleItemType === 'folder' ? 'fa-folder-open' : 'fa-file';
+
+    $toggleNameEl.html('<i class="fa ' + toggleIconClass + '"></i> ' + $('<span>').text(toggleSelectedName || '').html()).show();
+
+    // Update security section for selected item
+    if (window.FileSecurityRules) {
+      var toggleSelectedId = $toggleActiveRow.data('id');
+      var toggleSelectedType = (toggleItemType === 'folder') ? 'folder' : 'file';
+
+      window.FileSecurityRules.updateSelectedItemSecurity(toggleSelectedType, toggleSelectedId, toggleSelectedName);
+    }
   }
 
   if (!$('.file-row').hasClass('active')) {
     $('.side-actions').removeClass('active');
     $('.side-actions .item').removeClass('show');
     $('.help-tips').removeClass('hidden');
+    $('.selected-no-rules-section').hide();
+    $('.selected-has-rules-section').hide();
+    $('.selected-item-name').hide();
 
     if (window.FileSecurityRules && currentAppId) {
       $('.folder-security-card').addClass('active');
@@ -1276,10 +1332,6 @@ function renderList() {
     var folderId = currentFolderId || 'root';
 
     window.FileSecurityRules.updateFolderSecurityCard(folderId, folderName);
-
-    // Update edit button data attributes
-    $('.folder-security-card .btn-edit-folder-rules').data('folder-id', folderId).data('folder-name', folderName);
-    $('.folder-security-card .security-alert a.btn-edit-folder-rules').data('folder-id', folderId).data('folder-name', folderName);
   }
 }
 

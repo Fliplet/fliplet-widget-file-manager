@@ -172,22 +172,11 @@
             <div class="folder-security-status">
               <!-- Populated by security-rules.js -->
             </div>
-            <div class="security-alert security-alert-warning" style="display: none;">
-              <span class="alert-icon"><i class="fa fa-exclamation-triangle"></i></span>
-              <div class="alert-content">
-                <div class="alert-title">No access rules</div>
-                <div class="alert-message">Contents of this folder won't be accessible to app users.</div>
-              </div>
+            <div class="folder-no-rules-callout callout callout-warning" style="display: none;">
+              <p>No access rules. Contents of this folder won't be accessible to app users unless they have their own rules.</p>
             </div>
-            <div class="folder-security-add-action" style="display: none;">
-              <button class="btn btn-default btn-sm btn-edit-folder-rules" data-folder-id="root" data-folder-name="App Files">
-                <i class="fa fa-plus"></i> Add rules
-              </button>
-            </div>
-            <div class="folder-security-edit-action" style="display: none;">
-              <button class="btn btn-default btn-sm btn-edit-folder-rules" data-folder-id="root" data-folder-name="App Files">
-                <i class="fa fa-pencil"></i> Edit rules
-              </button>
+            <div class="folder-security-open-action">
+              <button class="btn btn-default btn-sm btn-open-folder-rules">Access rules</button>
             </div>
             <p class="folder-security-hint"><i class="fa fa-info-circle"></i> Files inherit rules from their parent folder unless they have their own.</p>
           </div>
@@ -205,31 +194,16 @@
               <div class="item multiple">
                 <i class="fa fa-files-o"></i>
               </div>
-              <div class="item file">
-                <i class="fa fa-file"></i>
+              <div class="item image" style="display:none;">
+                <img onerror="this.parentElement.style.display='none';" />
               </div>
-              <div class="item folder">
-                <i class="fa fa-folder-open"></i>
-              </div>
-              <div class="item image">
-                <img onerror="this.style.display='none';this.nextElementSibling.style.display='';" />
-                <i class="fa fa-file" style="display:none;"></i>
-              </div>
-              <p>You have selected <span class="items-selected"></span></p>
+              <p class="selected-item-name" style="display: none;"></p>
+              <p class="selected-count-text">You have selected <span class="items-selected"></span></p>
             </div>
             <!-- No access rules alert (shown between file info and Action button) -->
             <div class="selected-no-rules-section" style="display: none;">
-              <div class="selected-security-alert security-alert security-alert-warning">
-                <span class="alert-icon"><i class="fa fa-exclamation-triangle"></i></span>
-                <div class="alert-content">
-                  <div class="alert-title">No access rules</div>
-                  <div class="alert-message">This item won't be accessible to app users.</div>
-                </div>
-              </div>
-              <div class="selected-security-actions">
-                <button class="btn btn-default btn-sm btn-add-rules-inline">
-                  <i class="fa fa-plus"></i> Add rules
-                </button>
+              <div class="callout callout-warning">
+                <p>No access rules. This item won't be accessible to app users.</p>
               </div>
             </div>
 
@@ -237,11 +211,6 @@
             <div class="selected-has-rules-section" style="display: none;">
               <div class="selected-security-status">
                 <!-- Populated by security-rules.js -->
-              </div>
-              <div class="selected-security-actions">
-                <button class="btn btn-default btn-sm btn-edit-rules-inline">
-                  <i class="fa fa-pencil"></i> Edit rules
-                </button>
               </div>
             </div>
 

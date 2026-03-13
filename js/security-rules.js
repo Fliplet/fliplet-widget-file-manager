@@ -114,6 +114,8 @@
   var currentRules = [];           // Working copy of rules being edited
   var savedRules = [];             // Last saved state (to detect changes)
   var hasUnsavedChanges = false;
+  var serverInheritedFrom = null;  // Original inheritedFrom from API (for draft inheritance preview)
+  var serverEffectiveRules = [];   // Original effectiveRules from API (for draft inheritance preview)
 
   // -----------------------------------------
   // RULE RESOLUTION — uses cached API data
@@ -158,6 +160,33 @@
     };
   }
 
+  /**
+   * Get effective rules for the current draft state.
+   * When currentRules is empty but the item originally had own rules,
+   * the cache still shows inheritedFrom: null. This function uses
+   * the stored server response to simulate inheritance preview.
+   */
+  function getDraftEffective() {
+    if (currentRules.length > 0) {
+      return { rules: currentRules.slice(), inheritedFrom: null };
+    }
+
+    // Draft has no rules — show what would be inherited
+    if (serverInheritedFrom && serverEffectiveRules.length > 0) {
+      return {
+        rules: serverEffectiveRules.slice(),
+        inheritedFrom: serverInheritedFrom
+      };
+    }
+
+    // Fall back to cache
+    if (currentSecurityTarget) {
+      return getEffectiveFromCache(currentSecurityTarget.type, currentSecurityTarget.id);
+    }
+
+    return { rules: [], inheritedFrom: null };
+  }
+
   // -----------------------------------------
   // SECURITY STATUS FOR FILE TABLE (Layer 1)
   // -----------------------------------------
@@ -178,14 +207,16 @@
     switch (status) {
       case 'accessible':
         if (options.tableCell) {
-          // Table column: just show CRUD values comma-separated
-          return '<span class="security-badge-actions">' + (detail || 'Accessible') + '</span>';
+          // Table column: show comma-separated text
+          var tableText = Array.isArray(detail) ? detail.join(', ') : (detail || 'Accessible');
+
+          return '<span class="security-badge-actions">' + tableText + '</span>';
         }
 
         return '<span class="security-badge security-badge-accessible">Accessible</span>' +
-          (detail ? '<span class="security-badge-detail">' + detail + '</span>' : '');
+          (detail ? '<span class="security-badge-detail">' + (Array.isArray(detail) ? detail.join(', ') : detail) + '</span>' : '');
       case 'not-accessible':
-        return '<span class="security-badge security-badge-not-accessible">Not accessible</span>';
+        return '<span class="security-badge security-badge-not-accessible">No access rules</span>';
       default:
         return '';
     }
@@ -263,24 +294,21 @@
     fetchAccessRules('folder', id).then(function() {
       var effective = getEffectiveFromCache('folder', id);
       var $status = $card.find('.folder-security-status');
-      var $alert = $card.find('.security-alert');
-      var $addAction = $card.find('.folder-security-add-action');
-      var $editAction = $card.find('.folder-security-edit-action');
+      var $callout = $card.find('.folder-no-rules-callout');
 
       if (effective.rules.length > 0) {
         var summary = getActionsEnabledSummary(effective.rules);
+        var badgesHtml = '';
 
-        $status.html(
-          summary ? '<span class="folder-security-detail"><strong>Users can:</strong> ' + summary + '</span>' : ''
-        ).show();
-        $alert.hide();
-        $addAction.hide();
-        $editAction.show();
+        if (summary && summary.length) {
+          badgesHtml = '<span class="security-action-badge">Users can: ' + summary.join(', ') + '</span>';
+        }
+
+        $status.html(badgesHtml).show();
+        $callout.hide();
       } else {
         $status.hide();
-        $alert.show();
-        $addAction.show();
-        $editAction.hide();
+        $callout.show();
       }
 
       // Hide inheritance hint for root/app folders
@@ -292,8 +320,11 @@
         $hint.show();
       }
 
-      // Show folder name in heading
-      $card.find('.folder-access-name').text(folderName || 'App Files');
+      // Show folder name in heading and store context on card
+      var displayName = folderName || (typeof currentAppName !== 'undefined' && currentAppName) || 'App Files';
+
+      $card.find('.folder-access-name').text(displayName);
+      $card.data('folder-id', id).data('folder-name', displayName);
 
       $card.addClass('active');
     }).catch(function(err) {
@@ -316,17 +347,11 @@
 
       return;
     }
-    var $addBtn = $noRulesSection.find('.btn-add-rules-inline');
-    var $editBtn = $hasRulesSection.find('.btn-edit-rules-inline');
-
     // Store target immediately (before async fetch)
     $('.side-actions .btn-edit-rules')
       .data('target-type', type)
       .data('target-id', id)
       .data('target-name', name);
-
-    $editBtn.data('target-type', type).data('target-id', id).data('target-name', name);
-    $addBtn.data('target-type', type).data('target-id', id).data('target-name', name);
 
     // Reset
     $noRulesSection.hide();
@@ -337,11 +362,13 @@
 
       if (effective.rules.length > 0) {
         var summary = getActionsEnabledSummary(effective.rules);
+        var badgesHtml = '';
 
-        $hasRulesSection.find('.selected-security-status').html(
-          summary ? '<span class="folder-security-detail"><strong>Users can:</strong> ' + summary + '</span>' : ''
-        );
+        if (summary && summary.length) {
+          badgesHtml = '<span class="security-action-badge">Users can: ' + summary.join(', ') + '</span>';
+        }
 
+        $hasRulesSection.find('.selected-security-status').html(badgesHtml);
         $hasRulesSection.show();
       } else {
         $noRulesSection.show();
@@ -443,12 +470,88 @@
       return a.charAt(0).toUpperCase() + a.slice(1);
     });
 
-    return labels.join(', ');
+    return labels;
   }
 
   // -----------------------------------------
   // SLIDE-OUT PANEL (Layer 3)
   // -----------------------------------------
+
+  /**
+   * Render a breadcrumb path in the overlay panel header area.
+   */
+  function renderPanelPath($panel) {
+    var $pathEl = $panel.find('.security-panel-path');
+
+    if (!$pathEl.length) {
+      $pathEl = $('<div class="security-panel-path"></div>');
+      // Insert after the context-back link but before panel states
+      var $contextBack = $panel.find('.panel-context-back');
+
+      if ($contextBack.length) {
+        $contextBack.after($pathEl);
+      } else {
+        $panel.find('.security-panel-body').prepend($pathEl);
+      }
+    }
+
+    var parts = [];
+
+    if (typeof navStack !== 'undefined' && navStack.length > 0) {
+      // When context has been switched, trim path to just the org root
+      var stackItems = panelContextStack.length > 0 ? [navStack[0]] : navStack;
+
+      stackItems.forEach(function(item) {
+        parts.push(escapeHtml(item.name || item.id));
+      });
+    }
+
+    if (currentSecurityTarget && currentSecurityTarget.name) {
+      parts.push('<strong>' + escapeHtml(currentSecurityTarget.name) + '</strong>');
+    }
+
+    if (parts.length > 0) {
+      var pathHtml = parts.join(' <i class="fa fa-chevron-right"></i> ');
+
+      // Add folder children badge if applicable
+      var childrenBadge = getFolderChildrenBadge();
+
+      if (childrenBadge) {
+        pathHtml += ' ' + childrenBadge;
+      }
+
+      $pathEl.html(pathHtml).show();
+    } else {
+      $pathEl.hide();
+    }
+  }
+
+  /**
+   * Get folder children count badge HTML for the panel path area.
+   */
+  function getFolderChildrenBadge() {
+    if (!currentSecurityTarget || currentSecurityTarget.type !== 'folder') return '';
+
+    var folderCount = 0;
+    var fileCount = 0;
+
+    if (typeof currentFolders !== 'undefined' && Array.isArray(currentFolders)) {
+      folderCount = currentFolders.length;
+    }
+
+    if (typeof currentFiles !== 'undefined' && Array.isArray(currentFiles)) {
+      fileCount = currentFiles.length;
+    }
+
+    if (folderCount === 0 && fileCount === 0) return '';
+
+    var parts = [];
+
+    if (folderCount > 0) parts.push(folderCount + ' folder' + (folderCount !== 1 ? 's' : ''));
+    if (fileCount > 0) parts.push(fileCount + ' file' + (fileCount !== 1 ? 's' : ''));
+
+    return '<span class="panel-children-badge">' + parts.join(', ') + '</span>';
+  }
 
   function openSecurityPanel(type, id, name) {
     currentSecurityTarget = { type: type, id: String(id), name: name || '' };
@@ -460,6 +563,9 @@
     // Show panel immediately with loading state
     $panel.find('.panel-context-back').hide();
     $panel.find('.security-panel-header h3').html('Access Rules <a href="#" class="panel-help-link" target="_blank"><i class="fa fa-question-circle-o"></i></a>');
+
+    // Render path breadcrumb below header
+    renderPanelPath($panel);
 
     showPanelState('list');
     $overlay.addClass('active');
@@ -481,8 +587,11 @@
       currentRules = own.slice();
       savedRules = JSON.parse(JSON.stringify(own));
       hasUnsavedChanges = false;
+      serverInheritedFrom = response.inheritedFrom || null;
+      serverEffectiveRules = (response.effectiveRules || []).slice();
 
       renderInheritanceBanner(own, effective);
+
       renderRulesTable();
       renderInheritedRules(own, effective);
       updateSaveButton();
@@ -494,6 +603,7 @@
       hasUnsavedChanges = false;
 
       renderInheritanceBanner([], { rules: [], inheritedFrom: null });
+
       renderRulesTable();
       renderInheritedRules([], { rules: [], inheritedFrom: null });
       updateSaveButton();
@@ -527,6 +637,18 @@
     currentRules = [];
     hasUnsavedChanges = false;
     panelContextStack = [];
+
+    // Refresh badges and sidebar after closing (catches saves made during session)
+    updateSecurityBadges();
+
+    if ($('.folder-security-card').hasClass('active')) {
+      var $card = $('.folder-security-card');
+
+      updateFolderSecurityCard(
+        $card.data('folder-id') || 'root',
+        $card.data('folder-name') || 'App Files'
+      );
+    }
   }
 
   /**
@@ -551,6 +673,9 @@
       $backLink.hide();
     }
 
+    // Update breadcrumbs to reflect the new context
+    renderPanelPath($panel);
+
     fetchAccessRules(type, currentSecurityTarget.id).then(function(response) {
       var own = (response.accessRules || []).slice();
       var effective = {
@@ -561,6 +686,8 @@
       currentRules = own.slice();
       savedRules = JSON.parse(JSON.stringify(own));
       hasUnsavedChanges = false;
+      serverInheritedFrom = response.inheritedFrom || null;
+      serverEffectiveRules = (response.effectiveRules || []).slice();
 
       renderInheritanceBanner(own, effective);
       renderRulesTable();
@@ -577,30 +704,31 @@
     var html = '';
     var isRoot = currentSecurityTarget.type === 'folder' && String(currentSecurityTarget.id) === 'root';
 
-    if (own.length > 0 && !isRoot) {
-      // Has own rules and is not root — show inheritance info with clear option
-      html = '<div class="security-alert security-alert-info">' +
-        '<span class="alert-icon"><i class="fa fa-info-circle"></i></span>' +
-        '<div class="alert-content">' +
-        '<div class="alert-title">This ' + currentSecurityTarget.type + ' has its own rules</div>' +
-        '<div class="alert-message">Child items without their own rules will inherit these.</div>' +
-        '</div></div>';
+    var isFile = currentSecurityTarget.type === 'file';
+
+    if (own.length > 0 && !isRoot && !isFile) {
+      html = '<div class="callout callout-primary">' +
+        '<p>This folder has its own rules. Child items without their own rules will inherit these.</p>' +
+        '</div>';
+    } else if (own.length > 0 && isFile) {
+      html = '<div class="callout callout-primary">' +
+        '<p>This file has its own access rules.</p>' +
+        '</div>';
     } else if (own.length > 0 && isRoot) {
-      // Has own rules and IS root — no inheritance concept, just mention children inherit
-      html = '<div class="security-alert security-alert-info">' +
-        '<span class="alert-icon"><i class="fa fa-info-circle"></i></span>' +
-        '<div class="alert-content">' +
-        '<div class="alert-title">This folder has access rules</div>' +
-        '<div class="alert-message">Child items without their own rules will inherit these.</div>' +
-        '</div></div>';
+      html = '<div class="callout callout-primary">' +
+        '<p>This folder has access rules. Child items without their own rules will inherit these.</p>' +
+        '</div>';
+    } else if (own.length === 0 && effective.inheritedFrom && effective.rules.length > 0) {
+      // Draft preview: user removed all own rules, showing what would be inherited
+      html = '<div class="callout callout-primary">' +
+        '<p>No own rules. This ' + currentSecurityTarget.type +
+          ' will inherit access rules from its parent.</p>' +
+        '</div>';
     } else if (effective.rules.length === 0) {
-      html = '<div class="security-alert security-alert-warning">' +
-        '<span class="alert-icon"><i class="fa fa-exclamation-triangle"></i></span>' +
-        '<div class="alert-content">' +
-        '<div class="alert-title">No access rules</div>' +
-        '<div class="alert-message">This ' + currentSecurityTarget.type +
-          ' has no rules and is not accessible to app users. Add rules below.</div>' +
-        '</div></div>';
+      html = '<div class="callout callout-warning">' +
+        '<p>No access rules. This ' + currentSecurityTarget.type +
+          ' is not accessible to app users. Add rules below.</p>' +
+        '</div>';
     }
 
     $banner.html(html);
@@ -657,9 +785,7 @@
 
     if (currentRules.length === 0) {
       // Hide empty placeholder if inherited rules are shown
-      var effective = currentSecurityTarget
-        ? getEffectiveFromCache(currentSecurityTarget.type, currentSecurityTarget.id)
-        : { rules: [], inheritedFrom: null };
+      var effective = getDraftEffective();
       var hasInherited = effective.inheritedFrom && effective.rules.length > 0;
 
       if (hasInherited) {
@@ -771,13 +897,25 @@
         $tbody.append(html);
       });
 
-      // Show folder name from server response
-      $section.find('.inherited-from-path').text(effective.inheritedFrom.folderName || 'Parent folder');
+      // Show source name from server response
+      var inheritedName;
+      var inheritedId;
 
-      // Set up "Edit inherited rules" button
+      if (effective.inheritedFrom.type === 'app') {
+        inheritedName = effective.inheritedFrom.appName || (typeof currentAppName !== 'undefined' ? currentAppName : 'App Files');
+        inheritedId = 'root';
+      } else {
+        inheritedName = effective.inheritedFrom.folderName || 'Parent folder';
+        inheritedId = effective.inheritedFrom.folderId;
+      }
+
+      $section.find('.inherited-from-path').text(inheritedName);
+
+      // Set up "Edit inherited rules" button with type info
       $section.find('[data-edit-inherited-rules]')
-        .data('folder-id', effective.inheritedFrom.folderId)
-        .data('folder-name', effective.inheritedFrom.folderName);
+        .data('folder-id', inheritedId)
+        .data('folder-name', inheritedName)
+        .data('inherited-type', effective.inheritedFrom.type);
 
       $section.show();
     } else {
@@ -1430,13 +1568,46 @@
       updateSecurityBadges();
 
       if ($('.folder-security-card').hasClass('active')) {
-        var $editBtn = $('.folder-security-card .btn-edit-folder-rules');
+        var $card = $('.folder-security-card');
 
         updateFolderSecurityCard(
-          $editBtn.data('folder-id') || 'root',
-          $editBtn.data('folder-name') || 'App Files'
+          $card.data('folder-id') || 'root',
+          $card.data('folder-name') || 'App Files'
         );
       }
+
+      // Also update selected item security if one is selected
+      var $activeRow = $('.file-row.active');
+
+      if ($activeRow.length === 1 && window.FileSecurityRules) {
+        var selType = $activeRow.data('file-type') === 'folder' ? 'folder' : 'file';
+
+        updateSelectedItemSecurity(selType, $activeRow.data('id'), $activeRow.find('.file-name span').first().text());
+      }
+
+      // Re-fetch and re-render the overlay panel to reflect inheritance changes
+      fetchAccessRules(target.type, target.id).then(function(response) {
+        var own = (response.accessRules || []).slice();
+        var effective = {
+          rules: own.length > 0 ? own : (response.effectiveRules || []).slice(),
+          inheritedFrom: response.inheritedFrom || null
+        };
+
+        currentRules = own.slice();
+        savedRules = JSON.parse(JSON.stringify(own));
+        serverInheritedFrom = response.inheritedFrom || null;
+        serverEffectiveRules = (response.effectiveRules || []).slice();
+
+        renderInheritanceBanner(own, effective);
+        renderRulesTable();
+        renderInheritedRules(own, effective);
+        updateSaveButton();
+
+        // Update panel path with current children count
+        var $panel = $('#security-panel-overlay .security-panel');
+
+        renderPanelPath($panel);
+      });
 
       Fliplet.Modal.alert({
         title: 'Rules saved',
@@ -1453,12 +1624,13 @@
   }
 
   function initEventHandlers() {
-    // --- Layer 2A: Folder security card ---
-    $(document).on('click.securityRules', '.folder-security-card .btn-edit-folder-rules', function(e) {
+    // --- Layer 2A: Folder security card "Access rules" button ---
+    $(document).on('click.securityRules', '.folder-security-card .btn-open-folder-rules', function(e) {
       e.preventDefault();
 
-      var folderId = $(this).data('folder-id') || 'root';
-      var folderName = $(this).data('folder-name') || 'App Files';
+      var $card = $('.folder-security-card');
+      var folderId = $card.data('folder-id') || 'root';
+      var folderName = $card.data('folder-name') || 'App Files';
 
       openSecurityPanel('folder', folderId, folderName);
     });
@@ -1466,28 +1638,17 @@
     // --- Layer 2B: Selected item edit via Actions dropdown ---
     $(document).on('click.securityRules', '.side-actions .btn-edit-rules', function(e) {
       e.preventDefault();
+      e.stopPropagation();
 
       var type = $(this).data('target-type');
       var id = $(this).data('target-id');
       var name = $(this).data('target-name');
 
-      if (type && id) {
+      if (type && id !== undefined && id !== null) {
         openSecurityPanel(type, id, name);
       }
     });
 
-    // --- Layer 2B: Selected item edit/add via inline buttons ---
-    $(document).on('click.securityRules', '.btn-edit-rules-inline, .btn-add-rules-inline', function(e) {
-      e.preventDefault();
-
-      var type = $(this).data('target-type');
-      var id = $(this).data('target-id');
-      var name = $(this).data('target-name');
-
-      if (type && id) {
-        openSecurityPanel(type, id, name);
-      }
-    });
 
     // --- Navigate to folder from inherited source link ---
     $(document).on('click.securityRules', '[data-navigate-folder]', function(e) {
@@ -1563,7 +1724,7 @@
       renderRulesTable();
       updateSaveButton();
 
-      var effective = getEffectiveFromCache(currentSecurityTarget.type, currentSecurityTarget.id);
+      var effective = getDraftEffective();
 
       renderInheritanceBanner(currentRules, effective);
       renderInheritedRules(currentRules, effective);
@@ -1577,7 +1738,7 @@
       renderRulesTable();
       updateSaveButton();
 
-      var effective = getEffectiveFromCache(currentSecurityTarget.type, currentSecurityTarget.id);
+      var effective = getDraftEffective();
 
       renderInheritanceBanner(currentRules, effective);
       renderInheritedRules(currentRules, effective);
@@ -1610,7 +1771,7 @@
       renderRulesTable();
       updateSaveButton();
 
-      var effective = getEffectiveFromCache(currentSecurityTarget.type, currentSecurityTarget.id);
+      var effective = getDraftEffective();
 
       renderInheritanceBanner(currentRules, effective);
       renderInheritedRules(currentRules, effective);
@@ -1754,7 +1915,7 @@
       renderRulesTable();
       updateSaveButton();
 
-      var effective = getEffectiveFromCache(currentSecurityTarget.type, currentSecurityTarget.id);
+      var effective = getDraftEffective();
 
       renderInheritanceBanner(currentRules, effective);
       renderInheritedRules(currentRules, effective);
@@ -1824,8 +1985,8 @@
         });
       }
 
-      // Switch panel context to the inherited folder (without navigating file manager)
-      switchPanelContext('folder', folderId, folderName);
+      // For app-level inheritance, use 'root' which maps to app endpoint
+      switchPanelContext('folder', folderId || 'root', folderName);
     });
 
     // --- Back to previous context ---

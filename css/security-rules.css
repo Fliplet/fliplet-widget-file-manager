@@ -54,6 +54,12 @@
   color: #B45309;
 }
 
+.file-security-cell .security-badge {
+  display: inline-block;
+  width: auto;
+  max-width: 100%;
+}
+
 .security-badge-detail {
   display: block;
   font-size: 10px;
@@ -95,10 +101,14 @@
   font-size: 12px;
   font-weight: 700;
   color: #14505e;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 10px 0;
   text-align: left;
+}
+
+.folder-security-card h4 .fa {
+  font-size: 14px;
+  margin-right: 4px;
 }
 
 .folder-security-status {
@@ -114,34 +124,67 @@
   padding: 3px 10px;
 }
 
-.folder-security-detail {
+/* "Users can:" action badge */
+.security-action-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 20px;
+  background-color: #DCFCE7;
+  color: #166534;
+  margin: 2px 4px 2px 0;
+  white-space: nowrap;
+}
+
+/* Selected count text */
+.selected-count-text.hidden {
+  display: none;
+}
+
+
+/* Selected item name display — matches folder card h4 style */
+.selected-item-name {
   font-size: 12px;
-  color: #666;
-  line-height: 1.4;
+  font-weight: 700;
+  color: #14505e;
+  margin: 0 0 10px 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
-.folder-security-detail .inherited-source {
-  color: #1D4ED8;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.folder-security-detail .inherited-source:hover {
-  color: #1e40af;
+.selected-item-name .fa {
+  font-size: 14px;
+  margin-right: 4px;
 }
 
 
-.folder-security-add-action,
-.folder-security-edit-action {
-  width: 100%;
+/* Folder security open button */
+.folder-security-open-action {
   margin-top: 12px;
   margin-bottom: 12px;
 }
 
-.folder-security-add-action .btn,
-.folder-security-edit-action .btn {
+.folder-security-open-action .btn {
   width: 100%;
   display: block;
+}
+
+/* Callout overrides for security sections */
+.folder-security-card .callout,
+.selected-no-rules-section .callout {
+  text-align: left;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.folder-security-card .callout p,
+.selected-no-rules-section .callout p {
+  margin: 0;
+  font-size: 12px;
 }
 
 /* Action dropdown button — full width */
@@ -166,67 +209,14 @@
   margin-right: 2px;
 }
 
-/* Alert (design system ds-alert inspired) */
-.security-alert {
-  display: flex;
-  gap: 8px;
-  padding: 12px;
-  border-radius: 6px;
-  margin-top: 12px;
-  font-size: 13px;
-  line-height: 1.4;
+/* Overlay panel callout overrides */
+.security-panel-inheritance .callout {
+  margin-top: 0;
+  text-align: left;
 }
 
-.security-alert-warning {
-  background-color: #FEF3C7;
-  border: 1px solid #F59E0B;
-  color: #92400E;
-}
-
-.security-alert-warning .alert-title {
-  color: #92400E;
-}
-
-.security-alert-warning .alert-message {
-  color: #78350F;
-}
-
-.security-alert-info {
-  background-color: #EFF6FF;
-  border: 1px solid #93C5FD;
-  color: #1E3A5F;
-}
-
-.security-alert-info .alert-title {
-  color: #1E3A5F;
-}
-
-.security-alert-info .alert-message {
-  color: #1E40AF;
-}
-
-.security-alert .alert-icon {
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.security-alert .alert-content {
-  flex: 1;
-}
-
-.security-alert .alert-title {
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-
-.security-alert .alert-message {
-  font-size: 12px;
-}
-
-.security-alert a {
-  color: inherit;
-  font-weight: 600;
-  text-decoration: underline;
+.security-panel-inheritance .callout p {
+  margin: 0;
 }
 
 /* ------------------------------------------
@@ -236,15 +226,6 @@
 /* No rules section (between file info and Action button) */
 .selected-no-rules-section {
   margin-bottom: 10px;
-}
-
-.selected-no-rules-section .security-alert {
-  margin-top: 0;
-  margin-bottom: 10px;
-}
-
-.selected-no-rules-section .selected-security-actions .btn {
-  width: 100%;
 }
 
 /* Has rules section (between file info and Action button) */
@@ -266,13 +247,6 @@
   padding: 3px 10px;
 }
 
-.selected-security-actions {
-  margin-top: 12px;
-}
-
-.selected-security-actions .btn {
-  width: 100%;
-}
 
 .effective-rules-list {
   list-style: none;
@@ -505,13 +479,37 @@
   display: block;
 }
 
+/* Panel path breadcrumb */
+.security-panel-path {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.security-panel-path .fa-chevron-right {
+  margin: 0 6px;
+  font-size: 10px;
+  color: #999;
+}
+
+/* Children count badge (pill style) */
+.panel-children-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 20px;
+  background-color: #eae9ec;
+  color: #474974;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
 /* Inheritance banner */
 .security-panel-inheritance {
   margin-bottom: 16px;
-}
-
-.security-panel-inheritance .security-alert {
-  margin-top: 0;
 }
 
 /* Rules toolbar */
