@@ -877,8 +877,8 @@ function updateCheckboxStatus() {
     $('.file-row').not(this).removeClass('passive');
     $('.help-tips').removeClass('hidden');
     $('.side-actions .item').removeClass('show');
-    // Show folder security card when nothing is selected
-    if (window.FileSecurityRules) {
+    // Show folder security card when nothing is selected (only in app context)
+    if (window.FileSecurityRules && currentAppId) {
       $('.folder-security-card').addClass('active');
       $('.help-tips').addClass('hidden');
     }
@@ -960,7 +960,7 @@ function toggleAll(el) {
     $('.side-actions .item').removeClass('show');
     $('.help-tips').removeClass('hidden');
 
-    if (window.FileSecurityRules) {
+    if (window.FileSecurityRules && currentAppId) {
       $('.folder-security-card').addClass('active');
       $('.help-tips').addClass('hidden');
     }
@@ -1449,7 +1449,7 @@ function hideSideActions() {
   $('.side-actions .item').removeClass('show');
   $('.selected-security-section').hide();
 
-  if (window.FileSecurityRules) {
+  if (window.FileSecurityRules && currentAppId) {
     $('.folder-security-card').addClass('active');
     $('.help-tips').addClass('hidden');
   } else {

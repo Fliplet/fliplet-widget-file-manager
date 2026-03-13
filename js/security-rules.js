@@ -1,70 +1,77 @@
 /* ============================================
-   FILE SECURITY RULES UI — Demo/Prototype
+   FILE SECURITY RULES UI
    ============================================
    This file handles the security rules UI for
-   the file manager widget. Currently uses mock
-   data; integration points are clearly marked.
+   the file manager widget.
    ============================================ */
 
 (function() {
   'use strict';
 
   // -----------------------------------------
-  // [FILEAPI] MOCK DATA — Replace with real API
+  // API HELPERS
   // -----------------------------------------
-  // All mock data below should be replaced with real API calls.
-  // Search for [FILEAPI] across this file to find all integration points.
-  //
-  // Expected API endpoints:
-  //   GET    /v1/media/folders/:id/accessRules  → returns { accessRules: [...] }
-  //   PUT    /v1/media/folders/:id/accessRules  → body: { accessRules: [...] }
-  //   GET    /v1/media/files/:id/accessRules    → returns { accessRules: [...] }
-  //   PUT    /v1/media/files/:id/accessRules    → body: { accessRules: [...] }
-  //
-  // Each rule object: { allow, type, enabled, appId }
 
-  // [FILEAPI] Mock folder access rules — replace with API call to GET /v1/media/folders/:id/accessRules
-  var mockFolderRules = {
-    'root': [
-      { allow: 'all', type: ['read'], enabled: true, appId: null },
-      { allow: 'loggedIn', type: ['create'], enabled: true, appId: null }
-    ],
-    '101': [
-      { allow: 'loggedIn', type: ['read', 'create', 'update', 'delete'], enabled: true, appId: null }
-    ],
-    '102': [
-      {
-        allow: { user: { Role: { equals: 'Manager' } } },
-        type: ['read', 'create', 'update', 'delete'],
-        enabled: true,
-        appId: null
+  var appId = null;
+  var rulesCache = {}; // Keyed by 'type:id', stores API response
+
+  function getAppId() {
+    return appId || (typeof currentAppId !== 'undefined' ? currentAppId : Fliplet.Env.get('appId'));
+  }
+
+  function getCacheKey(type, id) {
+    return type + ':' + id;
+  }
+
+  function invalidateCache(type, id) {
+    delete rulesCache[getCacheKey(type, id)];
+  }
+
+  function clearCache() {
+    rulesCache = {};
+  }
+
+  function fetchAccessRules(type, id) {
+    var url;
+
+    if (type === 'folder' && String(id) === 'root') {
+      var currentApp = getAppId();
+
+      if (!currentApp) {
+        return Promise.resolve({ accessRules: [], effectiveRules: [], inheritedFrom: null });
       }
-    ]
-  };
 
-  // [FILEAPI] Mock file access rules — replace with API call to GET /v1/media/files/:id/accessRules
-  var mockFileRules = {
-    '201': [
-      { allow: 'all', type: ['read'], enabled: true, appId: null }
-    ]
-  };
+      url = 'v1/media/apps/' + currentApp + '/accessRules';
+    } else if (type === 'folder') {
+      url = 'v1/media/folders/' + id + '/accessRules';
+    } else {
+      url = 'v1/media/files/' + id + '/accessRules';
+    }
 
-  // [FILEAPI] Mock folder hierarchy — replace with real folder parent lookup from file manager data
-  var mockFolderParents = {
-    '101': 'root',
-    '102': '101',
-    '103': '101',
-    '104': 'root'
-  };
+    return Fliplet.API.request({ url: url }).then(function(response) {
+      rulesCache[getCacheKey(type, id)] = response;
 
-  // [FILEAPI] Mock folder names — replace with real folder name lookup from file manager data
-  var mockFolderNames = {
-    'root': 'App Files',
-    '101': 'dashboard',
-    '102': 'reports',
-    '103': 'assets',
-    '104': 'public'
-  };
+      return response;
+    });
+  }
+
+  function saveAccessRules(type, id, rules) {
+    var url;
+
+    if (type === 'folder' && String(id) === 'root') {
+      url = 'v1/media/apps/' + getAppId() + '/accessRules';
+    } else if (type === 'folder') {
+      url = 'v1/media/folders/' + id + '/accessRules';
+    } else {
+      url = 'v1/media/files/' + id + '/accessRules';
+    }
+
+    return Fliplet.API.request({
+      url: url,
+      method: 'PUT',
+      data: { accessRules: rules.length > 0 ? rules : null }
+    });
+  }
 
   // -----------------------------------------
   // UTILITIES
@@ -109,66 +116,46 @@
   var hasUnsavedChanges = false;
 
   // -----------------------------------------
-  // [FILEAPI] RULE RESOLUTION — uses mock data, replace with real API
+  // RULE RESOLUTION — uses cached API data
   // -----------------------------------------
 
-  // [FILEAPI] Replace mock lookups with real API calls
-  function getOwnRules(type, id) {
-    if (type === 'folder') {
-      return (mockFolderRules[id] || []).slice();
-    }
-
-    return (mockFileRules[id] || []).slice();
-  }
-
-  // [FILEAPI] Replace mock inheritance walk with real API or server-side resolution
-  function getEffectiveRules(type, id) {
-    var own = getOwnRules(type, id);
-
-    if (own.length > 0) {
-      return { rules: own, inheritedFrom: null };
-    }
-
-    // [FILEAPI] For files, get the real mediaFolderId from the file object
-    var folderId;
-
-    if (type === 'file') {
-      folderId = '101'; // [FILEAPI] Replace with file.mediaFolderId from file manager data
-    } else {
-      folderId = mockFolderParents[id] || null; // [FILEAPI] Replace with real parent folder lookup
-    }
-
-    while (folderId) {
-      var folderRules = mockFolderRules[folderId] || []; // [FILEAPI] Replace with real rules lookup
-
-      if (folderRules.length > 0) {
-        return {
-          rules: folderRules.slice(),
-          inheritedFrom: { folderId: folderId, folderName: mockFolderNames[folderId] || folderId }
-        };
-      }
-
-      folderId = mockFolderParents[folderId] || null; // [FILEAPI] Replace with real parent lookup
-    }
-
-    return { rules: [], inheritedFrom: null };
+  /**
+   * Get cached rules for an item. Returns null if not cached.
+   * Use fetchAccessRules() to populate the cache first.
+   */
+  function getCachedRules(type, id) {
+    return rulesCache[getCacheKey(type, id)] || null;
   }
 
   /**
-   * Build a breadcrumb path from root to the given folder.
-   * e.g. "App Files > dashboard > reports"
-   * [FILEAPI] Replace mockFolderParents/mockFolderNames with real folder hierarchy
+   * Get own rules from cache (synchronous, for UI rendering after fetch).
    */
-  function getFolderPath(folderId) {
-    var parts = [];
-    var current = folderId;
+  function getOwnRulesFromCache(type, id) {
+    var cached = getCachedRules(type, id);
 
-    while (current) {
-      parts.unshift(mockFolderNames[current] || current);
-      current = mockFolderParents[current] || null;
+    if (!cached) return [];
+
+    return (cached.accessRules || []).slice();
+  }
+
+  /**
+   * Get effective rules from cache (synchronous, for UI rendering after fetch).
+   */
+  function getEffectiveFromCache(type, id) {
+    var cached = getCachedRules(type, id);
+
+    if (!cached) return { rules: [], inheritedFrom: null };
+
+    var own = cached.accessRules || [];
+
+    if (own.length > 0) {
+      return { rules: own.slice(), inheritedFrom: null };
     }
 
-    return parts.join(' > ');
+    return {
+      rules: (cached.effectiveRules || []).slice(),
+      inheritedFrom: cached.inheritedFrom || null
+    };
   }
 
   // -----------------------------------------
@@ -176,7 +163,7 @@
   // -----------------------------------------
 
   function getSecurityStatus(type, id) {
-    var effective = getEffectiveRules(type, id);
+    var effective = getEffectiveFromCache(type, id);
 
     if (effective.rules.length > 0) {
       return 'accessible';
@@ -206,7 +193,11 @@
 
   // Called after folder contents are rendered to inject security badges
   function updateSecurityBadges() {
+    if (!getAppId()) return;
+
     isUpdatingBadges = true;
+
+    var items = [];
 
     $('.file-row').each(function() {
       var $row = $(this);
@@ -215,17 +206,40 @@
 
       if (!id) return;
 
-      var effective = getEffectiveRules(type, String(id));
-      var status = effective.rules.length > 0 ? 'accessible' : 'not-accessible';
-      var summary = getActionsEnabledSummary(effective.rules);
-      var $cell = $row.find('.file-security-cell');
-
-      if ($cell.length) {
-        $cell.html(getSecurityBadgeHTML(status, summary, { tableCell: true }));
-      }
+      items.push({ $row: $row, type: type, id: String(id) });
     });
 
-    isUpdatingBadges = false;
+    if (items.length === 0) {
+      isUpdatingBadges = false;
+
+      return;
+    }
+
+    var fetchPromises = items.map(function(item) {
+      // Use cache if available, otherwise fetch
+      if (getCachedRules(item.type, item.id)) {
+        return Promise.resolve();
+      }
+
+      return fetchAccessRules(item.type, item.id).catch(function() {
+        // Silently handle errors for individual items
+      });
+    });
+
+    Promise.all(fetchPromises).then(function() {
+      items.forEach(function(item) {
+        var effective = getEffectiveFromCache(item.type, item.id);
+        var status = effective.rules.length > 0 ? 'accessible' : 'not-accessible';
+        var summary = getActionsEnabledSummary(effective.rules);
+        var $cell = item.$row.find('.file-security-cell');
+
+        if ($cell.length) {
+          $cell.html(getSecurityBadgeHTML(status, summary, { tableCell: true }));
+        }
+      });
+
+      isUpdatingBadges = false;
+    });
   }
 
   // -----------------------------------------
@@ -234,52 +248,58 @@
 
   function updateFolderSecurityCard(folderId, folderName) {
     var $card = $('.folder-security-card');
-    var effective = getEffectiveRules('folder', String(folderId || 'root'));
-    var own = getOwnRules('folder', String(folderId || 'root'));
+    var id = String(folderId || 'root');
 
-    var $status = $card.find('.folder-security-status');
-    var $alert = $card.find('.security-alert');
-    var $addAction = $card.find('.folder-security-add-action');
-    var $editAction = $card.find('.folder-security-edit-action');
+    // Don't show security card when no app context is available (e.g. org-level view)
+    if (!getAppId()) {
+      $card.removeClass('active');
+      $('.help-tips').removeClass('hidden');
 
-    if (effective.rules.length > 0) {
-      // Has rules — show "Users can:" summary, no badge
-      var summary = getActionsEnabledSummary(effective.rules);
-
-      $status.html(
-        summary ? '<span class="folder-security-detail"><strong>Users can:</strong> ' + summary + '</span>' : ''
-      ).show();
-      $alert.hide();
-      $addAction.hide();
-      $editAction.show();
-    } else {
-      // Not accessible — show warning alert and Add rules button
-      $status.hide();
-      $alert.show();
-      $addAction.show();
-      $editAction.hide();
+      return;
     }
 
-    // Hide inheritance hint for root/app folders since there's no parent to inherit from
-    var $hint = $card.find('.folder-security-hint');
+    $('.help-tips').addClass('hidden');
 
-    if (isRootFolder('folder', String(folderId || 'root'))) {
-      $hint.hide();
-    } else {
-      $hint.show();
-    }
+    fetchAccessRules('folder', id).then(function() {
+      var effective = getEffectiveFromCache('folder', id);
+      var $status = $card.find('.folder-security-status');
+      var $alert = $card.find('.security-alert');
+      var $addAction = $card.find('.folder-security-add-action');
+      var $editAction = $card.find('.folder-security-edit-action');
 
-    // Show folder name in heading
-    $card.find('.folder-access-name').text(folderName || 'App Files');
+      if (effective.rules.length > 0) {
+        var summary = getActionsEnabledSummary(effective.rules);
 
-    $card.addClass('active');
-  }
+        $status.html(
+          summary ? '<span class="folder-security-detail"><strong>Users can:</strong> ' + summary + '</span>' : ''
+        ).show();
+        $alert.hide();
+        $addAction.hide();
+        $editAction.show();
+      } else {
+        $status.hide();
+        $alert.show();
+        $addAction.show();
+        $editAction.hide();
+      }
 
-  // [FILEAPI] Replace with real logic — should count children of folderId that have no effective rules
-  function countUnprotectedChildren(folderId) {
-    void folderId;
+      // Hide inheritance hint for root/app folders
+      var $hint = $card.find('.folder-security-hint');
 
-    return 0;
+      if (String(id) === 'root') {
+        $hint.hide();
+      } else {
+        $hint.show();
+      }
+
+      // Show folder name in heading
+      $card.find('.folder-access-name').text(folderName || 'App Files');
+
+      $card.addClass('active');
+    }).catch(function(err) {
+      console.warn('[FileSecurityRules] Failed to fetch folder security card rules:', err);
+      $card.addClass('active');
+    });
   }
 
   // -----------------------------------------
@@ -287,41 +307,48 @@
   // -----------------------------------------
 
   function updateSelectedItemSecurity(type, id, name) {
-    var effective = getEffectiveRules(type, String(id));
-    var own = getOwnRules(type, String(id));
-
     var $noRulesSection = $('.selected-no-rules-section');
     var $hasRulesSection = $('.selected-has-rules-section');
+
+    if (!getAppId()) {
+      $noRulesSection.hide();
+      $hasRulesSection.hide();
+
+      return;
+    }
     var $addBtn = $noRulesSection.find('.btn-add-rules-inline');
     var $editBtn = $hasRulesSection.find('.btn-edit-rules-inline');
 
-    // Reset
-    $noRulesSection.hide();
-    $hasRulesSection.hide();
-
-    if (effective.rules.length > 0) {
-      // Has rules — show "Users can:" summary below Action button
-      var summary = getActionsEnabledSummary(effective.rules);
-
-      $hasRulesSection.find('.selected-security-status').html(
-        summary ? '<span class="folder-security-detail"><strong>Users can:</strong> ' + summary + '</span>' : ''
-      );
-
-      $hasRulesSection.show();
-    } else {
-      // No rules — show alert + Add rules between file info and Action
-      $noRulesSection.show();
-    }
-
-    // Store target for the Actions dropdown "Security rules" link
+    // Store target immediately (before async fetch)
     $('.side-actions .btn-edit-rules')
       .data('target-type', type)
       .data('target-id', id)
       .data('target-name', name);
 
-    // Also store on inline buttons
     $editBtn.data('target-type', type).data('target-id', id).data('target-name', name);
     $addBtn.data('target-type', type).data('target-id', id).data('target-name', name);
+
+    // Reset
+    $noRulesSection.hide();
+    $hasRulesSection.hide();
+
+    fetchAccessRules(type, String(id)).then(function() {
+      var effective = getEffectiveFromCache(type, String(id));
+
+      if (effective.rules.length > 0) {
+        var summary = getActionsEnabledSummary(effective.rules);
+
+        $hasRulesSection.find('.selected-security-status').html(
+          summary ? '<span class="folder-security-detail"><strong>Users can:</strong> ' + summary + '</span>' : ''
+        );
+
+        $hasRulesSection.show();
+      } else {
+        $noRulesSection.show();
+      }
+    }).catch(function(err) {
+      console.warn('[FileSecurityRules] Failed to fetch selected item rules:', err);
+    });
   }
 
   // -----------------------------------------
@@ -371,7 +398,15 @@
 
     if (rule.appId === null) return 'All apps';
 
-    return 'App ' + (Array.isArray(rule.appId) ? rule.appId.join(', ') : rule.appId);
+    var ids = Array.isArray(rule.appId) ? rule.appId : [rule.appId];
+
+    var names = ids.map(function(id) {
+      var app = appsList.find(function(a) { return a.id === id; });
+
+      return app ? escapeHtml(app.name) : 'App ' + id;
+    });
+
+    return names.join(', ');
   }
 
   function describeRule(rule) {
@@ -419,46 +454,50 @@
     currentSecurityTarget = { type: type, id: String(id), name: name || '' };
     panelContextStack = [];
 
-    var own = getOwnRules(type, currentSecurityTarget.id);
-    var effective = getEffectiveRules(type, currentSecurityTarget.id);
-
-    currentRules = own.slice();
-    savedRules = JSON.parse(JSON.stringify(own));
-    hasUnsavedChanges = false;
-
     var $overlay = $('#security-panel-overlay');
     var $panel = $overlay.find('.security-panel');
 
-    // Hide context back link (fresh open, no stack)
+    // Show panel immediately with loading state
     $panel.find('.panel-context-back').hide();
-
-    // Set title
     $panel.find('.security-panel-header h3').html('Access Rules <a href="#" class="panel-help-link" target="_blank"><i class="fa fa-question-circle-o"></i></a>');
 
-    // Inheritance banner
-    renderInheritanceBanner(own, effective);
-
-    // Render rules table
-    renderRulesTable();
-
-    // Render inherited rules (read-only) if applicable
-    renderInheritedRules(own, effective);
-
-    // Update save button
-    updateSaveButton();
-
-    // Show list state
     showPanelState('list');
-
-    // Show panel
     $overlay.addClass('active');
 
     setTimeout(function() {
       $overlay.addClass('visible');
     }, 10);
 
-    // Prevent body scroll
     $('body').css('overflow', 'hidden');
+
+    // Fetch rules from API
+    fetchAccessRules(type, currentSecurityTarget.id).then(function(response) {
+      var own = (response.accessRules || []).slice();
+      var effective = {
+        rules: own.length > 0 ? own : (response.effectiveRules || []).slice(),
+        inheritedFrom: response.inheritedFrom || null
+      };
+
+      currentRules = own.slice();
+      savedRules = JSON.parse(JSON.stringify(own));
+      hasUnsavedChanges = false;
+
+      renderInheritanceBanner(own, effective);
+      renderRulesTable();
+      renderInheritedRules(own, effective);
+      updateSaveButton();
+    }).catch(function(err) {
+      console.error('[FileSecurityRules] Failed to fetch access rules:', err);
+
+      currentRules = [];
+      savedRules = [];
+      hasUnsavedChanges = false;
+
+      renderInheritanceBanner([], { rules: [], inheritedFrom: null });
+      renderRulesTable();
+      renderInheritedRules([], { rules: [], inheritedFrom: null });
+      updateSaveButton();
+    });
   }
 
   function closeSecurityPanel(force) {
@@ -497,13 +536,6 @@
   function switchPanelContext(type, id, name) {
     currentSecurityTarget = { type: type, id: String(id), name: name || '' };
 
-    var own = getOwnRules(type, currentSecurityTarget.id);
-    var effective = getEffectiveRules(type, currentSecurityTarget.id);
-
-    currentRules = own.slice();
-    savedRules = JSON.parse(JSON.stringify(own));
-    hasUnsavedChanges = false;
-
     var $overlay = $('#security-panel-overlay');
     var $panel = $overlay.find('.security-panel');
 
@@ -519,24 +551,31 @@
       $backLink.hide();
     }
 
-    renderInheritanceBanner(own, effective);
-    renderRulesTable();
-    renderInheritedRules(own, effective);
-    updateSaveButton();
-    showPanelState('list');
-  }
+    fetchAccessRules(type, currentSecurityTarget.id).then(function(response) {
+      var own = (response.accessRules || []).slice();
+      var effective = {
+        rules: own.length > 0 ? own : (response.effectiveRules || []).slice(),
+        inheritedFrom: response.inheritedFrom || null
+      };
 
-  // [FILEAPI] Replace with real check — a root/app folder has no parent in the folder hierarchy
-  function isRootFolder(type, id) {
-    if (type !== 'folder') return false;
+      currentRules = own.slice();
+      savedRules = JSON.parse(JSON.stringify(own));
+      hasUnsavedChanges = false;
 
-    return !mockFolderParents[id]; // Root folders have no parent entry
+      renderInheritanceBanner(own, effective);
+      renderRulesTable();
+      renderInheritedRules(own, effective);
+      updateSaveButton();
+      showPanelState('list');
+    }).catch(function(err) {
+      console.error('[FileSecurityRules] Failed to fetch rules for context switch:', err);
+    });
   }
 
   function renderInheritanceBanner(own, effective) {
     var $banner = $('#security-panel-inheritance');
     var html = '';
-    var isRoot = isRootFolder(currentSecurityTarget.type, currentSecurityTarget.id);
+    var isRoot = currentSecurityTarget.type === 'folder' && String(currentSecurityTarget.id) === 'root';
 
     if (own.length > 0 && !isRoot) {
       // Has own rules and is not root — show inheritance info with clear option
@@ -619,7 +658,7 @@
     if (currentRules.length === 0) {
       // Hide empty placeholder if inherited rules are shown
       var effective = currentSecurityTarget
-        ? getEffectiveRules(currentSecurityTarget.type, currentSecurityTarget.id)
+        ? getEffectiveFromCache(currentSecurityTarget.type, currentSecurityTarget.id)
         : { rules: [], inheritedFrom: null };
       var hasInherited = effective.inheritedFrom && effective.rules.length > 0;
 
@@ -732,10 +771,8 @@
         $tbody.append(html);
       });
 
-      // Show folder path instead of just folder name
-      var folderPath = getFolderPath(effective.inheritedFrom.folderId);
-
-      $section.find('.inherited-from-path').text(folderPath);
+      // Show folder name from server response
+      $section.find('.inherited-from-path').text(effective.inheritedFrom.folderName || 'Parent folder');
 
       // Set up "Edit inherited rules" button
       $section.find('[data-edit-inherited-rules]')
@@ -1382,35 +1419,36 @@
 
     var target = currentSecurityTarget;
 
-    // [FILEAPI] Replace mock save with real API call:
-    // PUT /v1/media/folders/:id/accessRules  (for folders)
-    // PUT /v1/media/files/:id/accessRules    (for files)
-    // Body: { accessRules: currentRules }
-    if (target.type === 'folder') {
-      mockFolderRules[target.id] = JSON.parse(JSON.stringify(currentRules));
-    } else {
-      mockFileRules[target.id] = JSON.parse(JSON.stringify(currentRules));
-    }
+    saveAccessRules(target.type, target.id, currentRules).then(function() {
+      savedRules = JSON.parse(JSON.stringify(currentRules));
+      hasUnsavedChanges = false;
+      updateSaveButton();
 
-    savedRules = JSON.parse(JSON.stringify(currentRules));
-    hasUnsavedChanges = false;
-    updateSaveButton();
+      // Invalidate cache for this item so badges refresh from server
+      invalidateCache(target.type, target.id);
 
-    updateSecurityBadges();
+      updateSecurityBadges();
 
-    if ($('.folder-security-card').hasClass('active')) {
-      var $editBtn = $('.folder-security-card .btn-edit-folder-rules');
+      if ($('.folder-security-card').hasClass('active')) {
+        var $editBtn = $('.folder-security-card .btn-edit-folder-rules');
 
-      updateFolderSecurityCard(
-        $editBtn.data('folder-id') || 'root',
-        $editBtn.data('folder-name') || 'App Files'
-      );
-    }
+        updateFolderSecurityCard(
+          $editBtn.data('folder-id') || 'root',
+          $editBtn.data('folder-name') || 'App Files'
+        );
+      }
 
-    // [FILEAPI] Remove this mock alert when real API is integrated
-    Fliplet.Modal.alert({
-      title: 'Rules saved',
-      message: 'Access rules saved successfully.<br><small>(Mock — no actual API call made)</small>'
+      Fliplet.Modal.alert({
+        title: 'Rules saved',
+        message: 'Access rules saved successfully.'
+      });
+    }).catch(function(err) {
+      console.error('[FileSecurityRules] Failed to save access rules:', err);
+
+      Fliplet.Modal.alert({
+        title: 'Error',
+        message: 'Failed to save access rules. Please try again.'
+      });
     });
   }
 
@@ -1525,7 +1563,7 @@
       renderRulesTable();
       updateSaveButton();
 
-      var effective = getEffectiveRules(currentSecurityTarget.type, currentSecurityTarget.id);
+      var effective = getEffectiveFromCache(currentSecurityTarget.type, currentSecurityTarget.id);
 
       renderInheritanceBanner(currentRules, effective);
       renderInheritedRules(currentRules, effective);
@@ -1539,7 +1577,7 @@
       renderRulesTable();
       updateSaveButton();
 
-      var effective = getEffectiveRules(currentSecurityTarget.type, currentSecurityTarget.id);
+      var effective = getEffectiveFromCache(currentSecurityTarget.type, currentSecurityTarget.id);
 
       renderInheritanceBanner(currentRules, effective);
       renderInheritedRules(currentRules, effective);
@@ -1572,7 +1610,7 @@
       renderRulesTable();
       updateSaveButton();
 
-      var effective = getEffectiveRules(currentSecurityTarget.type, currentSecurityTarget.id);
+      var effective = getEffectiveFromCache(currentSecurityTarget.type, currentSecurityTarget.id);
 
       renderInheritanceBanner(currentRules, effective);
       renderInheritedRules(currentRules, effective);
@@ -1716,7 +1754,7 @@
       renderRulesTable();
       updateSaveButton();
 
-      var effective = getEffectiveRules(currentSecurityTarget.type, currentSecurityTarget.id);
+      var effective = getEffectiveFromCache(currentSecurityTarget.type, currentSecurityTarget.id);
 
       renderInheritanceBanner(currentRules, effective);
       renderInheritedRules(currentRules, effective);
@@ -1775,7 +1813,7 @@
       e.preventDefault();
 
       var folderId = $(this).data('folder-id');
-      var folderName = $(this).data('folder-name') || mockFolderNames[folderId] || folderId;
+      var folderName = $(this).data('folder-name') || folderId;
 
       // Push current context onto the stack so user can go back
       if (currentSecurityTarget) {
@@ -1811,7 +1849,13 @@
 
   var isUpdatingBadges = false;
 
-  function init() {
+  function init(options) {
+    options = options || {};
+
+    if (options.appId) {
+      appId = options.appId;
+    }
+
     initEventHandlers();
 
     // Observe file table body for changes to inject security badges
@@ -1823,6 +1867,8 @@
       });
 
       if (shouldUpdate) {
+        // Clear cache on folder navigation (new content rendered)
+        clearCache();
         updateSecurityBadges();
       }
     });
@@ -1833,14 +1879,12 @@
       observer.observe(tableBody, { childList: true });
     }
 
-    // Initial badge update
-    setTimeout(updateSecurityBadges, 500);
-
-    // Show folder security card by default (for root)
-    updateFolderSecurityCard('root', 'App Files');
-
-    // Hide original help-tips when security card is active
-    $('.help-tips').addClass('hidden');
+    // Initial badge update — only when app context exists
+    if (getAppId()) {
+      setTimeout(updateSecurityBadges, 500);
+      updateFolderSecurityCard('root', 'App Files');
+      $('.help-tips').addClass('hidden');
+    }
   }
 
   // Expose functions for integration
