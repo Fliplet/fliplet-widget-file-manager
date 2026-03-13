@@ -31,6 +31,7 @@ var currentOrganizationId;
 let currentOrganizationNavItem;
 var currentFolderId;
 var currentAppId;
+var currentAppName;
 var currentFolders;
 var currentFiles;
 var restoredItems = 0;
@@ -678,6 +679,7 @@ function getFolderContents(el, isRootFolder) {
   if (el.attr('data-type') === 'app') {
     options.appId = el.attr('data-app-id');
     currentAppId = el.attr('data-app-id');
+    currentAppName = el.find('.list-text-holder span').text() || 'App Files';
     currentFolderId = null;
 
     // Filter functions
@@ -691,6 +693,7 @@ function getFolderContents(el, isRootFolder) {
   } else if (el.attr('data-type') === 'organization') {
     options.organizationId = currentOrganizationId = el.attr('data-org-id');
     currentAppId = null;
+    currentAppName = null;
     currentFolderId = null;
 
     // Filter functions
@@ -974,6 +977,28 @@ function toggleAll(el) {
   }
 }
 
+function buildBreadcrumbDropdown(name, index, dataType, type, idType, id) {
+  var attrs = '';
+
+  if (dataType) {
+    attrs = ' ' + dataType + '="' + type + '" ' + idType + '="' + id + '"';
+  }
+
+  var showAccessRules = window.FileSecurityRules && currentAppId;
+
+  return '<span class="bread-link breadcrumb-dropdown"' + attrs + '>'
+    + '<a href="#" data-breadcrumb-toggle>' + name + ' <i class="fa fa-caret-down"></i></a>'
+    + '<div class="breadcrumb-menu">'
+    + '<ul>'
+    + '<li data-breadcrumb-create-folder><i class="fa fa-plus-circle" aria-hidden="true"></i> Create new folder</li>'
+    + '<li data-breadcrumb-upload-file><i class="fa fa-cloud-upload" aria-hidden="true"></i> Upload new file</li>'
+    + (showAccessRules
+      ? '<hr>'
+        + '<li data-breadcrumb-access-rules><i class="fa fa-lock" aria-hidden="true"></i> Access rules</li>'
+      : '')
+    + '</ul></div></span>';
+}
+
 function updatePaths() {
   if (navStack.length > 1) {
     var breadcrumbsPath = '';
@@ -1002,8 +1027,14 @@ function updatePaths() {
           throw new Error('Not supported type');
       }
 
-      breadcrumbsPath += '<span class="bread-link"' + dataType + '="' + type + '" ' + idType + '="'
-        + navStack[i].id + '"><a href="#" data-breadcrumb="' + i + '">' + navStack[i].name + '</a></span>';
+      var isLast = i === navStack.length - 1;
+
+      if (isLast) {
+        breadcrumbsPath += buildBreadcrumbDropdown(navStack[i].name, i, dataType, type, idType, navStack[i].id);
+      } else {
+        breadcrumbsPath += '<span class="bread-link"' + dataType + '="' + type + '" ' + idType + '="'
+          + navStack[i].id + '"><a href="#" data-breadcrumb="' + i + '">' + navStack[i].name + '</a></span>';
+      }
     }
 
     $('.header-breadcrumbs .current-folder-title').html(breadcrumbsPath);
@@ -1011,8 +1042,14 @@ function updatePaths() {
     return;
   }
 
-  // Current folder
-  $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + navStack[navStack.length - 1].name + '</a></span>');
+  // Current folder — only show dropdown for app/folder, not org
+  var last = navStack[navStack.length - 1];
+
+  if (last.type === 'organizationId') {
+    $('.header-breadcrumbs .current-folder-title').html('<span class="bread-link"><a href="#">' + last.name + '</a></span>');
+  } else {
+    $('.header-breadcrumbs .current-folder-title').html(buildBreadcrumbDropdown(last.name, navStack.length - 1));
+  }
 }
 
 function resetUpTo(element) {
@@ -1028,6 +1065,15 @@ function resetUpTo(element) {
   backItem.back = function() {
     getFolderContents(backItem.tempElement);
   };
+
+  // Set app context before updatePaths so breadcrumb dropdown includes access rules
+  if (type === 'app') {
+    currentAppId = appId;
+    currentAppName = element.find('.list-text-holder span').first().text() || 'App Files';
+  } else if (type === 'organization') {
+    currentAppId = null;
+    currentAppName = null;
+  }
 
   navStack = [...(type === 'app' ? [currentOrganizationNavItem ] : []), backItem];
 
@@ -1226,7 +1272,7 @@ function renderList() {
 
   // Update folder security card with current folder context
   if (window.FileSecurityRules) {
-    var folderName = navStack.length > 0 ? navStack[navStack.length - 1].name : 'App Files';
+    var folderName = navStack.length > 0 ? navStack[navStack.length - 1].name : (currentAppName || 'App Files');
     var folderId = currentFolderId || 'root';
 
     window.FileSecurityRules.updateFolderSecurityCard(folderId, folderName);
@@ -1963,6 +2009,54 @@ $('.file-manager-wrapper')
     navigateToRootFolder(rootId);
   })
   .on('click', '[data-create-folder]', createFolder)
+  .on('click', '[data-breadcrumb-toggle]', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    var $menu = $(this).siblings('.breadcrumb-menu');
+    var isOpen = $menu.hasClass('active');
+
+    // Close any open breadcrumb menus
+    $('.breadcrumb-menu.active').removeClass('active');
+
+    if (!isOpen) {
+      $menu.addClass('active');
+      $(this).closest('.header-breadcrumbs').addClass('dropdown-open');
+    } else {
+      $(this).closest('.header-breadcrumbs').removeClass('dropdown-open');
+    }
+  })
+  .on('click', function(e) {
+    // Close breadcrumb menu when clicking outside
+    if (!$(e.target).closest('.breadcrumb-dropdown').length) {
+      $('.breadcrumb-menu.active').removeClass('active');
+      $('.header-breadcrumbs').removeClass('dropdown-open');
+    }
+  })
+  .on('click', '[data-breadcrumb-create-folder]', function(e) {
+    e.preventDefault();
+    $('.breadcrumb-menu.active').removeClass('active');
+    $('.header-breadcrumbs').removeClass('dropdown-open');
+    createFolder(e);
+  })
+  .on('click', '[data-breadcrumb-upload-file]', function(e) {
+    e.preventDefault();
+    $('.breadcrumb-menu.active').removeClass('active');
+    $('.header-breadcrumbs').removeClass('dropdown-open');
+    $('#file_upload').click();
+  })
+  .on('click', '[data-breadcrumb-access-rules]', function(e) {
+    e.preventDefault();
+    $('.breadcrumb-menu.active').removeClass('active');
+    $('.header-breadcrumbs').removeClass('dropdown-open');
+
+    if (window.FileSecurityRules && currentAppId) {
+      var folderId = currentFolderId || 'root';
+      var folderName = navStack.length > 0 ? navStack[navStack.length - 1].name : (currentAppName || 'App Files');
+
+      window.FileSecurityRules.openSecurityPanel('folder', folderId, folderName);
+    }
+  })
   .on('submit', '[data-upload-file]', function(event) {
     // Upload file
     event.preventDefault();
@@ -2250,7 +2344,10 @@ $('.file-manager-wrapper')
       showSpinner(false);
     }
   })
-  .on('click', '.header-breadcrumbs [data-breadcrumb]', function() {
+  .on('click', '.header-breadcrumbs [data-breadcrumb]', function(e) {
+    // Don't navigate if this is the dropdown toggle (last breadcrumb)
+    if ($(this).is('[data-breadcrumb-toggle]')) return;
+
     var index = $(this).data('breadcrumb');
     var position = index + 1;
 

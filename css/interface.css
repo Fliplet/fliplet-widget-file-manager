@@ -116,6 +116,68 @@ html {
   pointer-events: none;
 }
 
+.bread-link.breadcrumb-dropdown:last-child {
+  pointer-events: auto;
+  direction: ltr;
+  unicode-bidi: embed;
+}
+
+.header-breadcrumbs.dropdown-open,
+.header-breadcrumbs.dropdown-open .current-folder-title {
+  overflow: visible;
+}
+
+.breadcrumb-dropdown {
+  position: relative;
+}
+
+.breadcrumb-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 220px;
+  background-color: #FFF;
+  padding: 15px 0;
+  box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.3);
+  z-index: 4;
+  direction: ltr;
+}
+
+.breadcrumb-menu.active {
+  display: block;
+}
+
+.breadcrumb-menu ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.breadcrumb-menu ul li {
+  margin: 0;
+  padding: 5px 15px;
+  list-style: none;
+  border-left: 4px solid transparent;
+  cursor: pointer;
+  line-height: normal;
+}
+
+.breadcrumb-menu ul li:hover {
+  background-color: #f2f6f7;
+  border-left-color: #00abd2;
+}
+
+.breadcrumb-menu hr {
+  margin: 10px 15px;
+  border-top-color: #e4e9eb;
+}
+
+.breadcrumb-dropdown > a .fa-caret-down {
+  margin-left: 2px;
+  font-size: 12px;
+}
+
 .bread-link:last-child:after {
   display: none;
 }
