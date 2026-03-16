@@ -1,7 +1,12 @@
 /* For Safari to hide scrollbar */
 html {
-  overflow: scroll;
+  overflow: hidden;
   height: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0;
 }
 
 ::-webkit-scrollbar {
@@ -19,7 +24,7 @@ html {
 .file-manager-body {
   display: flex;
   align-items: stretch;
-  min-height: 100%;
+  height: 100%;
 }
 
 .file-manager-body .file-manager-leftside {
