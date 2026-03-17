@@ -767,7 +767,7 @@
       update: function() {
         var result = $tbody.sortable('toArray', { attribute: 'data-rule-index' });
 
-        currentRules = _.map(result, function(r) {
+        currentRules = Fliplet.Utils.map(result, function(r) {
           return currentRules[parseInt(r, 10)];
         });
 
