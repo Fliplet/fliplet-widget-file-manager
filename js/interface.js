@@ -880,8 +880,11 @@ function updateSingleSelectionUI(numberOfActiveRows) {
 
     if (itemType === 'image' && fileURL) {
       var $imgItem = $('.side-actions .item.image');
+      var $img = $imgItem.show().find('img');
 
-      $imgItem.show().find('img').attr('src', fileURL);
+      $img.off('error').on('error', function() {
+        $(this).parent().hide();
+      }).attr('src', fileURL);
     }
 
     var iconClass = itemType === 'folder' ? 'fa-folder-open' : 'fa-file';
@@ -1293,6 +1296,11 @@ function renderList() {
 
   $('[data-toggle="tooltip"]').tooltip();
   $selectAllCheckbox.addClass('active');
+
+  // Attach image error handlers (error events don't bubble, so delegation doesn't work)
+  $('.file-name img').off('error').on('error', function() {
+    $(this).hide().next('.file-icon-fallback').show();
+  });
 
   // Update folder security card with current folder context
   if (window.FileSecurityRules) {
@@ -1939,15 +1947,6 @@ async function createFolder(event, folderName) {
     showSpinner(false);
   }
 }
-
-// Image error handlers (replaces inline onerror for CSP compliance)
-$('.side-actions .item.image').on('error', 'img', function() {
-  $(this).parent().hide();
-});
-
-$('.file-manager-wrapper').on('error', '.file-name img', function() {
-  $(this).hide().next('.file-icon-fallback').show();
-});
 
 // EVENTS //
 // Removes options popup by clicking elsewhere

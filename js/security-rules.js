@@ -224,7 +224,13 @@
 
   // Called after folder contents are rendered to inject security badges
   function updateSecurityBadges() {
-    if (!getAppId()) return;
+    if (!getAppId()) {
+      $('.file-security-cell').hide();
+
+      return;
+    }
+
+    $('.file-security-cell').show();
 
     const generation = ++badgeGeneration;
 
@@ -313,7 +319,7 @@
         let badgesHtml = '';
 
         if (summary && summary.length) {
-          badgesHtml = '<span class="security-action-badge">Users can: ' + summary.join(', ') + '</span>';
+          badgesHtml = '<span class="security-action-badge">Access: ' + summary.join(', ') + '</span>';
         }
 
         $status.html(badgesHtml).show();
@@ -368,7 +374,7 @@
         let badgesHtml = '';
 
         if (summary && summary.length) {
-          badgesHtml = '<span class="security-action-badge">Users can: ' + summary.join(', ') + '</span>';
+          badgesHtml = '<span class="security-action-badge">Access: ' + summary.join(', ') + '</span>';
         }
 
         $hasRulesSection.find('.selected-security-status').html(badgesHtml);
@@ -459,9 +465,13 @@
 
       enabledCount++;
 
-      (rule.type || []).forEach(function(t) {
-        actionSet[t] = true;
-      });
+      if (typeof rule.script === 'string') {
+        actionSet['custom'] = true;
+      } else {
+        (rule.type || []).forEach(function(t) {
+          actionSet[t] = true;
+        });
+      }
     });
 
     const actions = Object.keys(actionSet);
@@ -470,6 +480,8 @@
 
     // Capitalize: 'read' → 'Read'
     const labels = actions.map(function(a) {
+      if (a === 'custom') return 'Custom rule';
+
       return a.charAt(0).toUpperCase() + a.slice(1);
     });
 
@@ -940,7 +952,11 @@
         inheritedId = effective.inheritedFrom.folderId;
       }
 
-      $section.find('.inherited-from-path').text(inheritedName);
+      const inheritedLabel = effective.inheritedFrom.type === 'app'
+        ? 'Inherited from app: '
+        : 'Inherited from folder: ';
+
+      $section.find('.inherited-from-path').text(inheritedLabel + inheritedName);
 
       // Set up "Edit inherited rules" button with type info
       $section.find('[data-edit-inherited-rules]')
@@ -1202,6 +1218,15 @@
       $createCheckbox.show().find('input').prop('disabled', false);
     } else {
       $createCheckbox.hide().find('input').prop('checked', false).prop('disabled', true);
+    }
+
+    // Data source entry rules are file-only (API rejects them on folders)
+    const $dsButton = $editor.find('[data-allow-type="dataSource"]');
+
+    if (isFolder) {
+      $dsButton.hide();
+    } else {
+      $dsButton.show();
     }
 
     // Load data sources and apps if needed
@@ -1573,8 +1598,8 @@
       hasUnsavedChanges = false;
       updateSaveButton();
 
-      // Invalidate cache for this item so badges refresh from server
-      invalidateCache(target.type, target.id);
+      // Clear all cached rules so inherited items also refresh
+      clearCache();
 
       updateSecurityBadges();
 
