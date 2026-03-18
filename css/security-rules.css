@@ -1,0 +1,922 @@
+/* ============================================
+   FILE SECURITY RULES UI
+   ============================================ */
+
+/* ------------------------------------------
+   Layer 1: Security Status Badges in File Table
+   ------------------------------------------ */
+
+.file-cell.file-security-cell {
+  width: 220px;
+  min-width: 220px;
+  text-align: left;
+  padding-right: 10px;
+  vertical-align: middle;
+}
+
+/* Fallback file icon for broken thumbnails — matches .file-name img positioning */
+.file-icon-fallback {
+  position: absolute !important;
+  top: 50%;
+  left: 0;
+  width: 25px;
+  height: 25px;
+  line-height: 25px !important;
+  font-size: 18px;
+  text-align: center;
+  transform: translate3d(0, -50%, 0);
+}
+
+.security-badge-actions {
+  font-size: 12px;
+  color: #333;
+}
+
+
+.security-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  line-height: 20px;
+  vertical-align: middle;
+}
+
+.security-badge-accessible {
+  background-color: #DCFCE7;
+  color: #166534;
+}
+
+.security-badge-not-accessible {
+  background-color: #FEF3C7;
+  color: #B45309;
+}
+
+.file-security-cell .security-badge {
+  display: inline-block;
+  width: auto;
+  max-width: 100%;
+}
+
+.security-badge-detail {
+  display: block;
+  font-size: 10px;
+  color: #888;
+  line-height: 1.3;
+  margin-top: 3px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.file-row.active .security-badge {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.file-row.active .security-badge-actions {
+  color: #fff;
+}
+
+.file-row.active .security-badge-detail {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ------------------------------------------
+   Layer 2A: Folder Security Card (right sidebar)
+   ------------------------------------------ */
+
+.folder-security-card {
+  display: none;
+  padding: 0;
+}
+
+.folder-security-card.active {
+  display: block;
+  width: 100%;
+}
+
+.folder-security-card h4 {
+  font-size: 12px;
+  font-weight: 700;
+  color: #14505e;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px 0;
+  text-align: left;
+}
+
+.folder-security-card h4 .fa {
+  font-size: 14px;
+  margin-right: 4px;
+}
+
+.folder-security-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.folder-security-status .security-badge {
+  font-size: 11px;
+  padding: 3px 10px;
+}
+
+/* "Users can:" action badge */
+.security-action-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 20px;
+  background-color: #DCFCE7;
+  color: #166534;
+  margin: 2px 4px 2px 0;
+  white-space: nowrap;
+}
+
+/* Selected count text */
+.selected-count-text.hidden {
+  display: none;
+}
+
+
+/* Selected item name display — matches folder card h4 style */
+.selected-item-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #14505e;
+  margin: 0 0 10px 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.selected-item-name .fa {
+  font-size: 14px;
+  margin-right: 4px;
+}
+
+
+/* Folder security open button */
+.folder-security-open-action {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.folder-security-open-action .btn {
+  width: 100%;
+  display: block;
+}
+
+/* Callout overrides for security sections */
+.folder-security-card .callout,
+.selected-no-rules-section .callout {
+  text-align: left;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.folder-security-card .callout p,
+.selected-no-rules-section .callout p {
+  margin: 0;
+  font-size: 12px;
+}
+
+/* Action dropdown button — full width */
+.side-actions .item-actions .btn-group {
+  width: 100%;
+}
+
+.side-actions .item-actions .btn-group .dropdown-toggle {
+  width: 100%;
+}
+
+.folder-security-hint {
+  font-size: 11px;
+  color: #999;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid #e4e9eb;
+  line-height: 1.5;
+}
+
+.folder-security-hint .fa {
+  margin-right: 2px;
+}
+
+/* Overlay panel callout overrides */
+.security-panel-inheritance .callout {
+  margin-top: 0;
+  text-align: left;
+}
+
+.security-panel-inheritance .callout p {
+  margin: 0;
+}
+
+/* ------------------------------------------
+   Layer 2B: Selected Item Security Section
+   ------------------------------------------ */
+
+/* No rules section (between file info and Action button) */
+.selected-no-rules-section {
+  margin-bottom: 10px;
+}
+
+/* Has rules section (between file info and Action button) */
+.selected-has-rules-section {
+  margin-bottom: 10px;
+}
+
+
+.selected-security-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.selected-security-status .security-badge {
+  font-size: 11px;
+  padding: 3px 10px;
+}
+
+
+.effective-rules-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px 0;
+}
+
+.effective-rules-list li {
+  font-size: 12px;
+  color: #555;
+  padding: 3px 0;
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.effective-rules-list li .rule-icon {
+  color: #10B981;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Security in Actions dropdown */
+.dropdown-menu .fa-shield {
+  margin-right: 3px;
+  color: #14505e;
+}
+
+/* ------------------------------------------
+   Button overrides for security panel
+   (match DS security rules widget exactly)
+   ------------------------------------------ */
+
+/* Toolbar buttons (Add new rule, Save & Apply) */
+.security-rules-toolbar .btn {
+  border-radius: 100px;
+  line-height: inherit;
+  padding: 10px 16px;
+  font-weight: 700;
+}
+
+.security-rules-toolbar .btn-default,
+.security-rules-toolbar .dropdown-toggle {
+  border-radius: 100px;
+  color: #474974;
+  background-color: #eae9ec;
+  border: 1px solid #eae9ec;
+}
+
+.security-rules-toolbar .btn-default:hover,
+.security-rules-toolbar .dropdown-toggle:hover {
+  color: #333;
+  background-color: #dcdae0;
+}
+
+.security-rules-toolbar .btn-secondary {
+  border: 1px solid #00abd1;
+  color: #00abd1;
+  background-color: transparent;
+  border-radius: 100px;
+}
+
+.security-rules-toolbar .btn-secondary:hover {
+  background-color: rgba(0, 171, 209, 0.08);
+}
+
+/* Table action buttons (Edit, Delete) */
+#security-rules-list .btn-sm {
+  line-height: inherit;
+  padding: 6px 10px;
+  font-weight: 400;
+  border-radius: 100px;
+}
+
+#security-rules-list .btn-danger {
+  background-color: #e03629;
+  border-color: #e03629;
+  color: #fff;
+}
+
+/* Table cells */
+#security-rules-list td {
+  padding: 4px;
+  font-size: 14px;
+}
+
+#security-rules-list th {
+  font-size: 14px;
+}
+
+/* Editor footer buttons (Confirm/Cancel) */
+.rule-editor-footer .btn {
+  border-radius: 100px;
+  line-height: inherit;
+  padding: 10px 16px;
+  font-weight: 700;
+}
+
+.rule-editor-footer .btn-primary {
+  color: #fff;
+  background-color: #00abd1;
+  border-color: #00abd1;
+}
+
+.rule-editor-footer .btn-primary[disabled],
+.rule-editor-footer .btn-primary.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+
+/* ------------------------------------------
+   Layer 3: Access Rules Overlay
+   (mimics Fliplet Studio Overlay.vue styles)
+   ------------------------------------------ */
+
+.security-panel-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 1040;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  overflow: auto;
+}
+
+.security-panel-overlay.active {
+  display: block;
+}
+
+.security-panel-overlay.visible {
+  opacity: 1;
+}
+
+.security-panel {
+  position: relative;
+  width: 90%;
+  max-width: 1250px;
+  margin: 60px auto 5%;
+  background-color: #fff;
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 1041;
+  min-height: 600px;
+  border-radius: 4px;
+}
+
+.security-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 15px;
+  height: 65px;
+  min-height: 65px;
+  border-bottom: 1px solid #e3e9eb;
+  flex-shrink: 0;
+  background-color: #fff;
+  position: relative;
+}
+
+.security-panel-header-text {
+  text-align: center;
+  min-width: 0;
+}
+
+.security-panel-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #474974;
+  border: none;
+  padding-bottom: 0;
+}
+
+.security-panel-header .panel-help-link {
+  color: #aaa;
+  font-size: 16px;
+  margin-left: 6px;
+  vertical-align: middle;
+  text-decoration: none;
+}
+
+.security-panel-header .panel-help-link:hover {
+  color: #474974;
+}
+
+.security-panel-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 65px;
+  height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+
+.security-panel-close:hover {
+  color: #333;
+  background-color: #f5f5f5;
+}
+
+.security-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px 60px 60px;
+}
+
+/* Panel states */
+.panel-state {
+  display: none;
+}
+
+.panel-state.active {
+  display: block;
+}
+
+/* Panel path breadcrumb */
+.security-panel-path {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.security-panel-path .fa-chevron-right {
+  margin: 0 6px;
+  font-size: 10px;
+  color: #999;
+}
+
+/* Children count badge (pill style) */
+.panel-children-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 20px;
+  background-color: #eae9ec;
+  color: #474974;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* Inheritance banner */
+.security-panel-inheritance {
+  margin-bottom: 16px;
+}
+
+/* Rules toolbar */
+.security-rules-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.security-rules-toolbar .dropdown {
+  display: inline-block;
+}
+
+.security-rules-toolbar .btn-save-rules {
+  display: none;
+}
+
+.security-rules-toolbar .btn-save-rules.has-changes {
+  display: inline-block;
+}
+
+/* Rules table — matches DS widget #access-rules-list patterns exactly */
+#security-rules-list {
+  margin-bottom: 20px;
+}
+
+#security-rules-list table {
+  width: 100%;
+}
+
+#security-rules-list tbody {
+  background: #fff;
+}
+
+#security-rules-list tr {
+  transition: background-color 0.3s;
+}
+
+#security-rules-list tr.rule-disabled a.toggle-status .switch-label,
+#security-rules-list tr.rule-disabled > td {
+  opacity: 0.5;
+}
+
+#security-rules-list tr.rule-disabled .opacity-full {
+  opacity: 1;
+}
+
+#security-rules-list tr.rule-disabled a.toggle-status {
+  color: #000;
+}
+
+a.toggle-status:hover {
+  text-decoration: none;
+}
+
+.toggle-status {
+  display: inline-block;
+}
+
+.toggle-status .switch-label {
+  margin-left: 6px;
+}
+
+.status-header {
+  padding-left: 33px;
+}
+
+#security-rules-list td.align-baseline {
+  vertical-align: baseline;
+}
+
+#security-rules-list code {
+  background-color: #f3f6fa;
+  color: #567482;
+  margin: 3px 0;
+  display: inline-block;
+}
+
+/* Drag handle for rule reordering — matches DS widget */
+.handle-sort {
+  margin-left: -3px;
+  font-size: 0.9em;
+}
+
+.handle-sort:hover {
+  background-color: #f5f5f5;
+}
+
+.handle-sort .fa-ellipsis-v:nth-child(1) {
+  margin-left: -0.2em;
+}
+
+.handle-sort .fa-ellipsis-v:nth-child(2) {
+  margin-left: 0.2em;
+}
+
+/* Custom rule label in table */
+#security-rules-list .label-default {
+  background-color: #474974;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+
+#security-rules-list .label-default .fa {
+  margin-right: 3px;
+}
+
+/* Custom rule editor */
+[data-rule-custom] .CodeMirror {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  height: 250px;
+  font-size: 13px;
+}
+
+[data-rule-custom] h5 {
+  font-weight: bold;
+  font-size: 16px;
+  color: #474974;
+}
+
+[data-rule-custom] p {
+  color: rgba(141, 142, 165, 0.8);
+}
+
+/* Empty state */
+.security-rules-empty {
+  text-align: center;
+  padding: 30px 20px;
+  color: #999;
+}
+
+.security-rules-empty .fa {
+  font-size: 32px;
+  margin-bottom: 10px;
+  display: block;
+  color: #ddd;
+}
+
+.security-rules-empty p {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* Inherited rules (read-only) */
+.inherited-rules-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px dashed #e4e9eb;
+}
+
+.inherited-rules-section h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+
+.inherited-rules-section h4 .inherited-edit-link {
+  color: #1D4ED8;
+  text-decoration: underline;
+  font-weight: 400;
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.inherited-rules-section h4 .inherited-edit-link:hover {
+  color: #1e40af;
+}
+
+.inherited-rules-section table {
+  width: 100%;
+  opacity: 0.7;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.inherited-rules-section thead th {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #aaa;
+  padding: 6px 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.inherited-rules-section tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 12px;
+  color: #666;
+}
+
+.inherited-rules-section tbody tr:last-child td {
+  border-bottom: none;
+}
+
+
+/* ------------------------------------------
+   Inline Rule Editor (matches DS #configure-rule)
+   ------------------------------------------ */
+
+.rule-editor-header {
+  margin-bottom: 20px;
+}
+
+.rule-editor-header a {
+  font-size: 13px;
+  color: #999;
+  text-decoration: none;
+}
+
+.rule-editor-header a:hover {
+  color: #333;
+}
+
+.rule-editor-header a .fa {
+  margin-right: 4px;
+}
+
+.rule-editor-header h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #14505e;
+  margin: 8px 0 0 0;
+}
+
+/* Mirrors #configure-rule styles from DS widget */
+#configure-file-rule h5 {
+  font-weight: bold;
+  font-size: 16px;
+  color: #474974;
+}
+
+#configure-file-rule .row {
+  display: flex;
+}
+
+#configure-file-rule .row .col-md-8 .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 0;
+}
+
+#configure-file-rule p {
+  color: rgba(141, 142, 165, 0.8);
+}
+
+#configure-file-rule hr {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#configure-file-rule .side {
+  align-items: center;
+  display: flex;
+}
+
+#configure-file-rule .side.vertical {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: 8px;
+}
+
+#configure-file-rule .side .checkbox {
+  margin-right: 22px;
+}
+
+#configure-file-rule .side .checkbox + .checkbox {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+/* Form pills — match DS security widget exactly */
+#configure-file-rule form .btn {
+  border: 0;
+  margin-right: 10px;
+  color: #787993;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 50px;
+  padding: 10px 16px;
+  line-height: inherit;
+}
+
+#configure-file-rule form .btn.selected {
+  background-color: #474974;
+  border-color: #474974;
+  color: #fff;
+}
+
+#configure-file-rule .apps-list {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+/* Filter wrappers (users-filter pattern from DS widget) */
+#configure-file-rule .users-filter {
+  margin-top: 10px;
+  width: 100%;
+}
+
+/* Required-field rows (condition rows, matching DS widget) */
+#configure-file-rule .required-field {
+  display: flex;
+  margin: 10px 0;
+  padding-bottom: 10px;
+}
+
+#configure-file-rule .required-field:last-of-type {
+  border-bottom: 1px solid #eee;
+}
+
+#configure-file-rule .required-field input,
+#configure-file-rule .required-field .select-proxy-display {
+  margin: 0 10px 0 0;
+  width: 150px;
+}
+
+#configure-file-rule .required-field .select-proxy-display select {
+  top: 0;
+}
+
+/* Action hint for create (folders only) */
+#configure-file-rule .action-hint {
+  font-size: 11px;
+  color: #999;
+  font-style: italic;
+}
+
+#configure-file-rule .action-checkbox-create.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Value field tooltip (CSS-only, avoids jQuery UI / Bootstrap conflict) */
+.value-field-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.value-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 6px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 1060;
+  pointer-events: none;
+}
+
+.value-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #333;
+}
+
+.value-field-wrapper:hover .value-tooltip,
+.value-field-wrapper input:focus + .value-tooltip {
+  display: block;
+}
+
+/* Stop control in rule editor */
+.rule-stop-section .radio label em {
+  color: #999;
+  font-style: italic;
+}
+
+/* Stop rule visual distinction in table — red left border + column label */
+#security-rules-list tr.rule-stop {
+  box-shadow: inset 4px 0 0 #DC2626;
+}
+
+.rule-stop-cell {
+  white-space: nowrap;
+}
+
+/* Editor footer */
+.rule-editor-footer {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding-top: 20px;
+  margin-top: 20px;
+}
