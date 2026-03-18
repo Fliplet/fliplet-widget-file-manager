@@ -1598,29 +1598,6 @@
       hasUnsavedChanges = false;
       updateSaveButton();
 
-      // Clear all cached rules so inherited items also refresh
-      clearCache();
-
-      updateSecurityBadges();
-
-      if ($('.folder-security-card').hasClass('active')) {
-        const $card = $('.folder-security-card');
-
-        updateFolderSecurityCard(
-          $card.data('folder-id') || 'root',
-          $card.data('folder-name') || 'App Files'
-        );
-      }
-
-      // Also update selected item security if one is selected
-      const $activeRow = $('.file-row.active');
-
-      if ($activeRow.length === 1 && window.FileSecurityRules) {
-        const selType = $activeRow.data('file-type') === 'folder' ? 'folder' : 'file';
-
-        updateSelectedItemSecurity(selType, $activeRow.data('id'), $activeRow.find('.file-name span').first().text());
-      }
-
       // Re-fetch and re-render the overlay panel to reflect inheritance changes
       fetchAccessRules(target.type, target.id).then(function(response) {
         const own = (response.accessRules || []).slice();
@@ -1643,6 +1620,28 @@
         const $panel = $('#security-panel-overlay .security-panel');
 
         renderPanelPath($panel);
+
+        // Clear client cache and refresh all badges/sidebar AFTER the panel
+        // re-fetch completes, so server-side cache invalidation has propagated
+        clearCache();
+        updateSecurityBadges();
+
+        if ($('.folder-security-card').hasClass('active')) {
+          const $card = $('.folder-security-card');
+
+          updateFolderSecurityCard(
+            $card.data('folder-id') || 'root',
+            $card.data('folder-name') || 'App Files'
+          );
+        }
+
+        const $activeRow = $('.file-row.active');
+
+        if ($activeRow.length === 1 && window.FileSecurityRules) {
+          const selType = $activeRow.data('file-type') === 'folder' ? 'folder' : 'file';
+
+          updateSelectedItemSecurity(selType, $activeRow.data('id'), $activeRow.find('.file-name span').first().text());
+        }
       });
 
       Fliplet.Modal.alert({
