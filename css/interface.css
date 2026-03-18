@@ -17,7 +17,7 @@ body {
 /* FILE MANAGER */
 
 .file-manager-wrapper {
-  background-color: #FFF;
+  background-color: #fff;
   height: 100%;
 }
 
@@ -142,7 +142,7 @@ body {
   top: 100%;
   left: 0;
   width: 220px;
-  background-color: #FFF;
+  background-color: #fff;
   padding: 15px 0;
   box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.3);
   z-index: 4;
@@ -256,7 +256,7 @@ body {
   top: 60px;
   right: 10px;
   width: 220px;
-  background-color: #FFF;
+  background-color: #fff;
   padding: 15px 0;
   -webkit-box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.3);
   -moz-box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.3);
@@ -377,12 +377,12 @@ body {
 
 .dropdown-menu-holder .panel-group {
   margin: 0 -15px;
-  max-height: calc(90vh - 140px);
+  max-height: calc(100vh - 198px);
   overflow-y: auto;
 }
 
 .dropdown-menu-holder .panel-group.is-organization {
-  max-height: calc(90vh + 10px);
+  max-height: calc(100vh - 70px);
 }
 
 .dropdown-menu-holder .panel-group .panel {
@@ -590,13 +590,13 @@ body {
   width: 100%;
   height: 10px;
   border-radius: 10px;
-  background-color: #E4E9EB;
+  background-color: #e4e9eb;
   box-shadow: none;
   margin-bottom: 0;
 }
 
 .storage-progress-holder .progress .progress-bar {
-  background-color: #00ABD1;
+  background-color: #00abd1;
   box-shadow: none;
 }
 
@@ -908,7 +908,7 @@ body {
 .file-options-menu {
   display: none;
   position: absolute;
-  background-color: #FFF;
+  background-color: #fff;
   padding: 15px 0;
   -webkit-box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.3);
   -moz-box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.3);
@@ -966,7 +966,7 @@ body {
 
 #folder-contents li {
   width: 150px;
-  background-color: #EEE;
+  background-color: #eee;
   margin: 0 20px 20px 0;
   padding: 20px;
 }
@@ -1041,7 +1041,7 @@ body {
 .drop-area {
   height: auto;
   width: auto;
-  background-color: rgba(174, 199, 218, .2) !important;
+  background-color: rgba(174, 199, 218, 0.2) !important;
 }
 
 .drop-area.highlight {

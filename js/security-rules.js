@@ -12,8 +12,8 @@
   // API HELPERS
   // -----------------------------------------
 
-  var appId = null;
-  var rulesCache = {}; // Keyed by 'type:id', stores API response
+  let appId = null;
+  let rulesCache = {}; // Keyed by 'type:id', stores API response
 
   function getAppId() {
     return appId || (typeof currentAppId !== 'undefined' ? currentAppId : Fliplet.Env.get('appId'));
@@ -32,10 +32,10 @@
   }
 
   function fetchAccessRules(type, id) {
-    var url;
+    let url;
 
     if (type === 'folder' && String(id) === 'root') {
-      var currentApp = getAppId();
+      const currentApp = getAppId();
 
       if (!currentApp) {
         return Promise.resolve({ accessRules: [], effectiveRules: [], inheritedFrom: null });
@@ -56,7 +56,7 @@
   }
 
   function saveAccessRules(type, id, rules) {
-    var url;
+    let url;
 
     if (type === 'folder' && String(id) === 'root') {
       url = 'v1/media/apps/' + getAppId() + '/accessRules';
@@ -110,12 +110,12 @@
   // STATE
   // -----------------------------------------
 
-  var currentSecurityTarget = null; // { type: 'folder'|'file', id: string, name: string }
-  var currentRules = [];           // Working copy of rules being edited
-  var savedRules = [];             // Last saved state (to detect changes)
-  var hasUnsavedChanges = false;
-  var serverInheritedFrom = null;  // Original inheritedFrom from API (for draft inheritance preview)
-  var serverEffectiveRules = [];   // Original effectiveRules from API (for draft inheritance preview)
+  let currentSecurityTarget = null; // { type: 'folder'|'file', id: string, name: string }
+  let currentRules = [];           // Working copy of rules being edited
+  let savedRules = [];             // Last saved state (to detect changes)
+  let hasUnsavedChanges = false;
+  let serverInheritedFrom = null;  // Original inheritedFrom from API (for draft inheritance preview)
+  let serverEffectiveRules = [];   // Original effectiveRules from API (for draft inheritance preview)
 
   // -----------------------------------------
   // RULE RESOLUTION — uses cached API data
@@ -133,7 +133,7 @@
    * Get own rules from cache (synchronous, for UI rendering after fetch).
    */
   function getOwnRulesFromCache(type, id) {
-    var cached = getCachedRules(type, id);
+    const cached = getCachedRules(type, id);
 
     if (!cached) return [];
 
@@ -144,11 +144,11 @@
    * Get effective rules from cache (synchronous, for UI rendering after fetch).
    */
   function getEffectiveFromCache(type, id) {
-    var cached = getCachedRules(type, id);
+    const cached = getCachedRules(type, id);
 
     if (!cached) return { rules: [], inheritedFrom: null };
 
-    var own = cached.accessRules || [];
+    const own = cached.accessRules || [];
 
     if (own.length > 0) {
       return { rules: own.slice(), inheritedFrom: null };
@@ -192,7 +192,7 @@
   // -----------------------------------------
 
   function getSecurityStatus(type, id) {
-    var effective = getEffectiveFromCache(type, id);
+    const effective = getEffectiveFromCache(type, id);
 
     if (effective.rules.length > 0) {
       return 'accessible';
@@ -208,7 +208,7 @@
       case 'accessible':
         if (options.tableCell) {
           // Table column: show comma-separated text
-          var tableText = Array.isArray(detail) ? detail.join(', ') : (detail || 'Accessible');
+          const tableText = Array.isArray(detail) ? detail.join(', ') : (detail || 'Accessible');
 
           return '<span class="security-badge-actions">' + tableText + '</span>';
         }
@@ -228,12 +228,12 @@
 
     isUpdatingBadges = true;
 
-    var items = [];
+    const items = [];
 
     $('.file-row').each(function() {
-      var $row = $(this);
-      var id = $row.data('id');
-      var type = $row.data('file-type') === 'folder' ? 'folder' : 'file';
+      const $row = $(this);
+      const id = $row.data('id');
+      const type = $row.data('file-type') === 'folder' ? 'folder' : 'file';
 
       if (!id) return;
 
@@ -246,7 +246,7 @@
       return;
     }
 
-    var fetchPromises = items.map(function(item) {
+    const fetchPromises = items.map(function(item) {
       // Use cache if available, otherwise fetch
       if (getCachedRules(item.type, item.id)) {
         return Promise.resolve();
@@ -259,10 +259,10 @@
 
     Promise.all(fetchPromises).then(function() {
       items.forEach(function(item) {
-        var effective = getEffectiveFromCache(item.type, item.id);
-        var status = effective.rules.length > 0 ? 'accessible' : 'not-accessible';
-        var summary = getActionsEnabledSummary(effective.rules);
-        var $cell = item.$row.find('.file-security-cell');
+        const effective = getEffectiveFromCache(item.type, item.id);
+        const status = effective.rules.length > 0 ? 'accessible' : 'not-accessible';
+        const summary = getActionsEnabledSummary(effective.rules);
+        const $cell = item.$row.find('.file-security-cell');
 
         if ($cell.length) {
           $cell.html(getSecurityBadgeHTML(status, summary, { tableCell: true }));
@@ -278,8 +278,8 @@
   // -----------------------------------------
 
   function updateFolderSecurityCard(folderId, folderName) {
-    var $card = $('.folder-security-card');
-    var id = String(folderId || 'root');
+    const $card = $('.folder-security-card');
+    const id = String(folderId || 'root');
 
     // Don't show security card when no app context is available (e.g. org-level view)
     if (!getAppId()) {
@@ -291,14 +291,21 @@
 
     $('.help-tips').addClass('hidden');
 
+    // Set name and context immediately (before async fetch) to avoid showing stale data
+    const displayName = folderName || (typeof currentAppName !== 'undefined' && currentAppName) || 'App Files';
+
+    $card.find('.folder-access-name').text(displayName);
+    $card.data('folder-id', id).data('folder-name', displayName);
+    $card.addClass('active');
+
     fetchAccessRules('folder', id).then(function() {
-      var effective = getEffectiveFromCache('folder', id);
-      var $status = $card.find('.folder-security-status');
-      var $callout = $card.find('.folder-no-rules-callout');
+      const effective = getEffectiveFromCache('folder', id);
+      const $status = $card.find('.folder-security-status');
+      const $callout = $card.find('.folder-no-rules-callout');
 
       if (effective.rules.length > 0) {
-        var summary = getActionsEnabledSummary(effective.rules);
-        var badgesHtml = '';
+        const summary = getActionsEnabledSummary(effective.rules);
+        let badgesHtml = '';
 
         if (summary && summary.length) {
           badgesHtml = '<span class="security-action-badge">Users can: ' + summary.join(', ') + '</span>';
@@ -312,24 +319,15 @@
       }
 
       // Hide inheritance hint for root/app folders
-      var $hint = $card.find('.folder-security-hint');
+      const $hint = $card.find('.folder-security-hint');
 
       if (String(id) === 'root') {
         $hint.hide();
       } else {
         $hint.show();
       }
-
-      // Show folder name in heading and store context on card
-      var displayName = folderName || (typeof currentAppName !== 'undefined' && currentAppName) || 'App Files';
-
-      $card.find('.folder-access-name').text(displayName);
-      $card.data('folder-id', id).data('folder-name', displayName);
-
-      $card.addClass('active');
     }).catch(function(err) {
       console.warn('[FileSecurityRules] Failed to fetch folder security card rules:', err);
-      $card.addClass('active');
     });
   }
 
@@ -338,8 +336,8 @@
   // -----------------------------------------
 
   function updateSelectedItemSecurity(type, id, name) {
-    var $noRulesSection = $('.selected-no-rules-section');
-    var $hasRulesSection = $('.selected-has-rules-section');
+    const $noRulesSection = $('.selected-no-rules-section');
+    const $hasRulesSection = $('.selected-has-rules-section');
 
     if (!getAppId()) {
       $noRulesSection.hide();
@@ -358,11 +356,11 @@
     $hasRulesSection.hide();
 
     fetchAccessRules(type, String(id)).then(function() {
-      var effective = getEffectiveFromCache(type, String(id));
+      const effective = getEffectiveFromCache(type, String(id));
 
       if (effective.rules.length > 0) {
-        var summary = getActionsEnabledSummary(effective.rules);
-        var badgesHtml = '';
+        const summary = getActionsEnabledSummary(effective.rules);
+        let badgesHtml = '';
 
         if (summary && summary.length) {
           badgesHtml = '<span class="security-action-badge">Users can: ' + summary.join(', ') + '</span>';
@@ -387,11 +385,11 @@
     if (rule.allow === 'loggedIn') return 'Logged in users';
 
     if (rule.allow && rule.allow.user) {
-      var conditions = [];
+      const conditions = [];
 
       Object.keys(rule.allow.user).forEach(function(key) {
-        var cond = rule.allow.user[key];
-        var op = Object.keys(cond)[0];
+        const cond = rule.allow.user[key];
+        const op = Object.keys(cond)[0];
 
         conditions.push('<code>' + escapeHtml(key) + ' ' + escapeHtml(op) + ' ' + escapeHtml(cond[op]) + '</code>');
       });
@@ -425,10 +423,10 @@
 
     if (rule.appId === null) return 'All apps';
 
-    var ids = Array.isArray(rule.appId) ? rule.appId : [rule.appId];
+    const ids = Array.isArray(rule.appId) ? rule.appId : [rule.appId];
 
-    var names = ids.map(function(id) {
-      var app = appsList.find(function(a) { return a.id === id; });
+    const names = ids.map(function(id) {
+      const app = appsList.find(function(a) { return a.id === id; });
 
       return app ? escapeHtml(app.name) : 'App ' + id;
     });
@@ -437,8 +435,8 @@
   }
 
   function describeRule(rule) {
-    var allow = rule.allow === 'all' ? 'All users' : rule.allow === 'loggedIn' ? 'Logged in users' : 'Specific users';
-    var actions = (rule.type || []).join(', ');
+    const allow = rule.allow === 'all' ? 'All users' : rule.allow === 'loggedIn' ? 'Logged in users' : 'Specific users';
+    const actions = (rule.type || []).join(', ');
 
     return allow + ' can ' + actions;
   }
@@ -448,8 +446,8 @@
    * e.g. "Read and Update by 3 rules"
    */
   function getActionsEnabledSummary(rules) {
-    var actionSet = {};
-    var enabledCount = 0;
+    const actionSet = {};
+    let enabledCount = 0;
 
     rules.forEach(function(rule) {
       if (rule.enabled === false) return;
@@ -461,12 +459,12 @@
       });
     });
 
-    var actions = Object.keys(actionSet);
+    const actions = Object.keys(actionSet);
 
     if (actions.length === 0) return '';
 
     // Capitalize: 'read' → 'Read'
-    var labels = actions.map(function(a) {
+    const labels = actions.map(function(a) {
       return a.charAt(0).toUpperCase() + a.slice(1);
     });
 
@@ -481,12 +479,12 @@
    * Render a breadcrumb path in the overlay panel header area.
    */
   function renderPanelPath($panel) {
-    var $pathEl = $panel.find('.security-panel-path');
+    let $pathEl = $panel.find('.security-panel-path');
 
     if (!$pathEl.length) {
       $pathEl = $('<div class="security-panel-path"></div>');
       // Insert after the context-back link but before panel states
-      var $contextBack = $panel.find('.panel-context-back');
+      const $contextBack = $panel.find('.panel-context-back');
 
       if ($contextBack.length) {
         $contextBack.after($pathEl);
@@ -495,26 +493,48 @@
       }
     }
 
-    var parts = [];
+    const parts = [];
+    let targetAlreadyInPath = false;
 
     if (typeof navStack !== 'undefined' && navStack.length > 0) {
       // When context has been switched, trim path to just the org root
-      var stackItems = panelContextStack.length > 0 ? [navStack[0]] : navStack;
+      const stackItems = panelContextStack.length > 0 ? [navStack[0]] : navStack;
 
       stackItems.forEach(function(item) {
         parts.push(escapeHtml(item.name || item.id));
       });
+
+      // Check if the last navStack item is the same as the security target
+      // (happens when opening rules for the folder you're currently browsing)
+      if (currentSecurityTarget) {
+        const lastItem = stackItems[stackItems.length - 1];
+
+        if (lastItem) {
+          const targetId = String(currentSecurityTarget.id);
+          const lastId = String(lastItem.id);
+
+          // Direct ID match (subfolder case), or root folder matching the app entry
+          if (lastId === targetId
+            || (targetId === 'root' && lastItem.type === 'appId')
+            || (lastItem.name && lastItem.name === currentSecurityTarget.name && lastId !== 'undefined')) {
+            targetAlreadyInPath = true;
+          }
+        }
+      }
     }
 
-    if (currentSecurityTarget && currentSecurityTarget.name) {
+    if (currentSecurityTarget && currentSecurityTarget.name && !targetAlreadyInPath) {
       parts.push('<strong>' + escapeHtml(currentSecurityTarget.name) + '</strong>');
+    } else if (targetAlreadyInPath && parts.length > 0) {
+      // Bold the last item since it's the target
+      parts[parts.length - 1] = '<strong>' + parts[parts.length - 1] + '</strong>';
     }
 
     if (parts.length > 0) {
-      var pathHtml = parts.join(' <i class="fa fa-chevron-right"></i> ');
+      let pathHtml = parts.join(' <i class="fa fa-chevron-right"></i> ');
 
       // Add folder children badge if applicable
-      var childrenBadge = getFolderChildrenBadge();
+      const childrenBadge = getFolderChildrenBadge();
 
       if (childrenBadge) {
         pathHtml += ' ' + childrenBadge;
@@ -532,8 +552,14 @@
   function getFolderChildrenBadge() {
     if (!currentSecurityTarget || currentSecurityTarget.type !== 'folder') return '';
 
-    var folderCount = 0;
-    var fileCount = 0;
+    // Only show badge when the security target is the currently browsed folder,
+    // since currentFolders/currentFiles reflect the file manager's listed contents
+    const browsedFolderId = String(typeof currentFolderId !== 'undefined' && currentFolderId ? currentFolderId : 'root');
+
+    if (String(currentSecurityTarget.id) !== browsedFolderId) return '';
+
+    let folderCount = 0;
+    let fileCount = 0;
 
     if (typeof currentFolders !== 'undefined' && Array.isArray(currentFolders)) {
       folderCount = currentFolders.length;
@@ -545,7 +571,7 @@
 
     if (folderCount === 0 && fileCount === 0) return '';
 
-    var parts = [];
+    const parts = [];
 
     if (folderCount > 0) parts.push(folderCount + ' folder' + (folderCount !== 1 ? 's' : ''));
     if (fileCount > 0) parts.push(fileCount + ' file' + (fileCount !== 1 ? 's' : ''));
@@ -557,8 +583,8 @@
     currentSecurityTarget = { type: type, id: String(id), name: name || '' };
     panelContextStack = [];
 
-    var $overlay = $('#security-panel-overlay');
-    var $panel = $overlay.find('.security-panel');
+    const $overlay = $('#security-panel-overlay');
+    const $panel = $overlay.find('.security-panel');
 
     // Show panel immediately with loading state
     $panel.find('.panel-context-back').hide();
@@ -578,8 +604,8 @@
 
     // Fetch rules from API
     fetchAccessRules(type, currentSecurityTarget.id).then(function(response) {
-      var own = (response.accessRules || []).slice();
-      var effective = {
+      const own = (response.accessRules || []).slice();
+      const effective = {
         rules: own.length > 0 ? own : (response.effectiveRules || []).slice(),
         inheritedFrom: response.inheritedFrom || null
       };
@@ -624,7 +650,7 @@
       return;
     }
 
-    var $overlay = $('#security-panel-overlay');
+    const $overlay = $('#security-panel-overlay');
 
     $overlay.removeClass('visible');
 
@@ -642,7 +668,7 @@
     updateSecurityBadges();
 
     if ($('.folder-security-card').hasClass('active')) {
-      var $card = $('.folder-security-card');
+      const $card = $('.folder-security-card');
 
       updateFolderSecurityCard(
         $card.data('folder-id') || 'root',
@@ -658,14 +684,14 @@
   function switchPanelContext(type, id, name) {
     currentSecurityTarget = { type: type, id: String(id), name: name || '' };
 
-    var $overlay = $('#security-panel-overlay');
-    var $panel = $overlay.find('.security-panel');
+    const $overlay = $('#security-panel-overlay');
+    const $panel = $overlay.find('.security-panel');
 
     // Update "Back to [item]" link
-    var $backLink = $panel.find('.panel-context-back');
+    const $backLink = $panel.find('.panel-context-back');
 
     if (panelContextStack.length > 0) {
-      var prevContext = panelContextStack[panelContextStack.length - 1];
+      const prevContext = panelContextStack[panelContextStack.length - 1];
 
       $backLink.find('.back-to-context-label').text('Back to ' + (prevContext.name || prevContext.type));
       $backLink.show();
@@ -677,8 +703,8 @@
     renderPanelPath($panel);
 
     fetchAccessRules(type, currentSecurityTarget.id).then(function(response) {
-      var own = (response.accessRules || []).slice();
-      var effective = {
+      const own = (response.accessRules || []).slice();
+      const effective = {
         rules: own.length > 0 ? own : (response.effectiveRules || []).slice(),
         inheritedFrom: response.inheritedFrom || null
       };
@@ -700,11 +726,11 @@
   }
 
   function renderInheritanceBanner(own, effective) {
-    var $banner = $('#security-panel-inheritance');
-    var html = '';
-    var isRoot = currentSecurityTarget.type === 'folder' && String(currentSecurityTarget.id) === 'root';
+    const $banner = $('#security-panel-inheritance');
+    let html = '';
+    const isRoot = currentSecurityTarget.type === 'folder' && String(currentSecurityTarget.id) === 'root';
 
-    var isFile = currentSecurityTarget.type === 'file';
+    const isFile = currentSecurityTarget.type === 'file';
 
     if (own.length > 0 && !isRoot && !isFile) {
       html = '<div class="callout callout-primary">' +
@@ -758,16 +784,16 @@
         return row;
       },
       start: function(event, ui) {
-        var $original = ui.helper.children();
+        const $original = ui.helper.children();
 
         ui.placeholder.children().each(function(i) {
           $(this).width($original.eq(i).width());
         });
       },
       update: function() {
-        var result = $tbody.sortable('toArray', { attribute: 'data-rule-index' });
+        const result = $tbody.sortable('toArray', { attribute: 'data-rule-index' });
 
-        currentRules = Fliplet.Utils.map(result, function(r) {
+        currentRules = result.map(function(r) {
           return currentRules[parseInt(r, 10)];
         });
 
@@ -779,14 +805,14 @@
   }
 
   function renderRulesTable() {
-    var $tbody = $('#security-rules-tbody');
+    const $tbody = $('#security-rules-tbody');
 
     $tbody.empty();
 
     if (currentRules.length === 0) {
       // Hide empty placeholder if inherited rules are shown
-      var effective = getDraftEffective();
-      var hasInherited = effective.inheritedFrom && effective.rules.length > 0;
+      const effective = getDraftEffective();
+      const hasInherited = effective.inheritedFrom && effective.rules.length > 0;
 
       if (hasInherited) {
         $tbody.closest('.security-rules-table').find('.security-rules-empty').hide();
@@ -802,16 +828,16 @@
     $tbody.closest('table').show();
 
     currentRules.forEach(function(rule, index) {
-      var enabledClass = rule.enabled !== false ? 'rule-enabled' : 'rule-disabled';
-      var isEnabled = rule.enabled !== false;
-      var isCustom = typeof rule.script === 'string';
-      var isStop = rule.stop === true;
+      let enabledClass = rule.enabled !== false ? 'rule-enabled' : 'rule-disabled';
+      const isEnabled = rule.enabled !== false;
+      const isCustom = typeof rule.script === 'string';
+      const isStop = rule.stop === true;
 
       if (isStop) {
         enabledClass += ' rule-stop';
       }
 
-      var statusCell = '<td class="align-baseline opacity-full">' +
+      const statusCell = '<td class="align-baseline opacity-full">' +
         '<span class="fa-stack handle-sort">' +
           '<i class="fa fa-ellipsis-v fa-stack-1x"></i>' +
           '<i class="fa fa-ellipsis-v fa-stack-1x"></i>' +
@@ -825,18 +851,18 @@
         '</a>' +
         '</td>';
 
-      var stopCell = '<td class="align-baseline rule-stop-cell">' +
+      const stopCell = '<td class="align-baseline rule-stop-cell">' +
         (isStop
           ? '<span class="rule-stop-label">Stop</span>'
           : '<span class="rule-continue-label">Continue</span>') +
         '</td>';
 
-      var actionsCell = '<td class="align-baseline opacity-full">' +
+      const actionsCell = '<td class="align-baseline opacity-full">' +
         '<button class="btn btn-default btn-sm" data-edit-rule="' + index + '">Edit</button> ' +
         '<button class="btn btn-danger btn-sm" data-delete-rule="' + index + '">Delete</button>' +
         '</td>';
 
-      var html;
+      let html;
 
       if (isCustom) {
         html = '<tr data-rule-index="' + index + '" class="' + enabledClass + '">' +
@@ -864,7 +890,7 @@
   }
 
   function renderInheritedRules(own, effective) {
-    var $section = $('#security-inherited-rules');
+    const $section = $('#security-inherited-rules');
 
     // When item has own rules, inherited rules from parent aren't displayed
     // because own rules take precedence (most specific wins)
@@ -874,19 +900,19 @@
     }
 
     if (effective.inheritedFrom && effective.rules.length > 0) {
-      var $tbody = $section.find('tbody');
+      const $tbody = $section.find('tbody');
 
       $tbody.empty();
 
       effective.rules.forEach(function(rule) {
-        var isStop = rule.stop === true;
-        var stopCell = '<td class="rule-stop-cell">' +
+        const isStop = rule.stop === true;
+        const stopCell = '<td class="rule-stop-cell">' +
           (isStop
             ? '<span class="rule-stop-label">Stop</span>'
             : '<span class="rule-continue-label">Continue</span>') +
           '</td>';
 
-        var html = '<tr' + (isStop ? ' class="rule-stop"' : '') + '>' +
+        const html = '<tr' + (isStop ? ' class="rule-stop"' : '') + '>' +
           '<td>' + (rule.enabled !== false ? '<i class="fa fa-check-circle" style="color:#10B981"></i>' : '<i class="fa fa-minus-circle" style="color:#ccc"></i>') + '</td>' +
           '<td>' + describeAllow(rule) + '</td>' +
           '<td>' + describeType(rule) + '</td>' +
@@ -898,8 +924,8 @@
       });
 
       // Show source name from server response
-      var inheritedName;
-      var inheritedId;
+      let inheritedName;
+      let inheritedId;
 
       if (effective.inheritedFrom.type === 'app') {
         inheritedName = effective.inheritedFrom.appName || (typeof currentAppName !== 'undefined' ? currentAppName : 'App Files');
@@ -924,8 +950,8 @@
   }
 
   function updateSaveButton() {
-    var $btn = $('.btn-save-rules');
-    var changed = JSON.stringify(currentRules) !== JSON.stringify(savedRules);
+    const $btn = $('.btn-save-rules');
+    const changed = JSON.stringify(currentRules) !== JSON.stringify(savedRules);
 
     hasUnsavedChanges = changed;
 
@@ -940,12 +966,12 @@
   // RULE EDITOR MODAL
   // -----------------------------------------
 
-  var editingRuleIndex = null; // null = adding new, number = editing existing
-  var dataSourcesList = [];    // Cached data sources for the select dropdown
-  var appsList = [];           // Cached apps for the "Specific apps" checkboxes
-  var tokensList = [];         // Cached tokens for the "Specific token" select
-  var panelContextStack = [];  // Stack for navigating between inherited folder contexts
-  var customRuleEditor = null; // CodeMirror instance for custom JS rules
+  let editingRuleIndex = null; // null = adding new, number = editing existing
+  let dataSourcesList = [];    // Cached data sources for the select dropdown
+  let appsList = [];           // Cached apps for the "Specific apps" checkboxes
+  let tokensList = [];         // Cached tokens for the "Specific token" select
+  let panelContextStack = [];  // Stack for navigating between inherited folder contexts
+  let customRuleEditor = null; // CodeMirror instance for custom JS rules
 
   function showPanelState(state) {
     $('.panel-state').removeClass('active');
@@ -969,18 +995,13 @@
     }
   }
 
-  // [FILEAPI] Mock data sources — remove when Fliplet.DataSources.get() works in this context
   function loadMockDataSources() {
-    dataSourcesList = [
-      { id: 100, name: 'Users' },
-      { id: 200, name: 'Expense Reports' },
-      { id: 300, name: 'Event Registrations' }
-    ];
+    dataSourcesList = [];
     populateDataSourceSelect();
   }
 
   function populateDataSourceSelect() {
-    var $select = $('#configure-file-rule [name="ds-id"]');
+    const $select = $('#configure-file-rule [name="ds-id"]');
 
     $select.empty().append('<option value="">-- Select data source</option>');
 
@@ -990,20 +1011,20 @@
   }
 
   function loadDataSourceColumns(dsId) {
-    var $select = $('#configure-file-rule [name="ds-file-column"]');
+    const $select = $('#configure-file-rule [name="ds-file-column"]');
 
     $select.empty().append('<option value="">-- Select column</option>');
 
     if (!dsId) {
       $select.prop('disabled', true);
-      return;
+      return Promise.resolve();
     }
 
     $select.prop('disabled', false);
 
     // [FILEAPI] Fetch columns via Fliplet.DataSources.connect().getColumns()
     if (typeof Fliplet !== 'undefined' && Fliplet.DataSources && typeof Fliplet.DataSources.connect === 'function') {
-      Fliplet.DataSources.connect(dsId).then(function(connection) {
+      return Fliplet.DataSources.connect(dsId).then(function(connection) {
         if (typeof connection.getColumns === 'function') {
           return connection.getColumns();
         }
@@ -1025,16 +1046,15 @@
       }).catch(function() {
         loadMockDataSourceColumns($select);
       });
-    } else {
-      loadMockDataSourceColumns($select);
     }
+
+    loadMockDataSourceColumns($select);
+
+    return Promise.resolve();
   }
 
-  // [FILEAPI] Mock columns — remove when using real API
   function loadMockDataSourceColumns($select) {
-    ['Email', 'First name', 'Last name', 'Role', 'Avatar', 'Document'].forEach(function(col) {
-      $select.append('<option value="' + col + '">' + col + '</option>');
-    });
+    $select.prop('disabled', true);
   }
 
   function loadApps() {
@@ -1055,50 +1075,42 @@
     }
   }
 
-  // [FILEAPI] Mock apps list — remove when Fliplet.Apps.get() works in this context
   function loadMockApps() {
-    appsList = [
-      { id: 1, name: 'My events solution' },
-      { id: 2, name: 'Hugo\'s App' },
-      { id: 3, name: 'Test Event Portal' }
-    ];
+    appsList = [];
     populateAppsList();
   }
 
   // [FILEAPI] Load API tokens for the "Specific token" select
   function loadTokens() {
     if (typeof Fliplet !== 'undefined' && Fliplet.API && typeof Fliplet.API.request === 'function') {
-      Fliplet.API.request({ url: 'v1/tokens' }).then(function(response) {
+      return Fliplet.API.request({ url: 'v1/tokens' }).then(function(response) {
         tokensList = response.tokens || response || [];
         populateTokenSelect();
       }).catch(function() {
         loadMockTokens();
       });
-    } else {
-      loadMockTokens();
     }
+
+    loadMockTokens();
+
+    return Promise.resolve();
   }
 
-  // [FILEAPI] Mock tokens — remove when real API works
   function loadMockTokens() {
-    tokensList = [
-      { id: 75, fullName: 'Zapier Integration', apps: [{ name: 'My events solution' }] },
-      { id: 12, fullName: 'Read Token', apps: [{ name: 'My events solution' }] },
-      { id: 88, fullName: 'Admin Token', apps: [{ name: "Hugo's Plat" }] }
-    ];
+    tokensList = [];
     populateTokenSelect();
   }
 
   function populateTokenSelect() {
-    var $select = $('#configure-file-rule [name="token-id"]');
+    const $select = $('#configure-file-rule [name="token-id"]');
 
     $select.empty().append('<option value="">-- Select API Token</option>');
 
     // Group tokens by app name
-    var groups = {};
+    const groups = {};
 
     tokensList.forEach(function(token) {
-      var appName = (token.apps && token.apps.length > 0 && token.apps[0].name) || 'Other';
+      const appName = (token.apps && token.apps.length > 0 && token.apps[0].name) || 'Other';
 
       if (!groups[appName]) groups[appName] = [];
 
@@ -1106,7 +1118,7 @@
     });
 
     Object.keys(groups).sort().forEach(function(appName) {
-      var $group = $('<optgroup>').attr('label', appName);
+      const $group = $('<optgroup>').attr('label', appName);
 
       groups[appName].forEach(function(token) {
         $group.append(
@@ -1119,13 +1131,13 @@
   }
 
   function populateAppsList(selectedIds) {
-    var $list = $('#configure-file-rule .apps-list');
-    var selected = selectedIds || [];
+    const $list = $('#configure-file-rule .apps-list');
+    const selected = selectedIds || [];
 
     $list.empty();
 
     appsList.forEach(function(app) {
-      var checked = selected.indexOf(app.id) !== -1 ? ' checked' : '';
+      const checked = selected.indexOf(app.id) !== -1 ? ' checked' : '';
 
       $list.append(
         '<div class="checkbox checkbox-icon" style="display: inline-block; margin-right: 15px;">' +
@@ -1152,9 +1164,9 @@
   function openRuleEditor(rule, index) {
     editingRuleIndex = (typeof index === 'number') ? index : null;
 
-    var $editor = $('#configure-file-rule');
-    var isFolder = currentSecurityTarget && currentSecurityTarget.type === 'folder';
-    var isCustom = rule && typeof rule.script === 'string';
+    const $editor = $('#configure-file-rule');
+    const isFolder = currentSecurityTarget && currentSecurityTarget.type === 'folder';
+    const isCustom = rule && typeof rule.script === 'string';
 
     // Reset form
     resetRuleForm($editor);
@@ -1179,7 +1191,7 @@
     }
 
     // Show Create/Upload only for folders, hide entirely for files
-    var $createCheckbox = $editor.find('.action-checkbox-create');
+    const $createCheckbox = $editor.find('.action-checkbox-create');
 
     if (isFolder) {
       $createCheckbox.show().find('input').prop('disabled', false);
@@ -1271,11 +1283,11 @@
       $editor.find('[data-allow-type="filter"]').addClass('selected');
       $editor.find('.user-filters-wrapper').removeClass('hidden');
 
-      var $filters = $editor.find('.user-filters-wrapper .required-fields');
+      const $filters = $editor.find('.user-filters-wrapper .required-fields');
 
       Object.keys(rule.allow.user).forEach(function(key) {
-        var cond = rule.allow.user[key];
-        var op = Object.keys(cond)[0];
+        const cond = rule.allow.user[key];
+        const op = Object.keys(cond)[0];
 
         addUserFilterRow($filters, key, op, cond[op]);
       });
@@ -1286,21 +1298,18 @@
       $editor.find('[name="ds-id"]').val(rule.allow.dataSource.id);
 
       // Load columns for the selected DS, then set the file column value
-      var savedFileColumn = rule.allow.dataSource.fileColumn || '';
+      const savedFileColumn = rule.allow.dataSource.fileColumn || '';
 
-      loadDataSourceColumns(rule.allow.dataSource.id);
-
-      // Set value after a tick to allow options to load
-      setTimeout(function() {
+      loadDataSourceColumns(rule.allow.dataSource.id).then(function() {
         $editor.find('[name="ds-file-column"]').val(savedFileColumn);
-      }, 300);
+      });
 
       if (rule.allow.dataSource.where) {
-        var $whereFilters = $editor.find('.ds-where-filters');
+        const $whereFilters = $editor.find('.ds-where-filters');
 
         Object.keys(rule.allow.dataSource.where).forEach(function(key) {
-          var cond = rule.allow.dataSource.where[key];
-          var op = Object.keys(cond)[0];
+          const cond = rule.allow.dataSource.where[key];
+          const op = Object.keys(cond)[0];
 
           addUserFilterRow($whereFilters, key, op, cond[op]);
         });
@@ -1312,14 +1321,11 @@
       if (rule.allow.tokens.length > 0) {
         if (!tokensList.length) {
           // Load tokens first, then set the value
-          var tokenVal = rule.allow.tokens[0];
-          var origPopulate = window._origPopulateTokenSelect;
+          const tokenVal = rule.allow.tokens[0];
 
-          loadTokens();
-          // Set value after tokens are loaded (populateTokenSelect runs synchronously after load)
-          setTimeout(function() {
+          loadTokens().then(function() {
             $editor.find('[name="token-id"]').val(tokenVal);
-          }, 100);
+          });
         } else {
           $editor.find('[name="token-id"]').val(rule.allow.tokens[0]);
         }
@@ -1347,7 +1353,7 @@
   }
 
   function addUserFilterRow($container, column, operator, value) {
-    var html = '<div class="required-field">' +
+    const html = '<div class="required-field">' +
       '<button class="btn" data-remove-user-filter><i class="fa fa-minus fa-fw"></i></button>' +
       '<input name="column" class="form-control" type="text" placeholder="Field name" value="' + escapeHtml(column || '') + '" />' +
       '<label class="select-proxy-display">' +
@@ -1369,9 +1375,9 @@
 
   // Matches DS widget updateSaveRuleValidation() — disables save button if no action type is checked
   function updateSaveRuleValidation() {
-    var $editor = $('#configure-file-rule');
-    var $btn = $editor.find('[data-save-security-rule]');
-    var isCustomRule = !$editor.find('[data-rule-standard]').is(':visible');
+    const $editor = $('#configure-file-rule');
+    const $btn = $editor.find('[data-save-security-rule]');
+    const isCustomRule = !$editor.find('[data-rule-standard]').is(':visible');
 
     // Custom rules: always enabled
     if (isCustomRule) {
@@ -1379,7 +1385,7 @@
       return;
     }
 
-    var types = $editor.find('[name="type"]:checked');
+    const types = $editor.find('[name="type"]:checked');
 
     if (types.length > 0) {
       $btn.removeAttr('disabled').removeClass('disabled');
@@ -1403,11 +1409,11 @@
   }
 
   function collectRuleFromForm() {
-    var $editor = $('#configure-file-rule');
-    var rule = {};
+    const $editor = $('#configure-file-rule');
+    let rule = {};
 
     // Check if custom rule
-    var isCustomRule = !$editor.find('[data-rule-standard]').is(':visible');
+    const isCustomRule = !$editor.find('[data-rule-standard]').is(':visible');
 
     if (isCustomRule) {
       rule = {
@@ -1417,7 +1423,7 @@
       };
 
       // Stop control
-      var customStop = $editor.find('[name="custom-rule-stop"]:checked').val();
+      const customStop = $editor.find('[name="custom-rule-stop"]:checked').val();
 
       if (customStop === 'true') {
         rule.stop = true;
@@ -1431,22 +1437,22 @@
     }
 
     // Allow
-    var allowType = $editor.find('[data-allow-type].selected').data('allow-type');
+    const allowType = $editor.find('[data-allow-type].selected').data('allow-type');
 
     if (allowType === 'all') {
       rule.allow = 'all';
     } else if (allowType === 'loggedIn') {
       rule.allow = 'loggedIn';
     } else if (allowType === 'filter') {
-      var userConditions = {};
+      const userConditions = {};
 
       $editor.find('.user-filters-wrapper .required-field').each(function() {
-        var col = $(this).find('[name="column"]').val();
-        var op = $(this).find('[name="operator"]').val();
-        var val = $(this).find('[name="value"]').val();
+        const col = $(this).find('[name="column"]').val();
+        const op = $(this).find('[name="operator"]').val();
+        const val = $(this).find('[name="value"]').val();
 
         if (col) {
-          var cond = {};
+          const cond = {};
 
           cond[op] = val;
           userConditions[col] = cond;
@@ -1455,17 +1461,17 @@
 
       rule.allow = { user: userConditions };
     } else if (allowType === 'dataSource') {
-      var dsId = parseInt($editor.find('[name="ds-id"]').val(), 10);
-      var fileColumn = $editor.find('[name="ds-file-column"]').val();
-      var where = {};
+      const dsId = parseInt($editor.find('[name="ds-id"]').val(), 10);
+      const fileColumn = $editor.find('[name="ds-file-column"]').val();
+      const where = {};
 
       $editor.find('.ds-where-filters .required-field').each(function() {
-        var col = $(this).find('[name="column"]').val();
-        var op = $(this).find('[name="operator"]').val();
-        var val = $(this).find('[name="value"]').val();
+        const col = $(this).find('[name="column"]').val();
+        const op = $(this).find('[name="operator"]').val();
+        const val = $(this).find('[name="value"]').val();
 
         if (col) {
-          var cond = {};
+          const cond = {};
 
           cond[op] = val;
           where[col] = cond;
@@ -1480,7 +1486,7 @@
         }
       };
     } else if (allowType === 'tokens') {
-      var tokenId = parseInt($editor.find('[name="token-id"]').val(), 10);
+      const tokenId = parseInt($editor.find('[name="token-id"]').val(), 10);
 
       rule.allow = { tokens: tokenId ? [tokenId] : [] };
     }
@@ -1493,7 +1499,7 @@
     });
 
     // App scope
-    var appScope = $editor.find('[data-app-scope].selected').data('app-scope');
+    const appScope = $editor.find('[data-app-scope].selected').data('app-scope');
 
     if (appScope === 'all') {
       rule.appId = null;
@@ -1508,7 +1514,7 @@
     rule.enabled = true;
 
     // Stop control
-    var stopVal = $editor.find('[name="rule-stop"]:checked').val();
+    const stopVal = $editor.find('[name="rule-stop"]:checked').val();
 
     if (stopVal === 'true') {
       rule.stop = true;
@@ -1521,7 +1527,7 @@
   // PRE-CONFIGURED RULES
   // -----------------------------------------
 
-  var preconfiguredRules = [
+  const preconfiguredRules = [
     {
       name: 'All users can read',
       rule: { allow: 'all', type: ['read'], enabled: true, appId: null }
@@ -1555,7 +1561,7 @@
   function performSave() {
     if (!currentSecurityTarget) return;
 
-    var target = currentSecurityTarget;
+    const target = currentSecurityTarget;
 
     saveAccessRules(target.type, target.id, currentRules).then(function() {
       savedRules = JSON.parse(JSON.stringify(currentRules));
@@ -1568,7 +1574,7 @@
       updateSecurityBadges();
 
       if ($('.folder-security-card').hasClass('active')) {
-        var $card = $('.folder-security-card');
+        const $card = $('.folder-security-card');
 
         updateFolderSecurityCard(
           $card.data('folder-id') || 'root',
@@ -1577,18 +1583,18 @@
       }
 
       // Also update selected item security if one is selected
-      var $activeRow = $('.file-row.active');
+      const $activeRow = $('.file-row.active');
 
       if ($activeRow.length === 1 && window.FileSecurityRules) {
-        var selType = $activeRow.data('file-type') === 'folder' ? 'folder' : 'file';
+        const selType = $activeRow.data('file-type') === 'folder' ? 'folder' : 'file';
 
         updateSelectedItemSecurity(selType, $activeRow.data('id'), $activeRow.find('.file-name span').first().text());
       }
 
       // Re-fetch and re-render the overlay panel to reflect inheritance changes
       fetchAccessRules(target.type, target.id).then(function(response) {
-        var own = (response.accessRules || []).slice();
-        var effective = {
+        const own = (response.accessRules || []).slice();
+        const effective = {
           rules: own.length > 0 ? own : (response.effectiveRules || []).slice(),
           inheritedFrom: response.inheritedFrom || null
         };
@@ -1604,7 +1610,7 @@
         updateSaveButton();
 
         // Update panel path with current children count
-        var $panel = $('#security-panel-overlay .security-panel');
+        const $panel = $('#security-panel-overlay .security-panel');
 
         renderPanelPath($panel);
       });
@@ -1628,9 +1634,9 @@
     $(document).on('click.securityRules', '.folder-security-card .btn-open-folder-rules', function(e) {
       e.preventDefault();
 
-      var $card = $('.folder-security-card');
-      var folderId = $card.data('folder-id') || 'root';
-      var folderName = $card.data('folder-name') || 'App Files';
+      const $card = $('.folder-security-card');
+      const folderId = $card.data('folder-id') || 'root';
+      const folderName = $card.data('folder-name') || 'App Files';
 
       openSecurityPanel('folder', folderId, folderName);
     });
@@ -1640,9 +1646,9 @@
       e.preventDefault();
       e.stopPropagation();
 
-      var type = $(this).data('target-type');
-      var id = $(this).data('target-id');
-      var name = $(this).data('target-name');
+      const type = $(this).data('target-type');
+      const id = $(this).data('target-id');
+      const name = $(this).data('target-name');
 
       if (type && id !== undefined && id !== null) {
         openSecurityPanel(type, id, name);
@@ -1654,7 +1660,7 @@
     $(document).on('click.securityRules', '[data-navigate-folder]', function(e) {
       e.preventDefault();
 
-      var folderId = $(this).data('navigate-folder');
+      const folderId = $(this).data('navigate-folder');
 
       navigateFileManagerToFolder(folderId);
     });
@@ -1688,7 +1694,7 @@
       e.preventDefault();
       e.stopPropagation();
 
-      var index = parseInt($(this).closest('tr').data('rule-index'), 10);
+      const index = parseInt($(this).closest('tr').data('rule-index'), 10);
 
       if (isNaN(index) || !currentRules[index]) return;
 
@@ -1700,7 +1706,7 @@
     $(document).on('click.securityRules', '[data-edit-rule]', function(e) {
       e.preventDefault();
 
-      var index = parseInt($(this).data('edit-rule'), 10);
+      const index = parseInt($(this).data('edit-rule'), 10);
 
       if (isNaN(index) || !currentRules[index]) return;
 
@@ -1715,7 +1721,7 @@
     $(document).on('click.securityRules', '[data-delete-rule]', function(e) {
       e.preventDefault();
 
-      var index = parseInt($(this).data('delete-rule'), 10);
+      const index = parseInt($(this).data('delete-rule'), 10);
 
       if (isNaN(index) || !currentRules[index]) return;
 
@@ -1724,7 +1730,7 @@
       renderRulesTable();
       updateSaveButton();
 
-      var effective = getDraftEffective();
+      const effective = getDraftEffective();
 
       renderInheritanceBanner(currentRules, effective);
       renderInheritedRules(currentRules, effective);
@@ -1738,7 +1744,7 @@
       renderRulesTable();
       updateSaveButton();
 
-      var effective = getDraftEffective();
+      const effective = getDraftEffective();
 
       renderInheritanceBanner(currentRules, effective);
       renderInheritedRules(currentRules, effective);
@@ -1761,17 +1767,17 @@
     $(document).on('click.securityRules', '[data-preconfigured-rule]', function(e) {
       e.preventDefault();
 
-      var index = parseInt($(this).data('preconfigured-rule'), 10);
+      const index = parseInt($(this).data('preconfigured-rule'), 10);
 
       if (isNaN(index) || !preconfiguredRules[index]) return;
 
-      var newRule = JSON.parse(JSON.stringify(preconfiguredRules[index].rule));
+      const newRule = JSON.parse(JSON.stringify(preconfiguredRules[index].rule));
 
       currentRules.push(newRule);
       renderRulesTable();
       updateSaveButton();
 
-      var effective = getDraftEffective();
+      const effective = getDraftEffective();
 
       renderInheritanceBanner(currentRules, effective);
       renderInheritedRules(currentRules, effective);
@@ -1787,12 +1793,12 @@
     $(document).on('click.securityRules', '#configure-file-rule [data-allow-type]', function(e) {
       e.preventDefault();
 
-      var $editor = $('#configure-file-rule');
+      const $editor = $('#configure-file-rule');
 
       $editor.find('[data-allow-type]').removeClass('selected');
       $(this).addClass('selected');
 
-      var type = $(this).data('allow-type');
+      const type = $(this).data('allow-type');
 
       // Show/hide relevant subsections
       $editor.find('.user-filters-wrapper').toggleClass('hidden', type !== 'filter');
@@ -1801,7 +1807,7 @@
 
       // Auto-add first condition row when "Specific users" is selected
       if (type === 'filter') {
-        var $filters = $editor.find('.security-user-filters');
+        const $filters = $editor.find('.security-user-filters');
 
         if ($filters.children().length === 0) {
           addUserFilterRow($filters, '', 'equals', '');
@@ -1818,7 +1824,7 @@
     $(document).on('click.securityRules', '[data-add-user-condition]', function(e) {
       e.preventDefault();
 
-      var $container = $(this).siblings('.required-fields');
+      const $container = $(this).siblings('.required-fields');
 
       addUserFilterRow($container, '', 'equals', '');
     });
@@ -1827,14 +1833,14 @@
     $(document).on('click.securityRules', '[data-add-ds-condition]', function(e) {
       e.preventDefault();
 
-      var $container = $(this).siblings('.required-fields');
+      const $container = $(this).siblings('.required-fields');
 
       addUserFilterRow($container, '', 'equals', '');
     });
 
     // Load columns when data source changes
     $(document).on('change.securityRules', '#configure-file-rule [name="ds-id"]', function() {
-      var dsId = parseInt($(this).val(), 10);
+      const dsId = parseInt($(this).val(), 10);
 
       loadDataSourceColumns(dsId || null);
     });
@@ -1849,12 +1855,12 @@
     $(document).on('click.securityRules', '#configure-file-rule [data-app-scope]', function(e) {
       e.preventDefault();
 
-      var $editor = $('#configure-file-rule');
+      const $editor = $('#configure-file-rule');
 
       $editor.find('[data-app-scope]').removeClass('selected');
       $(this).addClass('selected');
 
-      var scope = $(this).data('app-scope');
+      const scope = $(this).data('app-scope');
 
       $editor.find('.apps-list-wrapper').toggleClass('hidden', scope !== 'filter');
     });
@@ -1863,9 +1869,9 @@
     $(document).on('click.securityRules', '[data-save-security-rule]', function(e) {
       e.preventDefault();
 
-      var $editor = $('#configure-file-rule');
-      var isCustomRule = !$editor.find('[data-rule-standard]').is(':visible');
-      var error = null;
+      const $editor = $('#configure-file-rule');
+      const isCustomRule = !$editor.find('[data-rule-standard]').is(':visible');
+      let error = null;
 
       // Validate standard rules before collecting
       if (!isCustomRule) {
@@ -1879,8 +1885,8 @@
 
         // Validate Handlebars in user filter conditions
         $editor.find('.user-filters-wrapper .required-field').each(function() {
-          var col = $.trim($(this).find('[name="column"]').val());
-          var val = $.trim($(this).find('[name="value"]').val());
+          const col = $.trim($(this).find('[name="column"]').val());
+          const val = $.trim($(this).find('[name="value"]').val());
 
           if (col && val) {
             error = error || validateHandlebarsValue(val, col);
@@ -1889,8 +1895,8 @@
 
         // Validate Handlebars in DS where conditions
         $editor.find('.ds-where-filters .required-field').each(function() {
-          var col = $.trim($(this).find('[name="column"]').val());
-          var val = $.trim($(this).find('[name="value"]').val());
+          const col = $.trim($(this).find('[name="column"]').val());
+          const val = $.trim($(this).find('[name="value"]').val());
 
           if (col && val) {
             error = error || validateHandlebarsValue(val, col);
@@ -1903,7 +1909,7 @@
         }
       }
 
-      var rule = collectRuleFromForm();
+      const rule = collectRuleFromForm();
 
       if (editingRuleIndex !== null) {
         currentRules[editingRuleIndex] = rule;
@@ -1915,7 +1921,7 @@
       renderRulesTable();
       updateSaveButton();
 
-      var effective = getDraftEffective();
+      const effective = getDraftEffective();
 
       renderInheritanceBanner(currentRules, effective);
       renderInheritedRules(currentRules, effective);
@@ -1940,8 +1946,8 @@
       if (!currentSecurityTarget) return;
 
       // If going from rules → no rules, confirm before saving
-      var hadRules = savedRules.length > 0;
-      var hasNoRules = currentRules.length === 0;
+      const hadRules = savedRules.length > 0;
+      const hasNoRules = currentRules.length === 0;
 
       if (hadRules && hasNoRules) {
         Fliplet.Modal.confirm({
@@ -1973,8 +1979,8 @@
     $(document).on('click.securityRules', '[data-edit-inherited-rules]', function(e) {
       e.preventDefault();
 
-      var folderId = $(this).data('folder-id');
-      var folderName = $(this).data('folder-name') || folderId;
+      const folderId = $(this).data('folder-id');
+      const folderName = $(this).data('folder-name') || folderId;
 
       // Push current context onto the stack so user can go back
       if (currentSecurityTarget) {
@@ -1995,7 +2001,7 @@
 
       if (panelContextStack.length === 0) return;
 
-      var prev = panelContextStack.pop();
+      const prev = panelContextStack.pop();
 
       switchPanelContext(prev.type, prev.id, prev.name);
     });
@@ -2008,7 +2014,7 @@
   // Hook into file manager rendering lifecycle
   // We observe DOM changes to detect when folder contents are rendered
 
-  var isUpdatingBadges = false;
+  let isUpdatingBadges = false;
 
   function init(options) {
     options = options || {};
@@ -2020,10 +2026,10 @@
     initEventHandlers();
 
     // Observe file table body for changes to inject security badges
-    var observer = new MutationObserver(function(mutations) {
+    const observer = new MutationObserver(function(mutations) {
       if (isUpdatingBadges) return;
 
-      var shouldUpdate = mutations.some(function(m) {
+      const shouldUpdate = mutations.some(function(m) {
         return m.addedNodes.length > 0;
       });
 
@@ -2034,7 +2040,7 @@
       }
     });
 
-    var tableBody = document.querySelector('.file-table-body');
+    const tableBody = document.querySelector('.file-table-body');
 
     if (tableBody) {
       observer.observe(tableBody, { childList: true });

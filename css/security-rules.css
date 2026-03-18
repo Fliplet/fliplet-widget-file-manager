@@ -912,12 +912,6 @@ a.toggle-status:hover {
   white-space: nowrap;
 }
 
-.rule-stop-label {
-}
-
-.rule-continue-label {
-}
-
 /* Editor footer */
 .rule-editor-footer {
   display: flex;

@@ -178,7 +178,6 @@
             <div class="folder-security-open-action">
               <button class="btn btn-default btn-sm btn-open-folder-rules">Access rules</button>
             </div>
-            <p class="folder-security-hint"><i class="fa fa-info-circle"></i> Files inherit rules from their parent folder unless they have their own.</p>
           </div>
 
           <!-- "Did you know?" (original, hidden when security card is shown) -->
@@ -195,7 +194,7 @@
                 <i class="fa fa-files-o"></i>
               </div>
               <div class="item image" style="display:none;">
-                <img onerror="this.parentElement.style.display='none';" />
+                <img />
               </div>
               <p class="selected-item-name" style="display: none;"></p>
               <p class="selected-count-text">You have selected <span class="items-selected"></span></p>
@@ -353,7 +352,7 @@
     </div>
     <div class="file-cell file-name-cell">
       <div class="file-name" data-open-file>
-        \{{#if thumbnail}}<img loading="lazy" src="\{{thumbnail}}" onerror="this.style.display='none';this.nextElementSibling.style.display='';" /><i class="fa fa-file file-icon-fallback" style="display:none; margin-right:5px;"></i>\{{/if}}
+        \{{#if thumbnail}}<img loading="lazy" src="\{{thumbnail}}" /><i class="fa fa-file file-icon-fallback" style="display:none; margin-right:5px;"></i>\{{/if}}
         <span>\{{name}}</span>
         \{{#ifCond metadata.av.status '===' 'infected'}}
           <i class="fa fa-bug" data-toggle="tooltip" data-placement="top" title="Virus detected"></i>
