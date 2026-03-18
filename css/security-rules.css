@@ -376,7 +376,7 @@
   z-index: 1040;
   opacity: 0;
   transition: opacity 0.5s ease;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .security-panel-overlay.active {
@@ -391,7 +391,7 @@
   position: relative;
   width: 90%;
   max-width: 1250px;
-  margin: 60px auto 5%;
+  margin: 40px auto;
   background-color: #fff;
   box-shadow: 0 0 24px rgba(0, 0, 0, 0.15);
   display: flex;
