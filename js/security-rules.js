@@ -226,6 +226,8 @@
   function updateSecurityBadges() {
     if (!getAppId()) return;
 
+    const generation = ++badgeGeneration;
+
     isUpdatingBadges = true;
 
     const items = [];
@@ -258,6 +260,9 @@
     });
 
     Promise.all(fetchPromises).then(function() {
+      // Discard stale results if a newer update has started
+      if (generation !== badgeGeneration) return;
+
       items.forEach(function(item) {
         const effective = getEffectiveFromCache(item.type, item.id);
         const status = effective.rules.length > 0 ? 'accessible' : 'not-accessible';
@@ -402,7 +407,7 @@
     }
 
     if (rule.allow && rule.allow.tokens) {
-      return 'Token: ' + rule.allow.tokens.join(', ');
+      return 'Token: ' + escapeHtml(rule.allow.tokens.join(', '));
     }
 
     return 'Unknown';
@@ -461,7 +466,7 @@
 
     const actions = Object.keys(actionSet);
 
-    if (actions.length === 0) return '';
+    if (actions.length === 0) return [];
 
     // Capitalize: 'read' → 'Read'
     const labels = actions.map(function(a) {
@@ -2015,6 +2020,7 @@
   // We observe DOM changes to detect when folder contents are rendered
 
   let isUpdatingBadges = false;
+  let badgeGeneration = 0;
 
   function init(options) {
     options = options || {};

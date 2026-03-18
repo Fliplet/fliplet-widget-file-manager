@@ -1000,8 +1000,10 @@ function buildBreadcrumbDropdown(name, index, dataType, type, idType, id) {
 
   var showAccessRules = window.FileSecurityRules && currentAppId;
 
+  var safeName = $('<span>').text(name).html();
+
   return '<span class="bread-link breadcrumb-dropdown"' + attrs + '>'
-    + '<a href="#" data-breadcrumb-toggle>' + name + ' <i class="fa fa-caret-down"></i></a>'
+    + '<a href="#" data-breadcrumb-toggle>' + safeName + ' <i class="fa fa-caret-down"></i></a>'
     + '<div class="breadcrumb-menu">'
     + '<ul>'
     + '<li data-breadcrumb-create-folder><i class="fa fa-plus-circle" aria-hidden="true"></i> Create new folder</li>'
@@ -1047,7 +1049,7 @@ function updatePaths() {
         breadcrumbsPath += buildBreadcrumbDropdown(navStack[i].name, i, dataType, type, idType, navStack[i].id);
       } else {
         breadcrumbsPath += '<span class="bread-link"' + dataType + '="' + type + '" ' + idType + '="'
-          + navStack[i].id + '"><a href="#" data-breadcrumb="' + i + '">' + navStack[i].name + '</a></span>';
+          + navStack[i].id + '"><a href="#" data-breadcrumb="' + i + '">' + $('<span>').text(navStack[i].name).html() + '</a></span>';
       }
     }
 
