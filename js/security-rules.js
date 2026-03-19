@@ -1231,7 +1231,7 @@
     editingRuleIndex = (typeof index === 'number') ? index : null;
 
     const $editor = $('#configure-file-rule');
-    const isFolder = currentSecurityTarget && currentSecurityTarget.type === 'folder';
+    const isFolder = currentSecurityTarget && (currentSecurityTarget.type === 'folder' || currentSecurityTarget.type === 'organization');
     const isCustom = rule && typeof rule.script === 'string';
 
     // Reset form
