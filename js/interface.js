@@ -880,8 +880,11 @@ function updateSingleSelectionUI(numberOfActiveRows) {
 
     if (itemType === 'image' && fileURL) {
       var $imgItem = $('.side-actions .item.image');
+      var $img = $imgItem.show().find('img');
 
-      $imgItem.show().find('img').attr('src', fileURL);
+      $img.off('error').on('error', function() {
+        $(this).parent().hide();
+      }).attr('src', fileURL);
     }
 
     var iconClass = itemType === 'folder' ? 'fa-folder-open' : 'fa-file';
@@ -928,7 +931,7 @@ function updateCheckboxStatus() {
     $('.help-tips').removeClass('hidden');
     $('.side-actions .item').removeClass('show');
     // Show folder security card when nothing is selected (only in app context)
-    if (window.FileSecurityRules && currentAppId) {
+    if (window.FileSecurityRules) {
       $('.folder-security-card').addClass('active');
       $('.help-tips').addClass('hidden');
     }
@@ -977,7 +980,7 @@ function toggleAll(el) {
     $('.selected-has-rules-section').hide();
     $('.selected-item-name').hide();
 
-    if (window.FileSecurityRules && currentAppId) {
+    if (window.FileSecurityRules) {
       $('.folder-security-card').addClass('active');
       $('.help-tips').addClass('hidden');
     }
@@ -998,7 +1001,7 @@ function buildBreadcrumbDropdown(name, index, dataType, type, idType, id) {
     attrs = ' ' + dataType + '="' + type + '" ' + idType + '="' + id + '"';
   }
 
-  var showAccessRules = window.FileSecurityRules && currentAppId;
+  var showAccessRules = window.FileSecurityRules;
 
   var safeName = $('<span>').text(name).html();
 
@@ -1294,6 +1297,11 @@ function renderList() {
   $('[data-toggle="tooltip"]').tooltip();
   $selectAllCheckbox.addClass('active');
 
+  // Attach image error handlers (error events don't bubble, so delegation doesn't work)
+  $('.file-name img').off('error').on('error', function() {
+    $(this).hide().next('.file-icon-fallback').show();
+  });
+
   // Update folder security card with current folder context
   if (window.FileSecurityRules) {
     var folderName = navStack.length > 0 ? navStack[navStack.length - 1].name : (currentAppName || 'App Files');
@@ -1515,7 +1523,7 @@ function hideSideActions() {
   $('.side-actions .item').removeClass('show');
   $('.selected-security-section').hide();
 
-  if (window.FileSecurityRules && currentAppId) {
+  if (window.FileSecurityRules) {
     $('.folder-security-card').addClass('active');
     $('.help-tips').addClass('hidden');
   } else {
@@ -1940,15 +1948,6 @@ async function createFolder(event, folderName) {
   }
 }
 
-// Image error handlers (replaces inline onerror for CSP compliance)
-$('.side-actions .item.image').on('error', 'img', function() {
-  $(this).parent().hide();
-});
-
-$('.file-manager-wrapper').on('error', '.file-name img', function() {
-  $(this).hide().next('.file-icon-fallback').show();
-});
-
 // EVENTS //
 // Removes options popup by clicking elsewhere
 $(document).on('click', function(e) {
@@ -2079,7 +2078,7 @@ $('.file-manager-wrapper')
     $('.breadcrumb-menu.active').removeClass('active');
     $('.header-breadcrumbs').removeClass('dropdown-open');
 
-    if (window.FileSecurityRules && currentAppId) {
+    if (window.FileSecurityRules) {
       var folderId = currentFolderId || 'root';
       var folderName = navStack.length > 0 ? navStack[navStack.length - 1].name : (currentAppName || 'App Files');
 

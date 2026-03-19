@@ -224,8 +224,6 @@
 
   // Called after folder contents are rendered to inject security badges
   function updateSecurityBadges() {
-    if (!getAppId()) return;
-
     const generation = ++badgeGeneration;
 
     isUpdatingBadges = true;
@@ -286,14 +284,6 @@
     const $card = $('.folder-security-card');
     const id = String(folderId || 'root');
 
-    // Don't show security card when no app context is available (e.g. org-level view)
-    if (!getAppId()) {
-      $card.removeClass('active');
-      $('.help-tips').removeClass('hidden');
-
-      return;
-    }
-
     $('.help-tips').addClass('hidden');
 
     // Set name and context immediately (before async fetch) to avoid showing stale data
@@ -313,7 +303,7 @@
         let badgesHtml = '';
 
         if (summary && summary.length) {
-          badgesHtml = '<span class="security-action-badge">Users can: ' + summary.join(', ') + '</span>';
+          badgesHtml = '<span class="security-action-badge">Access: ' + summary.join(', ') + '</span>';
         }
 
         $status.html(badgesHtml).show();
@@ -344,12 +334,6 @@
     const $noRulesSection = $('.selected-no-rules-section');
     const $hasRulesSection = $('.selected-has-rules-section');
 
-    if (!getAppId()) {
-      $noRulesSection.hide();
-      $hasRulesSection.hide();
-
-      return;
-    }
     // Store target immediately (before async fetch)
     $('.side-actions .btn-edit-rules')
       .data('target-type', type)
@@ -368,7 +352,7 @@
         let badgesHtml = '';
 
         if (summary && summary.length) {
-          badgesHtml = '<span class="security-action-badge">Users can: ' + summary.join(', ') + '</span>';
+          badgesHtml = '<span class="security-action-badge">Access: ' + summary.join(', ') + '</span>';
         }
 
         $hasRulesSection.find('.selected-security-status').html(badgesHtml);
@@ -459,9 +443,13 @@
 
       enabledCount++;
 
-      (rule.type || []).forEach(function(t) {
-        actionSet[t] = true;
-      });
+      if (typeof rule.script === 'string') {
+        actionSet['custom'] = true;
+      } else {
+        (rule.type || []).forEach(function(t) {
+          actionSet[t] = true;
+        });
+      }
     });
 
     const actions = Object.keys(actionSet);
@@ -470,6 +458,8 @@
 
     // Capitalize: 'read' → 'Read'
     const labels = actions.map(function(a) {
+      if (a === 'custom') return 'Custom rule';
+
       return a.charAt(0).toUpperCase() + a.slice(1);
     });
 
@@ -940,7 +930,11 @@
         inheritedId = effective.inheritedFrom.folderId;
       }
 
-      $section.find('.inherited-from-path').text(inheritedName);
+      const inheritedLabel = effective.inheritedFrom.type === 'app'
+        ? 'Inherited from app: '
+        : 'Inherited from folder: ';
+
+      $section.find('.inherited-from-path').text(inheritedLabel + inheritedName);
 
       // Set up "Edit inherited rules" button with type info
       $section.find('[data-edit-inherited-rules]')
@@ -1202,6 +1196,15 @@
       $createCheckbox.show().find('input').prop('disabled', false);
     } else {
       $createCheckbox.hide().find('input').prop('checked', false).prop('disabled', true);
+    }
+
+    // Data source entry rules are file-only (API rejects them on folders)
+    const $dsButton = $editor.find('[data-allow-type="dataSource"]');
+
+    if (isFolder) {
+      $dsButton.hide();
+    } else {
+      $dsButton.show();
     }
 
     // Load data sources and apps if needed
@@ -1573,29 +1576,6 @@
       hasUnsavedChanges = false;
       updateSaveButton();
 
-      // Invalidate cache for this item so badges refresh from server
-      invalidateCache(target.type, target.id);
-
-      updateSecurityBadges();
-
-      if ($('.folder-security-card').hasClass('active')) {
-        const $card = $('.folder-security-card');
-
-        updateFolderSecurityCard(
-          $card.data('folder-id') || 'root',
-          $card.data('folder-name') || 'App Files'
-        );
-      }
-
-      // Also update selected item security if one is selected
-      const $activeRow = $('.file-row.active');
-
-      if ($activeRow.length === 1 && window.FileSecurityRules) {
-        const selType = $activeRow.data('file-type') === 'folder' ? 'folder' : 'file';
-
-        updateSelectedItemSecurity(selType, $activeRow.data('id'), $activeRow.find('.file-name span').first().text());
-      }
-
       // Re-fetch and re-render the overlay panel to reflect inheritance changes
       fetchAccessRules(target.type, target.id).then(function(response) {
         const own = (response.accessRules || []).slice();
@@ -1618,6 +1598,28 @@
         const $panel = $('#security-panel-overlay .security-panel');
 
         renderPanelPath($panel);
+
+        // Clear client cache and refresh all badges/sidebar AFTER the panel
+        // re-fetch completes, so server-side cache invalidation has propagated
+        clearCache();
+        updateSecurityBadges();
+
+        if ($('.folder-security-card').hasClass('active')) {
+          const $card = $('.folder-security-card');
+
+          updateFolderSecurityCard(
+            $card.data('folder-id') || 'root',
+            $card.data('folder-name') || 'App Files'
+          );
+        }
+
+        const $activeRow = $('.file-row.active');
+
+        if ($activeRow.length === 1 && window.FileSecurityRules) {
+          const selType = $activeRow.data('file-type') === 'folder' ? 'folder' : 'file';
+
+          updateSelectedItemSecurity(selType, $activeRow.data('id'), $activeRow.find('.file-name span').first().text());
+        }
       });
 
       Fliplet.Modal.alert({

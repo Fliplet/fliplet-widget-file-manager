@@ -11,6 +11,7 @@
       "fliplet-studio-ui",
       "jquery-ui",
       "fliplet-utils",
+      "fliplet-datasources",
       "handlebars",
       "bootstrap",
       "animate-css",

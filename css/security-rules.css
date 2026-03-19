@@ -376,7 +376,7 @@
   z-index: 1040;
   opacity: 0;
   transition: opacity 0.5s ease;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .security-panel-overlay.active {
@@ -391,13 +391,14 @@
   position: relative;
   width: 90%;
   max-width: 1250px;
-  margin: 60px auto 5%;
+  margin: 40px auto;
   background-color: #fff;
   box-shadow: 0 0 24px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   z-index: 1041;
   min-height: 600px;
+  max-height: calc(100vh - 80px);
   border-radius: 4px;
 }
 
@@ -665,9 +666,9 @@ a.toggle-status:hover {
 }
 
 .inherited-rules-section h4 {
-  font-size: 13px;
-  font-weight: 600;
-  color: #666;
+  font-size: 14px;
+  font-weight: 700;
+  color: #474974;
   margin: 0 0 12px 0;
   display: flex;
   align-items: center;
