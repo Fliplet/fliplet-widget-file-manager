@@ -1274,6 +1274,16 @@
       $dsButton.show();
     }
 
+    // "Applies to" (app scope) — hide for org rules since org files have no app
+    const isOrganization = currentSecurityTarget && currentSecurityTarget.type === 'organization';
+    const $appScopeSection = $editor.find('.rule-app-scope-section');
+
+    if (isOrganization) {
+      $appScopeSection.hide();
+    } else {
+      $appScopeSection.show();
+    }
+
     // Load data sources and apps if needed
     if (!dataSourcesList.length) {
       loadDataSources();
