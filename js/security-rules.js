@@ -1673,11 +1673,38 @@
 
         if ($('.folder-security-card').hasClass('active')) {
           const $card = $('.folder-security-card');
+          const cardType = $card.data('folder-type');
 
-          updateFolderSecurityCard(
-            $card.data('folder-id') || 'root',
-            $card.data('folder-name') || 'App Files'
-          );
+          if (cardType === 'organization') {
+            // Re-fetch org rules directly
+            const orgId = $card.data('folder-id');
+
+            fetchAccessRules('organization', orgId).then(function() {
+              const effective = getEffectiveFromCache('organization', String(orgId));
+              const $status = $card.find('.folder-security-status');
+              const $callout = $card.find('.folder-no-rules-callout');
+
+              if (effective.rules.length > 0) {
+                const summary = getActionsEnabledSummary(effective.rules);
+                let badgesHtml = '';
+
+                if (summary && summary.length) {
+                  badgesHtml = '<span class="security-action-badge">Access: ' + summary.join(', ') + '</span>';
+                }
+
+                $status.html(badgesHtml).show();
+                $callout.hide();
+              } else {
+                $status.hide();
+                $callout.show();
+              }
+            });
+          } else {
+            updateFolderSecurityCard(
+              $card.data('folder-id') || 'root',
+              $card.data('folder-name') || 'App Files'
+            );
+          }
         }
 
         const $activeRow = $('.file-row.active');
