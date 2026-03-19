@@ -13,10 +13,22 @@
   // -----------------------------------------
 
   let appId = null;
+  let organizationId = null;
   let rulesCache = {}; // Keyed by 'type:id', stores API response
 
   function getAppId() {
     return appId || (typeof currentAppId !== 'undefined' ? currentAppId : Fliplet.Env.get('appId'));
+  }
+
+  function getOrganizationId() {
+    return organizationId || (typeof currentOrganizationId !== 'undefined' ? currentOrganizationId : null);
+  }
+
+  /**
+   * Check if the file manager is currently browsing at org level (no app selected).
+   */
+  function isOrgContext() {
+    return !getAppId() && !!getOrganizationId();
   }
 
   function getCacheKey(type, id) {
@@ -52,7 +64,14 @@
       const currentApp = getAppId();
 
       if (!currentApp) {
-        return Promise.resolve({ accessRules: [], effectiveRules: [], inheritedFrom: null });
+        // At org level — fetch org rules instead of app rules
+        const orgId = getOrganizationId();
+
+        if (!orgId) {
+          return Promise.resolve({ accessRules: [], effectiveRules: [], inheritedFrom: null });
+        }
+
+        return fetchAccessRules('organization', orgId);
       }
     }
 
@@ -288,15 +307,33 @@
 
     $('.help-tips').addClass('hidden');
 
+    // Determine if we're at org level or app level
+    const isOrg = isOrgContext() && id === 'root';
+    const fetchType = isOrg ? 'organization' : 'folder';
+    const fetchId = isOrg ? String(getOrganizationId()) : id;
+
     // Set name and context immediately (before async fetch) to avoid showing stale data
-    const displayName = folderName || (typeof currentAppName !== 'undefined' && currentAppName) || 'App Files';
+    let displayName;
+
+    if (isOrg) {
+      displayName = folderName || 'Organization Files';
+    } else {
+      displayName = folderName || (typeof currentAppName !== 'undefined' && currentAppName) || 'App Files';
+    }
 
     $card.find('.folder-access-name').text(displayName);
-    $card.data('folder-id', id).data('folder-name', displayName);
+    $card.data('folder-id', fetchId).data('folder-name', displayName);
+
+    if (isOrg) {
+      $card.data('folder-type', 'organization');
+    } else {
+      $card.removeData('folder-type');
+    }
+
     $card.addClass('active');
 
-    fetchAccessRules('folder', id).then(function() {
-      const effective = getEffectiveFromCache('folder', id);
+    fetchAccessRules(fetchType, fetchId).then(function() {
+      const effective = getEffectiveFromCache(fetchType, fetchId);
       const $status = $card.find('.folder-security-status');
       const $callout = $card.find('.folder-no-rules-callout');
 
@@ -1672,10 +1709,15 @@
       e.preventDefault();
 
       const $card = $('.folder-security-card');
+      const cardType = $card.data('folder-type');
       const folderId = $card.data('folder-id') || 'root';
       const folderName = $card.data('folder-name') || 'App Files';
 
-      openSecurityPanel('folder', folderId, folderName);
+      if (cardType === 'organization') {
+        openSecurityPanel('organization', folderId, folderName);
+      } else {
+        openSecurityPanel('folder', folderId, folderName);
+      }
     });
 
     // --- Layer 2B: Selected item edit via Actions dropdown ---
@@ -2064,6 +2106,10 @@
 
     if (options.appId) {
       appId = options.appId;
+    }
+
+    if (options.organizationId) {
+      organizationId = options.organizationId;
     }
 
     initEventHandlers();
