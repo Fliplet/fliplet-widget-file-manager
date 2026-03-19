@@ -31,22 +31,32 @@
     rulesCache = {};
   }
 
-  function fetchAccessRules(type, id) {
-    let url;
+  function getAccessRulesUrl(type, id) {
+    if (type === 'organization') {
+      return 'v1/media/organizations/' + id + '/accessRules';
+    }
 
+    if (type === 'folder' && String(id) === 'root') {
+      return 'v1/media/apps/' + getAppId() + '/accessRules';
+    }
+
+    if (type === 'folder') {
+      return 'v1/media/folders/' + id + '/accessRules';
+    }
+
+    return 'v1/media/files/' + id + '/accessRules';
+  }
+
+  function fetchAccessRules(type, id) {
     if (type === 'folder' && String(id) === 'root') {
       const currentApp = getAppId();
 
       if (!currentApp) {
         return Promise.resolve({ accessRules: [], effectiveRules: [], inheritedFrom: null });
       }
-
-      url = 'v1/media/apps/' + currentApp + '/accessRules';
-    } else if (type === 'folder') {
-      url = 'v1/media/folders/' + id + '/accessRules';
-    } else {
-      url = 'v1/media/files/' + id + '/accessRules';
     }
+
+    const url = getAccessRulesUrl(type, id);
 
     return Fliplet.API.request({ url: url }).then(function(response) {
       rulesCache[getCacheKey(type, id)] = response;
@@ -56,15 +66,7 @@
   }
 
   function saveAccessRules(type, id, rules) {
-    let url;
-
-    if (type === 'folder' && String(id) === 'root') {
-      url = 'v1/media/apps/' + getAppId() + '/accessRules';
-    } else if (type === 'folder') {
-      url = 'v1/media/folders/' + id + '/accessRules';
-    } else {
-      url = 'v1/media/files/' + id + '/accessRules';
-    }
+    const url = getAccessRulesUrl(type, id);
 
     return Fliplet.API.request({
       url: url,
@@ -724,10 +726,18 @@
     const $banner = $('#security-panel-inheritance');
     let html = '';
     const isRoot = currentSecurityTarget.type === 'folder' && String(currentSecurityTarget.id) === 'root';
-
+    const isOrg = currentSecurityTarget.type === 'organization';
     const isFile = currentSecurityTarget.type === 'file';
 
-    if (own.length > 0 && !isRoot && !isFile) {
+    if (own.length > 0 && isOrg) {
+      html = '<div class="callout callout-primary">' +
+        '<p>Organization-level access rules. Apps and files without their own rules will inherit these.</p>' +
+        '</div>';
+    } else if (own.length === 0 && isOrg) {
+      html = '<div class="callout callout-warning">' +
+        '<p>No organization-level access rules. Files without app or folder rules will be denied.</p>' +
+        '</div>';
+    } else if (own.length > 0 && !isRoot && !isFile) {
       html = '<div class="callout callout-primary">' +
         '<p>This folder has its own rules. Child items without their own rules will inherit these.</p>' +
         '</div>';
@@ -741,12 +751,17 @@
         '</div>';
     } else if (own.length === 0 && effective.inheritedFrom && effective.rules.length > 0) {
       // Draft preview: user removed all own rules, showing what would be inherited
-      var inheritMsg = effective.inheritedFrom.type === 'org-default'
-        ? 'No own rules. This ' + currentSecurityTarget.type + ' uses default public access (organization-level).'
-        : 'No own rules. This ' + currentSecurityTarget.type + ' will inherit access rules from its parent.';
+      let inheritSource = 'parent';
+
+      if (effective.inheritedFrom.type === 'organization') {
+        inheritSource = 'organization';
+      } else if (effective.inheritedFrom.type === 'app') {
+        inheritSource = 'app';
+      }
 
       html = '<div class="callout callout-primary">' +
-        '<p>' + inheritMsg + '</p>' +
+        '<p>No own rules. This ' + currentSecurityTarget.type +
+          ' will inherit access rules from its ' + inheritSource + '.</p>' +
         '</div>';
     } else if (effective.rules.length === 0) {
       html = '<div class="callout callout-warning">' +
@@ -925,31 +940,36 @@
       let inheritedName;
       let inheritedId;
 
-      if (effective.inheritedFrom.type === 'org-default') {
-        // Org-level files with no app — hardcoded default, not editable
-        $section.find('.inherited-from-path').text('Default: Public access (organization-level file)');
-        $section.find('[data-edit-inherited-rules]').hide();
-      } else {
-        if (effective.inheritedFrom.type === 'app') {
-          inheritedName = effective.inheritedFrom.appName || (typeof currentAppName !== 'undefined' ? currentAppName : 'App Files');
-          inheritedId = 'root';
-        } else {
-          inheritedName = effective.inheritedFrom.folderName || 'Parent folder';
-          inheritedId = effective.inheritedFrom.folderId;
-        }
+      if (effective.inheritedFrom.type === 'organization') {
+        inheritedName = effective.inheritedFrom.organizationName || 'Organization';
+        inheritedId = effective.inheritedFrom.organizationId;
 
-        const inheritedLabel = effective.inheritedFrom.type === 'app'
-          ? 'Inherited from app: '
-          : 'Inherited from folder: ';
-
-        $section.find('.inherited-from-path').text(inheritedLabel + inheritedName);
-
-        // Set up "Edit inherited rules" button with type info
+        $section.find('.inherited-from-path').text('Inherited from organization: ' + inheritedName);
         $section.find('[data-edit-inherited-rules]')
           .show()
           .data('folder-id', inheritedId)
           .data('folder-name', inheritedName)
-          .data('inherited-type', effective.inheritedFrom.type);
+          .data('inherited-type', 'organization');
+      } else if (effective.inheritedFrom.type === 'app') {
+        inheritedName = effective.inheritedFrom.appName || (typeof currentAppName !== 'undefined' ? currentAppName : 'App Files');
+        inheritedId = 'root';
+
+        $section.find('.inherited-from-path').text('Inherited from app: ' + inheritedName);
+        $section.find('[data-edit-inherited-rules]')
+          .show()
+          .data('folder-id', inheritedId)
+          .data('folder-name', inheritedName)
+          .data('inherited-type', 'app');
+      } else {
+        inheritedName = effective.inheritedFrom.folderName || 'Parent folder';
+        inheritedId = effective.inheritedFrom.folderId;
+
+        $section.find('.inherited-from-path').text('Inherited from folder: ' + inheritedName);
+        $section.find('[data-edit-inherited-rules]')
+          .show()
+          .data('folder-id', inheritedId)
+          .data('folder-name', inheritedName)
+          .data('inherited-type', 'folder');
       }
 
       $section.show();
@@ -1996,8 +2016,9 @@
     $(document).on('click.securityRules', '[data-edit-inherited-rules]', function(e) {
       e.preventDefault();
 
-      const folderId = $(this).data('folder-id');
-      const folderName = $(this).data('folder-name') || folderId;
+      const inheritedType = $(this).data('inherited-type');
+      const targetId = $(this).data('folder-id');
+      const targetName = $(this).data('folder-name') || targetId;
 
       // Push current context onto the stack so user can go back
       if (currentSecurityTarget) {
@@ -2008,8 +2029,12 @@
         });
       }
 
-      // For app-level inheritance, use 'root' which maps to app endpoint
-      switchPanelContext('folder', folderId || 'root', folderName);
+      if (inheritedType === 'organization') {
+        switchPanelContext('organization', targetId, targetName);
+      } else {
+        // For app-level inheritance, use 'root' which maps to app endpoint
+        switchPanelContext('folder', targetId || 'root', targetName);
+      }
     });
 
     // --- Back to previous context ---
