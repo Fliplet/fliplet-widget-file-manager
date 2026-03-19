@@ -741,9 +741,12 @@
         '</div>';
     } else if (own.length === 0 && effective.inheritedFrom && effective.rules.length > 0) {
       // Draft preview: user removed all own rules, showing what would be inherited
+      var inheritMsg = effective.inheritedFrom.type === 'org-default'
+        ? 'No own rules. This ' + currentSecurityTarget.type + ' uses default public access (organization-level).'
+        : 'No own rules. This ' + currentSecurityTarget.type + ' will inherit access rules from its parent.';
+
       html = '<div class="callout callout-primary">' +
-        '<p>No own rules. This ' + currentSecurityTarget.type +
-          ' will inherit access rules from its parent.</p>' +
+        '<p>' + inheritMsg + '</p>' +
         '</div>';
     } else if (effective.rules.length === 0) {
       html = '<div class="callout callout-warning">' +
@@ -922,25 +925,32 @@
       let inheritedName;
       let inheritedId;
 
-      if (effective.inheritedFrom.type === 'app') {
-        inheritedName = effective.inheritedFrom.appName || (typeof currentAppName !== 'undefined' ? currentAppName : 'App Files');
-        inheritedId = 'root';
+      if (effective.inheritedFrom.type === 'org-default') {
+        // Org-level files with no app — hardcoded default, not editable
+        $section.find('.inherited-from-path').text('Default: Public access (organization-level file)');
+        $section.find('[data-edit-inherited-rules]').hide();
       } else {
-        inheritedName = effective.inheritedFrom.folderName || 'Parent folder';
-        inheritedId = effective.inheritedFrom.folderId;
+        if (effective.inheritedFrom.type === 'app') {
+          inheritedName = effective.inheritedFrom.appName || (typeof currentAppName !== 'undefined' ? currentAppName : 'App Files');
+          inheritedId = 'root';
+        } else {
+          inheritedName = effective.inheritedFrom.folderName || 'Parent folder';
+          inheritedId = effective.inheritedFrom.folderId;
+        }
+
+        const inheritedLabel = effective.inheritedFrom.type === 'app'
+          ? 'Inherited from app: '
+          : 'Inherited from folder: ';
+
+        $section.find('.inherited-from-path').text(inheritedLabel + inheritedName);
+
+        // Set up "Edit inherited rules" button with type info
+        $section.find('[data-edit-inherited-rules]')
+          .show()
+          .data('folder-id', inheritedId)
+          .data('folder-name', inheritedName)
+          .data('inherited-type', effective.inheritedFrom.type);
       }
-
-      const inheritedLabel = effective.inheritedFrom.type === 'app'
-        ? 'Inherited from app: '
-        : 'Inherited from folder: ';
-
-      $section.find('.inherited-from-path').text(inheritedLabel + inheritedName);
-
-      // Set up "Edit inherited rules" button with type info
-      $section.find('[data-edit-inherited-rules]')
-        .data('folder-id', inheritedId)
-        .data('folder-name', inheritedName)
-        .data('inherited-type', effective.inheritedFrom.type);
 
       $section.show();
     } else {
