@@ -931,7 +931,7 @@ function updateCheckboxStatus() {
     $('.help-tips').removeClass('hidden');
     $('.side-actions .item').removeClass('show');
     // Show folder security card when nothing is selected (only in app context)
-    if (window.FileSecurityRules && currentAppId) {
+    if (window.FileSecurityRules) {
       $('.folder-security-card').addClass('active');
       $('.help-tips').addClass('hidden');
     }
@@ -980,7 +980,7 @@ function toggleAll(el) {
     $('.selected-has-rules-section').hide();
     $('.selected-item-name').hide();
 
-    if (window.FileSecurityRules && currentAppId) {
+    if (window.FileSecurityRules) {
       $('.folder-security-card').addClass('active');
       $('.help-tips').addClass('hidden');
     }
@@ -1001,7 +1001,7 @@ function buildBreadcrumbDropdown(name, index, dataType, type, idType, id) {
     attrs = ' ' + dataType + '="' + type + '" ' + idType + '="' + id + '"';
   }
 
-  var showAccessRules = window.FileSecurityRules && currentAppId;
+  var showAccessRules = window.FileSecurityRules;
 
   var safeName = $('<span>').text(name).html();
 
@@ -1523,7 +1523,7 @@ function hideSideActions() {
   $('.side-actions .item').removeClass('show');
   $('.selected-security-section').hide();
 
-  if (window.FileSecurityRules && currentAppId) {
+  if (window.FileSecurityRules) {
     $('.folder-security-card').addClass('active');
     $('.help-tips').addClass('hidden');
   } else {
@@ -2078,7 +2078,7 @@ $('.file-manager-wrapper')
     $('.breadcrumb-menu.active').removeClass('active');
     $('.header-breadcrumbs').removeClass('dropdown-open');
 
-    if (window.FileSecurityRules && currentAppId) {
+    if (window.FileSecurityRules) {
       var folderId = currentFolderId || 'root';
       var folderName = navStack.length > 0 ? navStack[navStack.length - 1].name : (currentAppName || 'App Files');
 

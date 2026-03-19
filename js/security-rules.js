@@ -224,14 +224,6 @@
 
   // Called after folder contents are rendered to inject security badges
   function updateSecurityBadges() {
-    if (!getAppId()) {
-      $('.file-security-cell').hide();
-
-      return;
-    }
-
-    $('.file-security-cell').show();
-
     const generation = ++badgeGeneration;
 
     isUpdatingBadges = true;
@@ -292,14 +284,6 @@
     const $card = $('.folder-security-card');
     const id = String(folderId || 'root');
 
-    // Don't show security card when no app context is available (e.g. org-level view)
-    if (!getAppId()) {
-      $card.removeClass('active');
-      $('.help-tips').removeClass('hidden');
-
-      return;
-    }
-
     $('.help-tips').addClass('hidden');
 
     // Set name and context immediately (before async fetch) to avoid showing stale data
@@ -350,12 +334,6 @@
     const $noRulesSection = $('.selected-no-rules-section');
     const $hasRulesSection = $('.selected-has-rules-section');
 
-    if (!getAppId()) {
-      $noRulesSection.hide();
-      $hasRulesSection.hide();
-
-      return;
-    }
     // Store target immediately (before async fetch)
     $('.side-actions .btn-edit-rules')
       .data('target-type', type)
