@@ -25,6 +25,7 @@ body {
   display: flex;
   align-items: stretch;
   height: 100%;
+  overflow: hidden;
 }
 
 .file-manager-body .file-manager-leftside {
@@ -38,14 +39,15 @@ body {
 
 .file-manager-body .file-manager-middleholder {
   background-color: #ffffff;
-  min-height: 100%;
+  height: 100%;
   width: calc(100% - 240px);
+  overflow: hidden;
 }
 
 .file-manager-body .file-manager-content {
   display: flex;
   align-items: stretch;
-  min-height: calc(100vh - 85px);
+  height: calc(100vh - 65px);
 }
 
 .file-manager-body .file-manager-filelist {
@@ -56,7 +58,9 @@ body {
   flex-direction: column;
   position: relative;
   background-color: white;
+  height: 100%;
   width: calc(100% - 260px);
+  overflow: auto;
 }
 
 .file-manager-body .file-manager-rightside {
@@ -693,6 +697,8 @@ body {
   display: table-header-group;
   z-index: 1;
   color: #999;
+  top: 0;
+  position: sticky;
 }
 
 .file-table-body {
