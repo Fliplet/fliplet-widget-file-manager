@@ -25,7 +25,11 @@
   }
 
   function isOrgContext() {
-    return !getAppId() && !!getOrganizationId();
+    // Check navigation-level currentAppId directly (not getAppId() which
+    // falls back to Fliplet.Env.get('appId') — the Studio app context)
+    const navAppId = typeof currentAppId !== 'undefined' ? currentAppId : null;
+
+    return !navAppId && !!getOrganizationId();
   }
 
   function getCacheKey(type, id) {
@@ -1199,7 +1203,7 @@
     editingRuleIndex = (typeof index === 'number') ? index : null;
 
     const $editor = $('#configure-file-rule');
-    const isFolder = currentSecurityTarget && currentSecurityTarget.type === 'folder';
+    const isFolder = currentSecurityTarget && (currentSecurityTarget.type === 'folder' || currentSecurityTarget.type === 'organization');
     const isCustom = rule && typeof rule.script === 'string';
 
     // Reset form
