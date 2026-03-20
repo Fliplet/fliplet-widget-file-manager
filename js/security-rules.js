@@ -13,10 +13,19 @@
   // -----------------------------------------
 
   let appId = null;
+  let organizationId = null;
   let rulesCache = {}; // Keyed by 'type:id', stores API response
 
   function getAppId() {
     return appId || (typeof currentAppId !== 'undefined' ? currentAppId : Fliplet.Env.get('appId'));
+  }
+
+  function getOrganizationId() {
+    return organizationId || (typeof currentOrganizationId !== 'undefined' ? currentOrganizationId : null);
+  }
+
+  function isOrgContext() {
+    return !getAppId() && !!getOrganizationId();
   }
 
   function getCacheKey(type, id) {
@@ -34,14 +43,17 @@
   function fetchAccessRules(type, id) {
     let url;
 
-    if (type === 'folder' && String(id) === 'root') {
+    if ((type === 'folder' || type === 'organization') && String(id) === 'root') {
       const currentApp = getAppId();
+      const currentOrg = getOrganizationId();
 
-      if (!currentApp) {
+      if (currentApp) {
+        url = 'v1/media/apps/' + currentApp + '/accessRules';
+      } else if (currentOrg) {
+        url = 'v1/media/organizations/' + currentOrg + '/accessRules';
+      } else {
         return Promise.resolve({ accessRules: [], effectiveRules: [], inheritedFrom: null });
       }
-
-      url = 'v1/media/apps/' + currentApp + '/accessRules';
     } else if (type === 'folder') {
       url = 'v1/media/folders/' + id + '/accessRules';
     } else {
@@ -58,8 +70,15 @@
   function saveAccessRules(type, id, rules) {
     let url;
 
-    if (type === 'folder' && String(id) === 'root') {
-      url = 'v1/media/apps/' + getAppId() + '/accessRules';
+    if ((type === 'folder' || type === 'organization') && String(id) === 'root') {
+      const currentApp = getAppId();
+      const currentOrg = getOrganizationId();
+
+      if (currentApp) {
+        url = 'v1/media/apps/' + currentApp + '/accessRules';
+      } else if (currentOrg) {
+        url = 'v1/media/organizations/' + currentOrg + '/accessRules';
+      }
     } else if (type === 'folder') {
       url = 'v1/media/folders/' + id + '/accessRules';
     } else {
@@ -287,14 +306,16 @@
     $('.help-tips').addClass('hidden');
 
     // Set name and context immediately (before async fetch) to avoid showing stale data
-    const displayName = folderName || (typeof currentAppName !== 'undefined' && currentAppName) || 'App Files';
+    const isOrg = isOrgContext() && String(id) === 'root';
+    const displayName = folderName || (isOrg ? 'Organization Files' : (typeof currentAppName !== 'undefined' && currentAppName) || 'App Files');
+    const fetchType = isOrg ? 'organization' : 'folder';
 
     $card.find('.folder-access-name').text(displayName);
-    $card.data('folder-id', id).data('folder-name', displayName);
+    $card.data('folder-id', id).data('folder-name', displayName).data('folder-type', isOrg ? 'organization' : 'folder');
     $card.addClass('active');
 
-    fetchAccessRules('folder', id).then(function() {
-      const effective = getEffectiveFromCache('folder', id);
+    fetchAccessRules(fetchType, id).then(function() {
+      const effective = getEffectiveFromCache(fetchType, id);
       const $status = $card.find('.folder-security-status');
       const $callout = $card.find('.folder-no-rules-callout');
 
@@ -723,11 +744,19 @@
   function renderInheritanceBanner(own, effective) {
     const $banner = $('#security-panel-inheritance');
     let html = '';
-    const isRoot = currentSecurityTarget.type === 'folder' && String(currentSecurityTarget.id) === 'root';
-
+    const isRoot = (currentSecurityTarget.type === 'folder' || currentSecurityTarget.type === 'organization') && String(currentSecurityTarget.id) === 'root';
+    const isOrg = currentSecurityTarget.type === 'organization';
     const isFile = currentSecurityTarget.type === 'file';
 
-    if (own.length > 0 && !isRoot && !isFile) {
+    if (isOrg && own.length > 0) {
+      html = '<div class="callout callout-primary">' +
+        '<p>Organization-level access rules. Files and folders without their own rules will inherit these.</p>' +
+        '</div>';
+    } else if (isOrg && own.length === 0) {
+      html = '<div class="callout callout-warning">' +
+        '<p>No organization-level rules. Org-level files without their own rules will be denied access.</p>' +
+        '</div>';
+    } else if (own.length > 0 && !isRoot && !isFile) {
       html = '<div class="callout callout-primary">' +
         '<p>This folder has its own rules. Child items without their own rules will inherit these.</p>' +
         '</div>';
@@ -740,15 +769,16 @@
         '<p>This folder has access rules. Child items without their own rules will inherit these.</p>' +
         '</div>';
     } else if (own.length === 0 && effective.inheritedFrom && effective.rules.length > 0) {
-      // Draft preview: user removed all own rules, showing what would be inherited
+      const parentLabel = effective.inheritedFrom.type === 'organization' ? 'organization' : 'parent';
+
       html = '<div class="callout callout-primary">' +
         '<p>No own rules. This ' + currentSecurityTarget.type +
-          ' will inherit access rules from its parent.</p>' +
+          ' will inherit access rules from its ' + parentLabel + '.</p>' +
         '</div>';
     } else if (effective.rules.length === 0) {
       html = '<div class="callout callout-warning">' +
         '<p>No access rules. This ' + currentSecurityTarget.type +
-          ' is not accessible to app users. Add rules below.</p>' +
+          ' is not accessible. Add rules below.</p>' +
         '</div>';
     }
 
@@ -922,7 +952,10 @@
       let inheritedName;
       let inheritedId;
 
-      if (effective.inheritedFrom.type === 'app') {
+      if (effective.inheritedFrom.type === 'organization') {
+        inheritedName = effective.inheritedFrom.organizationName || 'Organization';
+        inheritedId = 'root';
+      } else if (effective.inheritedFrom.type === 'app') {
         inheritedName = effective.inheritedFrom.appName || (typeof currentAppName !== 'undefined' ? currentAppName : 'App Files');
         inheritedId = 'root';
       } else {
@@ -930,9 +963,11 @@
         inheritedId = effective.inheritedFrom.folderId;
       }
 
-      const inheritedLabel = effective.inheritedFrom.type === 'app'
-        ? 'Inherited from app: '
-        : 'Inherited from folder: ';
+      const inheritedLabel = effective.inheritedFrom.type === 'organization'
+        ? 'Inherited from organization: '
+        : effective.inheritedFrom.type === 'app'
+          ? 'Inherited from app: '
+          : 'Inherited from folder: ';
 
       $section.find('.inherited-from-path').text(inheritedLabel + inheritedName);
 
@@ -1205,6 +1240,16 @@
       $dsButton.hide();
     } else {
       $dsButton.show();
+    }
+
+    // Hide "Applies to" (app scope) for org rules — org files have no app association
+    const $appScope = $editor.find('.rule-app-scope-section');
+    const isOrgTarget = currentSecurityTarget && currentSecurityTarget.type === 'organization';
+
+    if (isOrgTarget) {
+      $appScope.hide();
+    } else {
+      $appScope.show();
     }
 
     // Load data sources and apps if needed
@@ -1644,8 +1689,9 @@
       const $card = $('.folder-security-card');
       const folderId = $card.data('folder-id') || 'root';
       const folderName = $card.data('folder-name') || 'App Files';
+      const folderType = $card.data('folder-type') || 'folder';
 
-      openSecurityPanel('folder', folderId, folderName);
+      openSecurityPanel(folderType, folderId, folderName);
     });
 
     // --- Layer 2B: Selected item edit via Actions dropdown ---
@@ -1998,8 +2044,11 @@
         });
       }
 
-      // For app-level inheritance, use 'root' which maps to app endpoint
-      switchPanelContext('folder', folderId || 'root', folderName);
+      // Determine type based on inheritedType data attribute
+      const inheritedType = $(this).data('inherited-type');
+      const panelType = inheritedType === 'organization' ? 'organization' : 'folder';
+
+      switchPanelContext(panelType, folderId || 'root', folderName);
     });
 
     // --- Back to previous context ---
@@ -2029,6 +2078,10 @@
 
     if (options.appId) {
       appId = options.appId;
+    }
+
+    if (options.organizationId) {
+      organizationId = options.organizationId;
     }
 
     initEventHandlers();
