@@ -14,6 +14,8 @@
 
   let appId = null;
   let organizationId = null;
+  let currentAppRoleId = null;   // 1=Publisher, 2=Editor, 3=Viewer, 4=Tester
+  let currentOrgRoleId = null;   // 1=Admin, 2+=Standard
   let rulesCache = {}; // Keyed by 'type:id', stores API response
 
   function getAppId() {
@@ -29,6 +31,19 @@
    */
   function isOrgContext() {
     return !getAppId() && !!getOrganizationId();
+  }
+
+  /**
+   * Check if the current user can edit access rules in the current context.
+   * App context: Publisher (1) or Editor (2). Org context: Admin (1).
+   */
+  function canEditRules() {
+    if (isOrgContext()) {
+      return currentOrgRoleId === 1;
+    }
+
+    // App context: publisher (1) or editor (2)
+    return currentAppRoleId && currentAppRoleId <= 2;
   }
 
   function getCacheKey(type, id) {
@@ -360,6 +375,15 @@
       } else {
         $hint.show();
       }
+
+      // Show/hide edit button based on user role
+      const $rulesBtn = $card.find('.btn-open-folder-rules');
+
+      if (canEditRules()) {
+        $rulesBtn.text('Access rules').show();
+      } else {
+        $rulesBtn.text('View access rules').show();
+      }
     }).catch(function(err) {
       console.warn('[FileSecurityRules] Failed to fetch folder security card rules:', err);
     });
@@ -635,6 +659,22 @@
     }, 10);
 
     $('body').css('overflow', 'hidden');
+
+    // Apply read-only mode for users without edit permission
+    const readOnly = !canEditRules();
+
+    $panel.toggleClass('read-only', readOnly);
+
+    if (readOnly) {
+      $panel.find('.security-rules-toolbar').hide();
+      $panel.find('.security-panel-body').prepend(
+        '<div class="read-only-banner callout callout-warning" style="margin-bottom: 16px;">' +
+        '<p>You don\'t have permission to edit access rules.</p></div>'
+      );
+    } else {
+      $panel.find('.security-rules-toolbar').show();
+      $panel.find('.read-only-banner').remove();
+    }
 
     // Fetch rules from API
     fetchAccessRules(type, currentSecurityTarget.id).then(function(response) {
@@ -1760,9 +1800,14 @@
     }).catch(function(err) {
       console.error('[FileSecurityRules] Failed to save access rules:', err);
 
+      const statusCode = err && err.status;
+      const message = statusCode === 403
+        ? 'You don\'t have permission to modify access rules. Contact a publisher or organization admin.'
+        : 'Failed to save access rules. Please try again.';
+
       Fliplet.Modal.alert({
-        title: 'Error',
-        message: 'Failed to save access rules. Please try again.'
+        title: statusCode === 403 ? 'Permission denied' : 'Error',
+        message: message
       });
     });
   }
@@ -2176,6 +2221,14 @@
       organizationId = options.organizationId;
     }
 
+    if (options.appRoleId !== undefined) {
+      currentAppRoleId = options.appRoleId;
+    }
+
+    if (options.orgRoleId !== undefined) {
+      currentOrgRoleId = options.orgRoleId;
+    }
+
     initEventHandlers();
 
     // Observe file table body for changes to inject security badges
@@ -2216,7 +2269,12 @@
     openSecurityPanel: openSecurityPanel,
     closeSecurityPanel: closeSecurityPanel,
     getSecurityStatus: getSecurityStatus,
-    getSecurityBadgeHTML: getSecurityBadgeHTML
+    getSecurityBadgeHTML: getSecurityBadgeHTML,
+    canEditRules: canEditRules,
+    setRoles: function(appRoleId, orgRoleId) {
+      currentAppRoleId = appRoleId;
+      currentOrgRoleId = orgRoleId;
+    }
   };
 
   // Auto-init when DOM is ready

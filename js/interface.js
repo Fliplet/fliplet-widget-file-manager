@@ -28,6 +28,7 @@ var appList;
 // eslint-disable-next-line no-undef
 var appIcons = new Map();
 var currentOrganizationId;
+var currentOrgRoleId;
 let currentOrganizationNavItem;
 var currentFolderId;
 var currentAppId;
@@ -79,6 +80,7 @@ function getOrganizationsList() {
   showSpinner(true);
 
   Fliplet.Organizations.getCurrentOrganization().then(function(organization) {
+    currentOrgRoleId = organization.organizationUser && organization.organizationUser.organizationRoleId;
     addOrganizations(organization);
     getAppsList();
     $selectAllCheckbox.addClass('active');
@@ -682,6 +684,14 @@ function getFolderContents(el, isRootFolder) {
     currentAppName = el.find('.list-text-holder span').text() || 'App Files';
     currentFolderId = null;
 
+    // Update security rules role for this app context
+    if (window.FileSecurityRules && appList) {
+      var currentApp = appList.find(function(a) { return String(a.id) === String(currentAppId); });
+      var appRoleId = currentApp && currentApp.appUser && currentApp.appUser.appRoleId;
+
+      window.FileSecurityRules.setRoles(appRoleId, currentOrgRoleId);
+    }
+
     // Filter functions
     filterFiles = function(file) {
       return !file.mediaFolderId;
@@ -695,6 +705,11 @@ function getFolderContents(el, isRootFolder) {
     currentAppId = null;
     currentAppName = null;
     currentFolderId = null;
+
+    // Update security rules role for org context
+    if (window.FileSecurityRules) {
+      window.FileSecurityRules.setRoles(null, currentOrgRoleId);
+    }
 
     // Filter functions
     filterFiles = function(file) {
