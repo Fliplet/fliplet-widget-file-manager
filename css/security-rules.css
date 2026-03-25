@@ -913,6 +913,17 @@ a.toggle-status:hover {
   white-space: nowrap;
 }
 
+/* Read-only mode — hide edit controls for users without permission */
+.security-panel.read-only .security-rules-toolbar,
+.security-panel.read-only .handle-sort,
+.security-panel.read-only .toggle-status,
+.security-panel.read-only [data-edit-rule],
+.security-panel.read-only [data-delete-rule],
+.security-panel.read-only [data-toggle-rule],
+.security-panel.read-only .inherited-edit-link {
+  display: none !important;
+}
+
 /* Editor footer */
 .rule-editor-footer {
   display: flex;
