@@ -924,6 +924,10 @@ a.toggle-status:hover {
   display: none !important;
 }
 
+.read-only-banner {
+  margin-bottom: 16px;
+}
+
 /* Editor footer */
 .rule-editor-footer {
   display: flex;
