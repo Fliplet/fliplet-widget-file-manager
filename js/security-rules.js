@@ -665,15 +665,16 @@
 
     $panel.toggleClass('read-only', readOnly);
 
+    $panel.find('.read-only-banner').remove();
+
     if (readOnly) {
       $panel.find('.security-rules-toolbar').hide();
       $panel.find('.security-panel-body').prepend(
-        '<div class="read-only-banner callout callout-warning" style="margin-bottom: 16px;">' +
+        '<div class="read-only-banner callout callout-warning">' +
         '<p>You don\'t have permission to edit access rules.</p></div>'
       );
     } else {
       $panel.find('.security-rules-toolbar').show();
-      $panel.find('.read-only-banner').remove();
     }
 
     // Fetch rules from API
