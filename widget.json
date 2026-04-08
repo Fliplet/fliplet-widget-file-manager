@@ -9,18 +9,23 @@
     "dependencies": [
       "fliplet-media",
       "fliplet-studio-ui",
+      "jquery-ui",
       "fliplet-utils",
+      "fliplet-datasources",
       "handlebars",
       "bootstrap",
       "animate-css",
-      "moment"
+      "moment",
+      "codemirror"
     ],
     "assets": [
       "vendor/tether.min.js",
       "vendor/paginationjs/pagination.css",
       "vendor/paginationjs/pagination.min.js",
       "js/interface.js",
-      "css/interface.css"
+      "js/security-rules.js",
+      "css/interface.css",
+      "css/security-rules.css"
     ]
   },
   "build": {

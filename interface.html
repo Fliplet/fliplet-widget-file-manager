@@ -120,6 +120,9 @@
                   File size
                 </div>
               </div>
+              <div class="file-cell file-security-cell">
+                Access
+              </div>
               <div class="file-cell search-result-cell file-path-cell">
                 Path
               </div>
@@ -163,32 +166,58 @@
           </div>
         </div>
         <div class="file-manager-rightside">
-          <div class="help-tips">
+          <!-- Folder Security Card (shown when no items selected) -->
+          <div class="folder-security-card">
+            <h4><i class="fa fa-folder-open"></i> <span class="folder-access-name"></span></h4>
+            <div class="folder-security-status">
+              <!-- Populated by security-rules.js -->
+            </div>
+            <div class="folder-no-rules-callout callout callout-warning" style="display: none;">
+              <p>No access rules. Contents of this folder won't be accessible to app users unless they have their own rules.</p>
+            </div>
+            <div class="folder-security-open-action">
+              <button class="btn btn-default btn-sm btn-open-folder-rules">Access rules</button>
+            </div>
+          </div>
+
+          <!-- "Did you know?" (original, hidden when security card is shown) -->
+          <div class="help-tips hidden">
             <h2>Did you know?</h2>
             <p>All users from an organization can access <strong>Organization</strong> folders and edit its content.</p>
             <p>You can make files only accessible to specific apps. Use the menu on the left to browse app specific files.</p>
           </div>
+
+          <!-- Side actions (shown when items are selected) -->
           <div class="side-actions">
             <div class="shared-info">
               <div class="item multiple">
                 <i class="fa fa-files-o"></i>
               </div>
-              <div class="item file">
-                <i class="fa fa-file"></i>
-              </div>
-              <div class="item folder">
-                <i class="fa fa-folder-open"></i>
-              </div>
-              <div class="item image">
+              <div class="item image" style="display:none;">
                 <img />
               </div>
-              <p>You have selected <span class="items-selected"></span></p>
+              <p class="selected-item-name" style="display: none;"></p>
+              <p class="selected-count-text">You have selected <span class="items-selected"></span></p>
             </div>
+            <!-- No access rules alert (shown between file info and Action button) -->
+            <div class="selected-no-rules-section" style="display: none;">
+              <div class="callout callout-warning">
+                <p>No access rules. This item won't be accessible to app users.</p>
+              </div>
+            </div>
+
+            <!-- Has rules summary (shown between file info and Action button) -->
+            <div class="selected-has-rules-section" style="display: none;">
+              <div class="selected-security-status">
+                <!-- Populated by security-rules.js -->
+              </div>
+            </div>
+
             <div class="item-actions">
               <div class="single-item">
                 <div class="btn-group">
                   <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Action <span class="caret"></span>
+                    Actions <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu">
                     <li>
@@ -203,6 +232,9 @@
                     <li>
                       <a href="#" restore-action>Restore</a>
                     </li>
+                    <li>
+                      <a href="#" class="btn-edit-rules">Access rules</a>
+                    </li>
                     <li role="separator" class="divider"></li>
                     <li>
                       <a href="#" class="text-danger" delete-action>Move to trash</a>
@@ -214,7 +246,7 @@
               <div class="multiple-item">
                 <div class="btn-group">
                   <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Action <span class="caret"></span>
+                    Actions <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu">
                     <li>
@@ -232,6 +264,7 @@
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>
@@ -288,6 +321,9 @@
         <span>\{{#if metadata.size}} \{{formatBytes metadata.size}} \{{else}} - \{{/if}}</span>
       </div>
     </div>
+    <div class="file-cell file-security-cell">
+      <!-- Populated by security-rules.js -->
+    </div>
     <div class="file-cell search-result-cell file-path-cell">
       <span>
         <a href="javascript:;" class="path-link" data-folder data-id="\{{id}}" data-parent-id="\{{parentItemId}}" data-type="\{{parentItemType}}" title="\{{relativePath}}">\{{relativePath}}</a>
@@ -316,7 +352,7 @@
     </div>
     <div class="file-cell file-name-cell">
       <div class="file-name" data-open-file>
-        \{{#if thumbnail}}<img loading="lazy" src="\{{thumbnail}}" />\{{/if}}
+        \{{#if thumbnail}}<img loading="lazy" src="\{{thumbnail}}" /><i class="fa fa-file file-icon-fallback" style="display:none; margin-right:5px;"></i>\{{/if}}
         <span>\{{name}}</span>
         \{{#ifCond metadata.av.status '===' 'infected'}}
           <i class="fa fa-bug" data-toggle="tooltip" data-placement="top" title="Virus detected"></i>
@@ -344,6 +380,9 @@
       <div class="file-size">
         <span>\{{#if metadata.size}} \{{formatBytes metadata.size}} \{{else}} - \{{/if}}</span>
       </div>
+    </div>
+    <div class="file-cell file-security-cell">
+      <!-- Populated by security-rules.js -->
     </div>
     <div class="file-cell search-result-cell file-path-cell">
       <span>
@@ -400,3 +439,306 @@
     </div>
   </div>
 </template>
+
+<!-- ============================================
+     ACCESS RULES: Slide-out Panel (Layer 3)
+     ============================================ -->
+<div class="security-panel-overlay" id="security-panel-overlay">
+  <div class="security-panel">
+    <div class="security-panel-header">
+      <div class="security-panel-header-text">
+        <h3>Access Rules <a href="https://developers.fliplet.com/Data-source-security.html" class="panel-help-link" target="_blank"><i class="fa fa-question-circle-o"></i></a></h3>
+      </div>
+      <button class="security-panel-close" id="security-panel-close">&times;</button>
+    </div>
+    <div class="security-panel-body">
+      <!-- Context navigation (for editing inherited rules) -->
+      <div class="panel-context-back" style="display: none; margin-bottom: 16px;">
+        <a href="#" data-back-to-context style="font-size: 13px; color: #999; text-decoration: none;">
+          <i class="fa fa-arrow-left"></i> <span class="back-to-context-label">Back</span>
+        </a>
+      </div>
+
+      <!-- ===== STATE: RULES LIST ===== -->
+      <div class="panel-state panel-state-list">
+        <!-- Rules toolbar -->
+        <div class="security-rules-toolbar">
+            <div class="dropdown">
+              <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Add new rule <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                <li><a href="#" data-add-security-rule>Create my own rule</a></li>
+                <li role="separator" class="divider"></li>
+                <li class="dropdown-header">Advanced</li>
+                <li><a href="#" data-add-custom-rule>Create a custom rule using JavaScript</a></li>
+                <li role="separator" class="divider"></li>
+                <li class="dropdown-header">Pre-configured rules</li>
+                <li><a href="#" data-preconfigured-rule="0">All users can read</a></li>
+                <li><a href="#" data-preconfigured-rule="1">All users can upload</a></li>
+                <li><a href="#" data-preconfigured-rule="2">Logged in users can upload</a></li>
+                <li><a href="#" data-preconfigured-rule="3">Logged in users can read</a></li>
+                <li><a href="#" data-preconfigured-rule="4">Logged in users can read, update and delete</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a href="#" data-preconfigured-rule="5">Deny access</a></li>
+              </ul>
+            </div>
+            <a href="#" class="btn btn-secondary btn-save-rules">Save &amp; Apply</a>
+          </div>
+
+          <!-- Inheritance banner -->
+          <div class="security-panel-inheritance" id="security-panel-inheritance"></div>
+
+          <!-- Rules table (matches DS widget table-hover pattern) -->
+          <div class="security-rules-table" id="security-rules-list">
+            <table class="table-hover">
+              <thead>
+                <tr>
+                  <th class="status-header">Status</th>
+                  <th>Allow</th>
+                  <th>Users can</th>
+                  <th>Applies to</th>
+                  <th>If not matched</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="security-rules-tbody"></tbody>
+            </table>
+            <div class="security-rules-empty" style="display: none;">
+              <i class="fa fa-lock"></i>
+              <p>No rules defined. Add a rule to control access.</p>
+            </div>
+          </div>
+
+          <!-- Inherited rules (read-only) -->
+          <div class="inherited-rules-section" id="security-inherited-rules" style="display: none;">
+            <h4>
+              <span class="inherited-from-path"></span> <a href="#" class="inherited-edit-link" data-edit-inherited-rules>Edit inherited rules</a>
+            </h4>
+            <table class="table-hover">
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Allow</th>
+                  <th>Actions</th>
+                  <th>Applies to</th>
+                  <th>If not matched</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+      </div>
+
+      <!-- ===== STATE: RULE EDITOR (inline, matches DS #configure-rule pattern) ===== -->
+      <div class="panel-state panel-state-editor" id="configure-file-rule">
+        <div class="rule-editor-header">
+          <a href="#" data-back-to-list><i class="fa fa-arrow-left"></i> Back to rules</a>
+          <h4 class="rule-editor-title">Add new access rule</h4>
+        </div>
+
+        <!-- Standard rule form -->
+        <div data-rule-standard>
+        <form class="rule-editor-form" onsubmit="return false;">
+          <!-- ALLOW -->
+          <div class="row">
+            <div class="col-md-4">
+              <h5>Allow</h5>
+              <p>Specify users affected by this rule.</p>
+            </div>
+            <div class="col-md-8 side vertical">
+              <div class="row">
+                <button data-allow-type="all" type="button" class="btn btn-default selected"><i class="fa fa-globe fa-fw"></i> All users</button>
+                <button data-allow-type="loggedIn" type="button" class="btn btn-default"><i class="fa fa-lock fa-fw"></i> Logged in users</button>
+                <button data-allow-type="filter" type="button" class="btn btn-default"><i class="fa fa-filter fa-fw"></i> Specific users</button>
+                <button data-allow-type="dataSource" type="button" class="btn btn-default"><i class="fa fa-database fa-fw"></i> Data Source Entries</button>
+                <button data-allow-type="tokens" type="button" class="btn btn-default">Specific token</button>
+              </div>
+
+              <!-- User criteria filters -->
+              <div class="users-filter user-filters-wrapper hidden">
+                <div class="required-fields security-user-filters"></div>
+                <button type="button" class="btn btn-default" data-add-user-condition><i class="fa fa-plus fa-fw"></i> Add condition</button>
+              </div>
+
+              <!-- Data source entry matching -->
+              <div class="users-filter ds-matching-wrapper hidden">
+                <span class="help-block">Grant access when a data source entry references this file in the selected column, optionally filtered by the conditions below.</span>
+                <div class="form-group">
+                  <label>Data source</label>
+                  <label class="select-proxy-display">
+                    <select class="hidden-select form-control" name="ds-id">
+                      <option value="">-- Select data source</option>
+                    </select>
+                    <span class="icon fa fa-chevron-down"></span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label>File column</label>
+                  <label class="select-proxy-display">
+                    <select class="hidden-select form-control" name="ds-file-column" disabled>
+                      <option value="">-- Select column</option>
+                    </select>
+                    <span class="icon fa fa-chevron-down"></span>
+                  </label>
+                  <span class="help-block">Select a data source first to see available columns</span>
+                </div>
+                <div class="form-group">
+                  <label>Conditions</label>
+                  <div class="required-fields ds-where-filters"></div>
+                  <button type="button" class="btn btn-default" data-add-ds-condition><i class="fa fa-plus fa-fw"></i> Add condition</button>
+                </div>
+              </div>
+
+              <!-- Specific token -->
+              <div class="users-filter tokens-wrapper hidden">
+                <div class="form-group">
+                  <label>Select your API Token</label>
+                  <label class="select-proxy-display">
+                    <select class="hidden-select form-control" name="token-id">
+                      <option value="">-- Select API Token</option>
+                    </select>
+                    <span class="icon fa fa-chevron-down"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr />
+
+          <!-- USERS CAN -->
+          <div class="row">
+            <div class="col-md-4">
+              <h5>Users can</h5>
+              <p>Select operations the specified users can perform.</p>
+            </div>
+            <div class="col-md-8 side">
+              <div class="checkbox checkbox-icon action-checkbox-create">
+                <input name="type" type="checkbox" id="chk-file-create" value="create">
+                <label for="chk-file-create">
+                  <span class="check"><i class="fa fa-check"></i></span> Create / Upload
+                </label>
+              </div>
+              <div class="checkbox checkbox-icon">
+                <input name="type" type="checkbox" id="chk-file-read" value="read">
+                <label for="chk-file-read">
+                  <span class="check"><i class="fa fa-check"></i></span> Read
+                </label>
+              </div>
+              <div class="checkbox checkbox-icon">
+                <input name="type" type="checkbox" id="chk-file-update" value="update">
+                <label for="chk-file-update">
+                  <span class="check"><i class="fa fa-check"></i></span> Update
+                </label>
+              </div>
+              <div class="checkbox checkbox-icon">
+                <input name="type" type="checkbox" id="chk-file-delete" value="delete">
+                <label for="chk-file-delete">
+                  <span class="check"><i class="fa fa-check"></i></span> Delete
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <hr />
+
+          <!-- APPLIES TO -->
+          <div class="row rule-app-scope-section">
+            <div class="col-md-4">
+              <h5>Applies to</h5>
+              <p>Select apps affected by this rule.</p>
+            </div>
+            <div class="col-md-8 side vertical">
+              <div>
+                <button data-app-scope="all" type="button" class="btn btn-default selected">All apps</button>
+                <button data-app-scope="filter" type="button" class="btn btn-default"><i class="fa fa-filter fa-fw"></i> Specific apps</button>
+              </div>
+              <div class="apps-list apps-list-wrapper hidden">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+          <hr class="rule-app-scope-section" />
+
+          <!-- STOP CONTROL -->
+          <div class="row rule-stop-section">
+            <div class="col-md-4">
+              <h5>When this rule does not grant access</h5>
+              <p>Control whether evaluation continues to the next rule.</p>
+            </div>
+            <div class="col-md-8 side vertical">
+              <div class="radio radio-icon">
+                <input type="radio" id="rule-stop-continue" name="rule-stop" value="false" checked />
+                <label for="rule-stop-continue">
+                  <span class="check"><i class="fa fa-circle"></i></span> <strong>Continue</strong> — Evaluate the next rule in the list <em>(default)</em>
+                </label>
+              </div>
+              <div class="radio radio-icon">
+                <input type="radio" id="rule-stop-stop" name="rule-stop" value="true" />
+                <label for="rule-stop-stop">
+                  <span class="check"><i class="fa fa-circle"></i></span> <strong>Stop</strong> — Deny access immediately, skip remaining rules
+                </label>
+              </div>
+            </div>
+          </div>
+        </form>
+        </div>
+
+        <!-- Custom rule form (JavaScript) -->
+        <div data-rule-custom class="hidden">
+          <div class="row">
+            <div class="col-md-4">
+              <h5>Security rule name</h5>
+              <p>Use a name to describe the security rule.</p>
+            </div>
+            <div class="col-md-8 side vertical">
+              <input type="text" class="form-control" maxlength="128" name="custom-rule-name" placeholder="Name of your rule" />
+            </div>
+          </div>
+          <hr />
+          <div class="row">
+            <div class="col-md-4">
+              <h5>Custom definition</h5>
+              <p>Write your custom rule using JavaScript. See <a href="https://developers.fliplet.com/Data-source-security.html#custom-security-rules" target="_blank">documentation</a> to learn more.</p>
+            </div>
+            <div class="col-md-8 side vertical">
+              <div style="width:100%">
+                <textarea id="custom-file-rule"></textarea>
+              </div>
+            </div>
+          </div>
+          <hr />
+          <!-- STOP CONTROL (custom rules) -->
+          <div class="row rule-stop-section">
+            <div class="col-md-4">
+              <h5>When this rule does not grant access</h5>
+              <p>Control whether evaluation continues to the next rule.</p>
+            </div>
+            <div class="col-md-8 side vertical">
+              <div class="radio radio-icon">
+                <input type="radio" id="custom-rule-stop-continue" name="custom-rule-stop" value="false" checked />
+                <label for="custom-rule-stop-continue">
+                  <span class="check"><i class="fa fa-circle"></i></span> <strong>Continue</strong> — Evaluate the next rule in the list <em>(default)</em>
+                </label>
+              </div>
+              <div class="radio radio-icon">
+                <input type="radio" id="custom-rule-stop-stop" name="custom-rule-stop" value="true" />
+                <label for="custom-rule-stop-stop">
+                  <span class="check"><i class="fa fa-circle"></i></span> <strong>Stop</strong> — Deny access immediately, skip remaining rules
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editor footer -->
+        <div class="rule-editor-footer">
+          <button type="button" class="btn btn-primary" data-save-security-rule>Add rule</button>
+          <button type="button" class="btn btn-default" data-cancel-rule>Cancel</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
