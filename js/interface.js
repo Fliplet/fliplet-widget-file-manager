@@ -840,6 +840,9 @@ function addFolder(folder, isTrash) {
 
 // Adds file item template
 function addFile(file, isTrash) {
+  // Always use the API content endpoint so security rules are enforced when the link is shared
+  file.url = Fliplet.Env.get('apiUrl') + 'v1/media/files/' + file.id + '/contents/' + encodeURIComponent(file.name);
+
   if (isTrash) {
     var fileParent = file.parents[0];
 
@@ -1147,10 +1150,10 @@ function getFoldersData(options, filterFiles, filterFolders) {
       var mediaFiles = response.files.filter(filterFiles);
       var mediaFolders = response.folders.filter(filterFolders);
 
+      mediaFiles.forEach(parseThumbnail);
+
       Fliplet.Utils.forEach(mediaFolders, function(item) { addFolder(item, false); });
       Fliplet.Utils.forEach(mediaFiles, function(item) { addFile(item, false); });
-
-      mediaFiles.forEach(parseThumbnail);
 
       $('.file-date-cell').show();
       $('.file-deleted-cell').hide();
@@ -1185,10 +1188,10 @@ function getTrashFilesData(filterFiles, filterFolders) {
       var mediaFiles = result.files.filter(filterFiles);
       var mediaFolders = result.folders.filter(filterFolders);
 
+      mediaFiles.forEach(parseThumbnail);
+
       Fliplet.Utils.forEach(mediaFolders, function(item) { addFolder(item, true); });
       Fliplet.Utils.forEach(mediaFiles, function(item) { addFile(item, true); });
-
-      mediaFiles.forEach(parseThumbnail);
 
       $('.file-deleted-cell').removeClass('hidden');
       $('.file-date-cell').hide();
