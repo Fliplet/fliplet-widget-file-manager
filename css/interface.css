@@ -1,7 +1,12 @@
 /* For Safari to hide scrollbar */
 html {
-  overflow: scroll;
+  overflow: hidden;
   height: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0;
 }
 
 ::-webkit-scrollbar {
@@ -12,14 +17,15 @@ html {
 /* FILE MANAGER */
 
 .file-manager-wrapper {
-  background-color: #FFF;
+  background-color: #fff;
   height: 100%;
 }
 
 .file-manager-body {
   display: flex;
   align-items: stretch;
-  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .file-manager-body .file-manager-leftside {
@@ -33,14 +39,15 @@ html {
 
 .file-manager-body .file-manager-middleholder {
   background-color: #ffffff;
-  min-height: 100%;
+  height: 100%;
   width: calc(100% - 240px);
+  overflow: hidden;
 }
 
 .file-manager-body .file-manager-content {
   display: flex;
   align-items: stretch;
-  min-height: calc(100vh - 85px);
+  height: calc(100vh - 65px);
 }
 
 .file-manager-body .file-manager-filelist {
@@ -51,7 +58,9 @@ html {
   flex-direction: column;
   position: relative;
   background-color: white;
+  height: 100%;
   width: calc(100% - 260px);
+  overflow: auto;
 }
 
 .file-manager-body .file-manager-rightside {
@@ -114,6 +123,68 @@ html {
 
 .bread-link:last-child {
   pointer-events: none;
+}
+
+.bread-link.breadcrumb-dropdown:last-child {
+  pointer-events: auto;
+  direction: ltr;
+  unicode-bidi: embed;
+}
+
+.header-breadcrumbs.dropdown-open,
+.header-breadcrumbs.dropdown-open .current-folder-title {
+  overflow: visible;
+}
+
+.breadcrumb-dropdown {
+  position: relative;
+}
+
+.breadcrumb-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 220px;
+  background-color: #fff;
+  padding: 15px 0;
+  box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.3);
+  z-index: 4;
+  direction: ltr;
+}
+
+.breadcrumb-menu.active {
+  display: block;
+}
+
+.breadcrumb-menu ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.breadcrumb-menu ul li {
+  margin: 0;
+  padding: 5px 15px;
+  list-style: none;
+  border-left: 4px solid transparent;
+  cursor: pointer;
+  line-height: normal;
+}
+
+.breadcrumb-menu ul li:hover {
+  background-color: #f2f6f7;
+  border-left-color: #00abd2;
+}
+
+.breadcrumb-menu hr {
+  margin: 10px 15px;
+  border-top-color: #e4e9eb;
+}
+
+.breadcrumb-dropdown > a .fa-caret-down {
+  margin-left: 2px;
+  font-size: 12px;
 }
 
 .bread-link:last-child:after {
@@ -189,7 +260,7 @@ html {
   top: 60px;
   right: 10px;
   width: 220px;
-  background-color: #FFF;
+  background-color: #fff;
   padding: 15px 0;
   -webkit-box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.3);
   -moz-box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.3);
@@ -310,12 +381,12 @@ html {
 
 .dropdown-menu-holder .panel-group {
   margin: 0 -15px;
-  max-height: calc(90vh - 140px);
+  max-height: calc(100vh - 198px);
   overflow-y: auto;
 }
 
 .dropdown-menu-holder .panel-group.is-organization {
-  max-height: calc(90vh + 10px);
+  max-height: calc(100vh - 70px);
 }
 
 .dropdown-menu-holder .panel-group .panel {
@@ -523,13 +594,13 @@ html {
   width: 100%;
   height: 10px;
   border-radius: 10px;
-  background-color: #E4E9EB;
+  background-color: #e4e9eb;
   box-shadow: none;
   margin-bottom: 0;
 }
 
 .storage-progress-holder .progress .progress-bar {
-  background-color: #00ABD1;
+  background-color: #00abd1;
   box-shadow: none;
 }
 
@@ -626,6 +697,8 @@ html {
   display: table-header-group;
   z-index: 1;
   color: #999;
+  top: 0;
+  position: sticky;
 }
 
 .file-table-body {
@@ -841,7 +914,7 @@ html {
 .file-options-menu {
   display: none;
   position: absolute;
-  background-color: #FFF;
+  background-color: #fff;
   padding: 15px 0;
   -webkit-box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.3);
   -moz-box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.3);
@@ -899,7 +972,7 @@ html {
 
 #folder-contents li {
   width: 150px;
-  background-color: #EEE;
+  background-color: #eee;
   margin: 0 20px 20px 0;
   padding: 20px;
 }
@@ -974,7 +1047,7 @@ html {
 .drop-area {
   height: auto;
   width: auto;
-  background-color: rgba(174, 199, 218, .2) !important;
+  background-color: rgba(174, 199, 218, 0.2) !important;
 }
 
 .drop-area.highlight {
