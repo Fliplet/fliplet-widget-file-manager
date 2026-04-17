@@ -107,27 +107,6 @@ function parseThumbnail(file) {
   file.thumbnail = Fliplet.Media.authenticate(file.url.replace(Fliplet.Env.get('apiUrl'), Fliplet.Env.get('apiCdnUrl')));
 }
 
-// Builds an authenticated /v1/media/files/:id/contents/:name URL so that
-// mediaAccessControl.enforceFileAccess('read') runs on shared links. When the
-// backend returns an API URL we derive the host from it so the file's own region
-// is preserved (critical for users with orgs across EU/US/CA); otherwise we fall
-// back to the session's apiUrl.
-function buildFileContentUrl(file) {
-  var host = Fliplet.Env.get('apiUrl');
-
-  if (file.url && file.url.indexOf('/v1/media/files/') !== -1) {
-    try {
-      host = new URL(file.url).origin + '/';
-    } catch (err) {
-      // Fall back to session apiUrl
-    }
-  }
-
-  return Fliplet.Media.authenticate(
-    host + 'v1/media/files/' + file.id + '/contents/' + encodeURIComponent(file.name)
-  );
-}
-
 function navigateToRootFolder(options) {
   var $itemFolder = options.appId
     ? $('[data-app-id="' + options.appId + '"][data-browse-folder]')
@@ -861,11 +840,6 @@ function addFolder(folder, isTrash) {
 
 // Adds file item template
 function addFile(file, isTrash) {
-  // Use the API /contents endpoint so security rules are enforced when the link is
-  // shared. buildFileContentUrl preserves the file's own region, which matters for
-  // users with orgs across EU/US/CA.
-  file.url = buildFileContentUrl(file);
-
   if (isTrash) {
     var fileParent = file.parents[0];
 
@@ -1173,10 +1147,10 @@ function getFoldersData(options, filterFiles, filterFolders) {
       var mediaFiles = response.files.filter(filterFiles);
       var mediaFolders = response.folders.filter(filterFolders);
 
-      mediaFiles.forEach(parseThumbnail);
-
       Fliplet.Utils.forEach(mediaFolders, function(item) { addFolder(item, false); });
       Fliplet.Utils.forEach(mediaFiles, function(item) { addFile(item, false); });
+
+      mediaFiles.forEach(parseThumbnail);
 
       $('.file-date-cell').show();
       $('.file-deleted-cell').hide();
@@ -1211,10 +1185,10 @@ function getTrashFilesData(filterFiles, filterFolders) {
       var mediaFiles = result.files.filter(filterFiles);
       var mediaFolders = result.folders.filter(filterFolders);
 
-      mediaFiles.forEach(parseThumbnail);
-
       Fliplet.Utils.forEach(mediaFolders, function(item) { addFolder(item, true); });
       Fliplet.Utils.forEach(mediaFiles, function(item) { addFile(item, true); });
+
+      mediaFiles.forEach(parseThumbnail);
 
       $('.file-deleted-cell').removeClass('hidden');
       $('.file-date-cell').hide();
