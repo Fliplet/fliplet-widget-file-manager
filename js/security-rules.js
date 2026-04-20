@@ -1333,15 +1333,6 @@
       $createCheckbox.hide().find('input').prop('checked', false).prop('disabled', true);
     }
 
-    // Data source entry rules are file-only (API rejects them on folders)
-    const $dsButton = $editor.find('[data-allow-type="dataSource"]');
-
-    if (isFolder) {
-      $dsButton.hide();
-    } else {
-      $dsButton.show();
-    }
-
     // "Applies to" (app scope) — hide for org rules since org files have no app
     const isOrganization = currentSecurityTarget && currentSecurityTarget.type === 'organization';
     const $appScopeSection = $editor.find('.rule-app-scope-section');
