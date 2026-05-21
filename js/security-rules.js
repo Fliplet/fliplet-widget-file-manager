@@ -646,7 +646,7 @@
 
     // Show panel immediately with loading state
     $panel.find('.panel-context-back').hide();
-    $panel.find('.security-panel-header h3').html('Access Rules <a href="#" class="panel-help-link" target="_blank"><i class="fa fa-question-circle-o"></i></a>');
+    $panel.find('.security-panel-header h3').html('Access Rules <a href="https://help.fliplet.com/file-access-rules/" class="panel-help-link" target="_blank"><i class="fa fa-question-circle-o"></i></a>');
 
     // Render path breadcrumb below header
     renderPanelPath($panel);
