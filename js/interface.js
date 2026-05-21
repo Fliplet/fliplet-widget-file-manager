@@ -702,7 +702,7 @@ function getFolderContents(el, isRootFolder) {
   if (el.attr('data-type') === 'app') {
     options.appId = el.attr('data-app-id');
     currentAppId = el.attr('data-app-id');
-    currentAppName = el.find('.list-text-holder span').text() || 'App Files';
+    currentAppName = el.find('.list-text-holder span').text() || 'Project Files';
     currentFolderId = null;
 
     // Update security rules role for this app context
@@ -1129,7 +1129,7 @@ function resetUpTo(element) {
   // Set app context before updatePaths so breadcrumb dropdown includes access rules
   if (type === 'app') {
     currentAppId = appId;
-    currentAppName = element.find('.list-text-holder span').first().text() || 'App Files';
+    currentAppName = element.find('.list-text-holder span').first().text() || 'Project Files';
   } else if (type === 'organization') {
     currentAppId = null;
     currentAppName = null;
@@ -1161,7 +1161,7 @@ function getFoldersData(options, filterFiles, filterFolders) {
 
       // Update folder security card even for empty folders
       if (window.FileSecurityRules) {
-        var folderName = navStack.length > 0 ? navStack[navStack.length - 1].name : (currentAppName || 'App Files');
+        var folderName = navStack.length > 0 ? navStack[navStack.length - 1].name : (currentAppName || 'Project Files');
         var folderId = currentFolderId || 'root';
 
         window.FileSecurityRules.updateFolderSecurityCard(folderId, folderName);
@@ -1345,7 +1345,7 @@ function renderList() {
 
   // Update folder security card with current folder context
   if (window.FileSecurityRules) {
-    var folderName = navStack.length > 0 ? navStack[navStack.length - 1].name : (currentAppName || 'App Files');
+    var folderName = navStack.length > 0 ? navStack[navStack.length - 1].name : (currentAppName || 'Project Files');
     var folderId = currentFolderId || 'root';
 
     window.FileSecurityRules.updateFolderSecurityCard(folderId, folderName);
@@ -1646,7 +1646,7 @@ function updateSearchTypeOptions(type) {
       ? [
         {
           value: 'app',
-          label: 'This app'
+          label: 'This project'
         }
       ]
       : [
@@ -2121,7 +2121,7 @@ $('.file-manager-wrapper')
 
     if (window.FileSecurityRules) {
       var folderId = currentFolderId || 'root';
-      var folderName = navStack.length > 0 ? navStack[navStack.length - 1].name : (currentAppName || 'App Files');
+      var folderName = navStack.length > 0 ? navStack[navStack.length - 1].name : (currentAppName || 'Project Files');
 
       window.FileSecurityRules.openSecurityPanel('folder', folderId, folderName);
     }
@@ -2595,7 +2595,7 @@ $('.file-manager-wrapper')
       name: 'app-settings',
       options: {
         size: 'large',
-        title: 'App Settings',
+        title: 'Project Settings',
         appId: selectedAppId,
         section: 'appBilling',
         helpLink: 'https://help.fliplet.com/app-settings/'
