@@ -333,7 +333,7 @@
     if (isOrg) {
       displayName = folderName || 'Organization Files';
     } else {
-      displayName = folderName || (typeof currentAppName !== 'undefined' && currentAppName) || 'App Files';
+      displayName = folderName || (typeof currentAppName !== 'undefined' && currentAppName) || 'Project Files';
     }
 
     $card.find('.folder-access-name').text(displayName);
@@ -470,17 +470,17 @@
 
   function describeApps(rule) {
     if (!rule.appId || (Array.isArray(rule.appId) && rule.appId.length === 0)) {
-      return 'All apps';
+      return 'All projects';
     }
 
-    if (rule.appId === null) return 'All apps';
+    if (rule.appId === null) return 'All projects';
 
     const ids = Array.isArray(rule.appId) ? rule.appId : [rule.appId];
 
     const names = ids.map(function(id) {
       const app = appsList.find(function(a) { return a.id === id; });
 
-      return app ? escapeHtml(app.name) : 'App ' + id;
+      return app ? escapeHtml(app.name) : 'Project ' + id;
     });
 
     return names.join(', ');
@@ -773,7 +773,7 @@
       } else {
         updateFolderSecurityCard(
           $card.data('folder-id') || 'root',
-          $card.data('folder-name') || 'App Files'
+          $card.data('folder-name') || 'Project Files'
         );
       }
     }
@@ -836,11 +836,11 @@
 
     if (own.length > 0 && isOrg) {
       html = '<div class="callout callout-primary">' +
-        '<p>Organization-level access rules. Apps and files without their own rules will inherit these.</p>' +
+        '<p>Organization-level access rules. Projects and files without their own rules will inherit these.</p>' +
         '</div>';
     } else if (own.length === 0 && isOrg) {
       html = '<div class="callout callout-warning">' +
-        '<p>No organization-level access rules. Files without app or folder rules will be denied.</p>' +
+        '<p>No organization-level access rules. Files without project or folder rules will be denied.</p>' +
         '</div>';
     } else if (own.length > 0 && !isRoot && !isFile) {
       html = '<div class="callout callout-primary">' +
@@ -861,7 +861,7 @@
       if (effective.inheritedFrom.type === 'organization') {
         inheritSource = 'organization';
       } else if (effective.inheritedFrom.type === 'app') {
-        inheritSource = 'app';
+        inheritSource = 'project';
       }
 
       html = '<div class="callout callout-primary">' +
@@ -871,7 +871,7 @@
     } else if (effective.rules.length === 0) {
       html = '<div class="callout callout-warning">' +
         '<p>No access rules. This ' + currentSecurityTarget.type +
-          ' is not accessible to app users. Add rules below.</p>' +
+          ' is not accessible to project users. Add rules below.</p>' +
         '</div>';
     }
 
@@ -1056,10 +1056,10 @@
           .data('folder-name', inheritedName)
           .data('inherited-type', 'organization');
       } else if (effective.inheritedFrom.type === 'app') {
-        inheritedName = effective.inheritedFrom.appName || (typeof currentAppName !== 'undefined' ? currentAppName : 'App Files');
+        inheritedName = effective.inheritedFrom.appName || (typeof currentAppName !== 'undefined' ? currentAppName : 'Project Files');
         inheritedId = 'root';
 
-        $section.find('.inherited-from-path').text('Inherited from app: ' + inheritedName);
+        $section.find('.inherited-from-path').text('Inherited from project: ' + inheritedName);
         $section.find('[data-edit-inherited-rules]')
           .show()
           .data('folder-id', inheritedId)
@@ -1102,7 +1102,7 @@
 
   let editingRuleIndex = null; // null = adding new, number = editing existing
   let dataSourcesList = [];    // Cached data sources for the select dropdown
-  let appsList = [];           // Cached apps for the "Specific apps" checkboxes
+  let appsList = [];           // Cached projects for the "Specific projects" checkboxes
   let tokensList = [];         // Cached tokens for the "Specific token" select
   let panelContextStack = [];  // Stack for navigating between inherited folder contexts
   let customRuleEditor = null; // CodeMirror instance for custom JS rules
@@ -1771,7 +1771,7 @@
           } else {
             updateFolderSecurityCard(
               $card.data('folder-id') || 'root',
-              $card.data('folder-name') || 'App Files'
+              $card.data('folder-name') || 'Project Files'
             );
           }
         }
@@ -1812,7 +1812,7 @@
       const $card = $('.folder-security-card');
       const cardType = $card.data('folder-type');
       const folderId = $card.data('folder-id') || 'root';
-      const folderName = $card.data('folder-name') || 'App Files';
+      const folderName = $card.data('folder-name') || 'Project Files';
 
       if (cardType === 'organization') {
         openSecurityPanel('organization', folderId, folderName);
@@ -2132,7 +2132,7 @@
       if (hadRules && hasNoRules) {
         Fliplet.Modal.confirm({
           title: 'Remove all access rules?',
-          message: 'This ' + currentSecurityTarget.type + ' will no longer be accessible to app users.',
+          message: 'This ' + currentSecurityTarget.type + ' will no longer be accessible to project users.',
           buttons: {
             cancel: {
               label: 'Cancel',
@@ -2247,7 +2247,7 @@
     // Initial badge update — only when app context exists
     if (getAppId()) {
       setTimeout(updateSecurityBadges, 500);
-      updateFolderSecurityCard('root', 'App Files');
+      updateFolderSecurityCard('root', 'Project Files');
       $('.help-tips').addClass('hidden');
     }
   }
