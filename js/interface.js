@@ -2396,14 +2396,32 @@ $('.file-manager-wrapper')
 
       await updatePromise;
 
-      $('.file-row[data-id="' + itemID + '"]').find('.file-name span').html(changedName);
+      const $renamedRow = $('.file-row[data-id="' + itemID + '"]');
+
+      $renamedRow.find('.file-name span').html(changedName);
+      $renamedRow.attr('data-name', changedName);
 
       if (itemType === 'folder') {
         const folder = currentFolders.find(folder => folder.id === itemID);
         if (folder) folder.name = changedName;
       } else {
         const file = currentFiles.find(file => file.id === itemID);
-        if (file) file.name = changedName;
+
+        if (file) {
+          file.name = changedName;
+
+          // Rebuild the authenticated /contents/<name> URL so the served URL,
+          // Open action and any shared/copied link reflect the new name.
+          // buildFileContentUrl embeds file.name, but file.url and the row's
+          // data-file-url are frozen at render time (see addFile), so without
+          // this they keep pointing at the old upload name.
+          file.url = buildFileContentUrl(file);
+
+          // Update the attribute AND jQuery's cached .data() value — the Open
+          // and preview handlers read .data('file-url'), which is cached from
+          // the attribute on first access and is not refreshed by .attr() alone.
+          $renamedRow.attr('data-file-url', file.url).data('file-url', file.url);
+        }
       }
     } catch (err) {
       Fliplet.Modal.alert({
