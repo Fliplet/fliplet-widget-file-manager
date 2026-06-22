@@ -2595,7 +2595,7 @@ $('.file-manager-wrapper')
       name: 'app-settings',
       options: {
         size: 'large',
-        title: 'Project Settings',
+        title: 'Settings',
         appId: selectedAppId,
         section: 'appBilling',
         helpLink: 'https://help.fliplet.com/app-settings/'

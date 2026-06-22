@@ -871,7 +871,7 @@
     } else if (effective.rules.length === 0) {
       html = '<div class="callout callout-warning">' +
         '<p>No access rules. This ' + currentSecurityTarget.type +
-          ' is not accessible to project users. Add rules below.</p>' +
+          ' is not accessible to users. Add rules below.</p>' +
         '</div>';
     }
 
@@ -2132,7 +2132,7 @@
       if (hadRules && hasNoRules) {
         Fliplet.Modal.confirm({
           title: 'Remove all access rules?',
-          message: 'This ' + currentSecurityTarget.type + ' will no longer be accessible to project users.',
+          message: 'This ' + currentSecurityTarget.type + ' will no longer be accessible to users.',
           buttons: {
             cancel: {
               label: 'Cancel',
